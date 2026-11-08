@@ -3,190 +3,255 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nephora Лидерборд</title>
+<title>Nephora Arena</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f1f0fb; --card:#ffffff; --ink:#1b1830; --muted:#7a7894; --line:#e7e5f3; --track:#e4e2f0;
-  --day1:#ec4f8f; --day2:#9b5cf0; --mon1:#5fd8c4; --mon2:#6ddc6a;
-  --gold:#fff3d1; --gold-b:#f5c542; --silver:#eef0f4; --silver-b:#a9b0bf; --bronze:#fbe6d9; --bronze-b:#e47a3b;
-  --accent:#4f7cf7; --ok:#25b36b; --warn:#f08a24;
+--bg:#0b0a1a; --bg2:#14122b; --panel:#17153a; --panel2:#1f1c4a; --line:#2c2860; --ink:#f3f1ff; --muted:#8f8ab8;
+--neon:#7c5cff; --cyan:#22d3ee; --pink:#ff4fa3; --lime:#a3ff5c; --gold:#ffc83d; --silver:#c9d1e6; --bronze:#ff9a5c; --fire:#ff6b2c;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(1200px 600px at 10% -10%,#2a1d6b 0%,transparent 60%),radial-gradient(900px 500px at 100% 0%,#0f3a5a 0%,transparent 55%),var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(124,92,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(124,92,255,.06) 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(180deg,#000,transparent 70%)}
 button,input,select{font:inherit;color:inherit}
-.app{display:flex;flex-direction:column;gap:16px;padding:16px 20px;min-height:100%}
-/* header */
-.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.live{display:inline-flex;align-items:center;gap:6px;background:#e3f7ea;color:var(--ok);font-weight:700;font-size:12px;padding:6px 10px;border-radius:99px;letter-spacing:.04em}
-.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.6s infinite}
-.live.off{background:#fde8e8;color:#d33}.live.off i{background:#d33;animation:none}
-@keyframes pulse{50%{opacity:.3}}
-.clock{font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)}
-.toppill{display:flex;align-items:center;gap:10px;border:2px solid var(--accent);background:linear-gradient(90deg,#eef3ff,#f7f4ff);border-radius:16px;padding:6px 14px 6px 8px}
-.toppill .lbl{color:var(--accent);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-.toppill b{display:block;font-size:14px}.toppill small{color:var(--accent);font-weight:600}
-.tabs{display:flex;gap:6px;background:var(--card);padding:4px;border-radius:12px;margin-left:auto;flex-wrap:wrap}
-.tabs button{border:0;background:none;padding:8px 14px;border-radius:9px;cursor:pointer;font-weight:600;color:var(--muted)}
-.tabs button.on{background:var(--ink);color:#fff}
-.iconbtn{border:0;background:var(--card);width:38px;height:38px;border-radius:10px;cursor:pointer;font-size:18px}
+.disp{font-family:"Russo One",Manrope,sans-serif;letter-spacing:.02em}
+.num{font-variant-numeric:tabular-nums}
+.app{position:relative;display:flex;flex-direction:column;gap:16px;padding:16px 20px;max-width:1600px;margin:0 auto}
+
+/* HUD */
+.hud{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-size:20px}
+.logo i{width:34px;height:34px;border-radius:10px;background:conic-gradient(from 200deg,var(--neon),var(--cyan),var(--pink),var(--neon));display:grid;place-items:center;font-style:normal;font-size:18px;box-shadow:0 0 18px rgba(124,92,255,.6)}
+.logo span{background:linear-gradient(90deg,#fff,#c8bcff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.live{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(163,255,92,.35);color:var(--lime);font-weight:800;font-size:11px;padding:5px 10px;border-radius:99px;letter-spacing:.12em}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime);animation:pulse 1.4s infinite}
+.live.off{border-color:rgba(255,79,163,.4);color:var(--pink)}.live.off i{background:var(--pink);box-shadow:none;animation:none}
+@keyframes pulse{50%{opacity:.25}}
+.clock{font-size:18px;color:var(--muted)}
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--line);padding:4px;border-radius:12px;margin-left:auto;flex-wrap:wrap}
+.tabs button{border:0;background:none;padding:7px 14px;border-radius:9px;cursor:pointer;font-weight:700;color:var(--muted)}
+.tabs button.on{background:linear-gradient(135deg,var(--neon),#5a3df0);color:#fff;box-shadow:0 4px 14px rgba(124,92,255,.45)}
 .updated{color:var(--muted);font-size:12px}
+.iconbtn{border:1px solid var(--line);background:rgba(255,255,255,.04);width:38px;height:38px;border-radius:10px;cursor:pointer;font-size:17px;color:var(--ink)}
+.iconbtn:hover{border-color:var(--neon)}
+
+/* panels */
+.panel{background:linear-gradient(180deg,rgba(31,28,74,.9),rgba(23,21,58,.9));border:1px solid var(--line);border-radius:20px;padding:18px;position:relative;overflow:hidden}
+.ptitle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin-bottom:12px}
+.ptitle b{color:var(--ink)}
+
+/* mission */
+.mission{display:grid;grid-template-columns:1.6fr 1fr;gap:20px;align-items:center}
+.mission .big{font-size:44px;line-height:1;margin:2px 0 6px}
+.mission .big small{font-size:16px;color:var(--muted);font-family:Manrope;font-weight:700}
+.hp{position:relative;height:22px;border-radius:12px;background:#0e0c26;border:1px solid var(--line);overflow:visible;margin-top:14px}
+.hp>i{position:absolute;left:0;top:0;bottom:0;border-radius:12px;background:linear-gradient(90deg,var(--neon),var(--cyan));box-shadow:0 0 18px rgba(34,211,238,.45);transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.hp>i::after{content:"";position:absolute;inset:0;border-radius:12px;background:repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 10px,transparent 10px 20px);animation:slide 1.2s linear infinite}
+@keyframes slide{to{background-position:28px 0}}
+.hp .pct{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-weight:800;font-size:12px}
+.ms{position:absolute;top:-6px;bottom:-6px;width:2px;background:rgba(255,255,255,.25)}
+.ms span{position:absolute;top:28px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap;font-weight:700}
+.ms.done{background:var(--lime)}.ms.done span{color:var(--lime)}
+.chips{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.chip{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:12px}
+.chip .k{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.chip .v{font-size:20px;margin-top:4px}
+.cps{display:flex;gap:8px;flex-wrap:wrap;margin-top:34px}
+.cp{display:flex;gap:8px;align-items:center;border:1px dashed var(--line);border-radius:10px;padding:6px 10px;font-size:12px;color:var(--muted)}
+.cp b{color:var(--ink)}.cp.done{border-style:solid;border-color:rgba(163,255,92,.35)}.cp.now{border-color:var(--cyan);color:var(--cyan)}
+
 /* layout */
-.grid{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;align-items:start}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
-.card{background:var(--card);border-radius:20px;padding:20px;box-shadow:0 1px 0 rgba(30,20,80,.04)}
+.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:stretch}
+
+/* podium */
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:14px;align-items:end;min-height:340px;padding-top:8px}
+.pl{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;min-width:0}
+.pl .nm{font-weight:800;font-size:15px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl .sum{font-size:18px}
+.pl .ped{width:100%;border-radius:16px 16px 6px 6px;display:grid;place-items:center;font-size:42px;margin-top:6px;position:relative;overflow:hidden}
+.pl .ped::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 60%)}
+.p1 .ped{height:150px;background:linear-gradient(180deg,#ffd76a,#c8890a);color:#5a3a00;box-shadow:0 0 40px rgba(255,200,61,.35)}
+.p2 .ped{height:110px;background:linear-gradient(180deg,#e6ebf7,#8d97b3);color:#3b4258}
+.p3 .ped{height:84px;background:linear-gradient(180deg,#ffbf8f,#c4612a);color:#5a2400}
+.crown{font-size:28px;filter:drop-shadow(0 0 10px rgba(255,200,61,.8));animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.pl.empty{opacity:.35}
+
+/* avatar w/ level ring */
+.av{--sz:46px;--c:var(--neon);width:var(--sz);height:var(--sz);border-radius:50%;flex:none;position:relative;display:grid;place-items:center;background:#262257;font-weight:800;color:#cfc8ff;font-size:calc(var(--sz)*.32);box-shadow:0 0 0 2px var(--bg2),0 0 0 4px var(--c),0 0 14px var(--c)}
+.av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.av .lv{position:absolute;bottom:-6px;right:-6px;background:var(--c);color:#0b0a1a;font-size:10px;font-weight:800;border-radius:8px;padding:1px 5px;border:2px solid var(--bg2)}
+.av.xl{--sz:84px}.av.lg{--sz:66px}
+
+/* MVP + feed */
 .side{display:flex;flex-direction:column;gap:16px}
-.h{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-.h .ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#f7d6f3,#e2d6ff);display:grid;place-items:center;font-size:20px}
-.h b{font-size:20px;display:block}.h small{color:var(--muted)}
-.stat{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px}
-.stat .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.stat .k{color:var(--muted);font-weight:600}
-.pct{font-weight:800;font-size:24px}
-.pct.day{color:var(--day2)}.pct.mon{color:var(--ok)}
-.stat .v{font-weight:700;font-size:16px;margin-top:8px;font-variant-numeric:tabular-nums}
-.stat .v span{color:var(--muted);font-weight:500}
-.bar{height:8px;border-radius:99px;background:var(--track);overflow:hidden;margin-top:8px}
-.bar i{display:block;height:100%;border-radius:99px;min-width:0;transition:width .6s}
-.bar.day i{background:linear-gradient(90deg,var(--day2),var(--day1))}
-.bar.mon i{background:linear-gradient(90deg,var(--mon1),var(--mon2))}
-.leader{display:flex;gap:14px;align-items:center}
-.leader .who b{font-size:19px;display:block}
-.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:#fff1d6;color:#c98a00}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.two .stat{margin-top:12px}
-.two .stat .v{font-size:15px}
-.cps{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-.cp{display:flex;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-variant-numeric:tabular-nums}
-.cp.now{border-color:var(--day2);background:#f7f2ff}
-.cp span{color:var(--muted)}
-/* avatar */
-.av{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;background:#e9e7f5;display:grid;place-items:center;font-weight:700;color:#6c6890;font-size:14px;border:2px solid #fff;box-shadow:0 0 0 2px #dcd8f0}
-.av.big{width:76px;height:76px;font-size:22px;box-shadow:0 0 0 3px var(--gold-b)}
-/* table */
-.tbl{padding:8px 0;overflow:hidden}
-.trow{display:grid;grid-template-columns:44px minmax(220px,1.3fr) 1fr 1fr;gap:18px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--line)}
-.trow:last-child{border-bottom:0}
-@media(max-width:700px){
-  .app{padding:12px 16px}
-  .trow{grid-template-columns:32px 1fr;gap:10px 12px;padding:12px 14px}
-  .trow .metric{grid-column:2}
-  .thead div:nth-child(n+3){display:none}
-  .metric .line::before{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase}
-  .metric.day .line::before{content:'Сегодня'}.metric.mon .line::before{content:'Месяц'}
-  .metric .line{flex-wrap:wrap}
-}
-.thead{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding-top:12px;padding-bottom:12px}
-.rank{font-weight:800;font-size:16px;color:var(--muted);text-align:center}
-.r1{background:var(--gold);box-shadow:inset 4px 0 0 var(--gold-b)}.r1 .rank{color:#c98a00}
-.r2{background:var(--silver);box-shadow:inset 4px 0 0 var(--silver-b)}
-.r3{background:var(--bronze);box-shadow:inset 4px 0 0 var(--bronze-b)}.r3 .rank{color:var(--bronze-b)}
-.mgr{display:flex;align-items:center;gap:12px;min-width:0}
-.mgr .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mgr .sub{display:flex;gap:6px;align-items:center;margin-top:3px;flex-wrap:wrap}
-.b{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px}
-.b.fire{background:#ffe9db;color:#e8661c}.b.m2{background:#fff1d6;color:#c98a00}.b.dep{background:#efedf8;color:#6c6890}.b.cnt{background:#eaf3ff;color:#3d6fe0}
-.metric .line{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.metric .sum{font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
-.metric .sum span{color:var(--muted);font-weight:500;font-size:12px}
-.metric .p{font-weight:800;font-size:17px}
-.metric.day .p{color:var(--day2)}.metric.mon .p{color:var(--ok)}
-.p.na{color:var(--muted)!important;font-weight:600;font-size:13px}
+.mvp{display:flex;gap:16px;align-items:center}
+.mvp .tag{display:inline-block;background:linear-gradient(90deg,var(--pink),var(--neon));color:#fff;font-size:10px;font-weight:800;letter-spacing:.14em;padding:3px 8px;border-radius:6px}
+.mvp b{display:block;font-size:20px;margin:6px 0 2px}
+.mvp .sum{font-size:24px;color:var(--cyan)}
+.feed{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto}
+.fi{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid transparent}
+.fi .av{--sz:30px;box-shadow:0 0 0 2px var(--bg2),0 0 0 3px var(--c)}
+.fi .who{flex:1;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi .t{color:var(--muted);font-size:12px}
+.fi .s{font-weight:800;color:var(--lime)}
+.fi.new{border-color:var(--lime);animation:flash 2s ease}
+@keyframes flash{0%{background:rgba(163,255,92,.25)}100%{background:rgba(255,255,255,.03)}}
+
+/* board */
+.board .row{display:grid;grid-template-columns:52px minmax(220px,1.4fr) 1fr 1fr 1.1fr;gap:16px;align-items:center;padding:12px 14px;border-radius:14px;margin-bottom:6px;background:rgba(255,255,255,.025);border:1px solid transparent;transition:transform .4s}
+.board .row:hover{border-color:var(--line)}
+.board .head{background:none;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding-top:0;padding-bottom:4px}
+.rk{font-size:22px;color:var(--muted);text-align:center;position:relative}
+.rk .mv{display:block;font-size:10px;font-family:Manrope;font-weight:800}
+.mv.up{color:var(--lime)}.mv.dn{color:var(--pink)}
+.who{display:flex;align-items:center;gap:12px;min-width:0}
+.who .nm{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badges{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}
+.bd{font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.07);color:var(--muted);letter-spacing:.03em}
+.bd.tier{color:#0b0a1a}
+.bd.fire{background:rgba(255,107,44,.16);color:var(--fire)}
+.bd.star{background:rgba(255,200,61,.16);color:var(--gold)}
+.bd.bolt{background:rgba(34,211,238,.15);color:var(--cyan)}
+.bd.goal{background:rgba(163,255,92,.15);color:var(--lime)}
+.val .s{font-weight:800;font-size:15px}
+.val .s span{color:var(--muted);font-weight:600;font-size:12px}
+.val .sub{color:var(--muted);font-size:11px;margin-top:2px}
+.mini{height:6px;border-radius:6px;background:#0e0c26;margin-top:6px;overflow:hidden}
+.mini i{display:block;height:100%;border-radius:6px;transition:width .8s}
+.mini.day i{background:linear-gradient(90deg,var(--pink),var(--neon))}
+.mini.mon i{background:linear-gradient(90deg,var(--cyan),var(--lime))}
+.xp .lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:700}
+.xp .lbl b{color:var(--ink)}
+.xpbar{height:10px;border-radius:6px;background:#0e0c26;margin-top:6px;overflow:hidden;border:1px solid var(--line)}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--c),#fff);transition:width .8s;box-shadow:0 0 10px var(--c)}
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.err{background:rgba(255,79,163,.12);border:1px solid rgba(255,79,163,.4);color:#ffb3d6;padding:12px 16px;border-radius:12px;font-weight:700}
+
+/* toast + confetti */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:20}
+.toast{position:fixed;left:50%;top:22px;transform:translate(-50%,-140%);z-index:21;background:linear-gradient(135deg,#1d1a48,#2a1f66);border:1px solid var(--lime);border-radius:16px;padding:12px 18px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 40px rgba(0,0,0,.5),0 0 30px rgba(163,255,92,.25);transition:transform .5s cubic-bezier(.2,1.4,.4,1)}
+.toast.on{transform:translate(-50%,0)}
+.toast .big{font-size:22px;color:var(--lime)}
+
 /* modal */
-.modal{position:fixed;inset:0;background:rgba(20,16,40,.45);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow:auto;z-index:10}
+.modal{position:fixed;inset:0;background:rgba(5,4,15,.7);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow:auto;z-index:30}
 .modal.on{display:flex}
-.sheet{background:var(--card);border-radius:20px;padding:24px;width:min(900px,100%)}
-.sheet h2{margin:0 0 16px;font-size:20px}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;width:min(900px,100%)}
+.sheet h2{margin:0 0 16px;font-size:20px;font-family:"Russo One"}
 .f{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
-.f label{font-weight:600;font-size:13px}.f small{color:var(--muted)}
-.f input,.f select{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fbfbfe;width:100%}
+.f label{font-weight:700;font-size:13px}.f small{color:var(--muted)}
+.f input{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#0e0c26;width:100%}
 .fr{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .ttable{width:100%;border-collapse:collapse;margin-top:8px}
 .ttable th{text-align:left;font-size:12px;color:var(--muted);padding:6px;border-bottom:1px solid var(--line)}
 .ttable td{padding:5px 6px;border-bottom:1px solid var(--line)}
-.ttable input[type=number]{width:130px;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.ttable input[type=number]{width:130px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#0e0c26}
 .tscroll{max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:0 8px}
 .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
-.btn{border:0;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;background:#efedf8}
-.btn.pri{background:var(--ink);color:#fff}
-.err{background:#fde8e8;color:#b42318;padding:12px 16px;border-radius:12px;font-weight:600}
-.hint{background:#f4f2ff;border-radius:12px;padding:12px 14px;color:#4b4769;font-size:13px;line-height:1.5;margin-bottom:14px}
-.hint code{background:#fff;padding:1px 5px;border-radius:5px}
+.btn{border:1px solid var(--line);border-radius:10px;padding:10px 18px;font-weight:800;cursor:pointer;background:rgba(255,255,255,.05)}
+.btn.pri{background:linear-gradient(135deg,var(--neon),#5a3df0);border-color:transparent}
+.hint{background:rgba(124,92,255,.1);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:#cfc8ff;font-size:13px;line-height:1.5;margin-bottom:14px}
+.hint code{background:#0e0c26;padding:1px 5px;border-radius:5px}
+
+@media(max-width:1100px){.grid{grid-template-columns:1fr}.mission{grid-template-columns:1fr}}
+@media(max-width:760px){
+.app{padding:12px 16px}
+.mission .big{font-size:32px}
+.podium{min-height:0;gap:8px}.pl .ped{font-size:28px}.p1 .ped{height:110px}.p2 .ped{height:80px}.p3 .ped{height:60px}
+.av.xl{--sz:62px}.av.lg{--sz:50px}.pl .sum{font-size:14px}.pl .nm{font-size:13px}
+.board .row{grid-template-columns:36px 1fr;gap:8px 12px}
+.board .row>.val,.board .row>.xp{grid-column:2}
+.board .head{display:none}
+.val .s::before{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:.1em;margin-right:6px}
+.val.day .s::before{content:'СЕГОДНЯ'}.val.mon .s::before{content:'МЕСЯЦ'}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
+<canvas id="fx"></canvas>
+<div class="toast" id="toast"></div>
 <div class="app">
-  <div class="top">
+  <header class="hud">
+    <div class="logo disp"><i>🎮</i><span>NEPHORA ARENA</span></div>
     <span class="live" id="live"><i></i>LIVE</span>
-    <span class="clock" id="clock">--:--:--</span>
-    <div class="toppill" id="toppill" hidden></div>
+    <span class="clock disp num" id="clock">--:--:--</span>
     <div class="tabs" id="tabs"></div>
     <span class="updated" id="updated"></span>
     <button class="iconbtn" id="refreshBtn" title="Обновить">⟳</button>
     <button class="iconbtn" id="setBtn" title="Настройки">⚙</button>
-  </div>
+  </header>
   <div id="msg"></div>
+  <section class="panel mission" id="mission"></section>
   <div class="grid">
+    <section class="panel"><div class="ptitle">🏆 <b>Пьедестал месяца</b></div><div class="podium" id="podium"></div></section>
     <div class="side">
-      <div class="card" id="deptCard"></div>
-      <div class="card" id="leaderCard"></div>
+      <section class="panel" id="mvp"></section>
+      <section class="panel"><div class="ptitle">⚡ <b>Лента заказов</b> · сегодня</div><div class="feed" id="feed"></div></section>
     </div>
-    <div class="card tbl" id="table"></div>
   </div>
+  <section class="panel board" id="board"></section>
 </div>
 
 <div class="modal" id="modal">
-  <div class="sheet">
-    <h2>Настройки лидерборда</h2>
-    <div class="hint">
-      Данные: сделки в стадиях «Заказ» и «Заказ на подтверждение» (Первичный) и «Заказ», «Заказ на подтверждение», «Курьерская доставка», «Доработка», «Доставлено/Оплачено» (Доставка). День заказа — поле <b>«Дата заказа»</b>. «Предзаказ» и отказы не считаются.<br>
-      Вебхук: Bitrix24 → Разработчикам → Другое → <b>Входящий вебхук</b>, права: <code>crm</code>, <code>user</code>, <code>department</code>. Вставьте URL вида <code>https://nephora.bitrix24.kz/rest/1/xxxx/</code>. Он хранится только в этом браузере.
-    </div>
-    <div class="f"><label>URL вебхука</label><input id="sWebhook" placeholder="https://nephora.bitrix24.kz/rest/1/xxxxxxxx/" autocomplete="off"></div>
-    <div class="fr">
-      <div class="f"><label>План на день по умолчанию, ₸</label><input id="sDefDay" type="number" min="0" step="1000"></div>
-      <div class="f"><label>План на месяц по умолчанию, ₸</label><input id="sDefMon" type="number" min="0" step="10000"></div>
-      <div class="f"><label>Контрольные точки</label><input id="sCps" placeholder="14:00, 17:00, 20:00"></div>
-      <div class="f"><label>Обновление, сек</label><input id="sRefresh" type="number" min="15"></div>
-    </div>
-    <div class="f">
-      <label>Планы менеджеров</label>
-      <small>Пустое поле = план по умолчанию. «Скрыть» убирает человека из лидерборда.</small>
-      <input id="sFilter" placeholder="Поиск по имени…">
-      <div class="tscroll"><table class="ttable"><thead><tr><th>Менеджер</th><th>Отдел</th><th>План/день</th><th>План/месяц</th><th>Скрыть</th></tr></thead><tbody id="sRows"></tbody></table></div>
-    </div>
-    <div class="acts">
-      <button class="btn" id="exportBtn">Экспорт настроек</button>
-      <button class="btn" id="importBtn">Импорт</button>
-      <span style="flex:1"></span>
-      <button class="btn" id="cancelBtn">Отмена</button>
-      <button class="btn pri" id="saveBtn">Сохранить</button>
-    </div>
-  </div>
+<div class="sheet">
+<h2>Настройки арены</h2>
+<div class="hint">
+Данные: сделки в стадиях «Заказ» и «Заказ на подтверждение» (Первичный) и «Заказ», «Заказ на подтверждение», «Курьерская доставка», «Доработка», «Доставлено/Оплачено» (Доставка). День заказа — поле <b>«Дата заказа»</b>. «Предзаказ» и отказы не считаются.<br>
+Уровни (за месяц): Новичок → Бронза 300K → Серебро 700K → Золото 1.2M → Платина 2M → Легенда 3M.<br>
+Вебхук: Bitrix24 → Разработчикам → Другое → <b>Входящий вебхук</b>, права: <code>crm</code>, <code>user</code>, <code>department</code>. Хранится только в этом браузере.
+</div>
+<div class="f"><label>URL вебхука</label><input id="sWebhook" placeholder="https://nephora.bitrix24.kz/rest/1/xxxxxxxx/" autocomplete="off"></div>
+<div class="fr">
+<div class="f"><label>План на день по умолчанию, ₸</label><input id="sDefDay" type="number" min="0" step="1000"></div>
+<div class="f"><label>План на месяц по умолчанию, ₸</label><input id="sDefMon" type="number" min="0" step="10000"></div>
+<div class="f"><label>Контрольные точки</label><input id="sCps" placeholder="14:00, 17:00, 20:00"></div>
+<div class="f"><label>Обновление, сек</label><input id="sRefresh" type="number" min="15"></div>
+</div>
+<div class="f">
+<label>Планы менеджеров</label>
+<small>Пустое поле = план по умолчанию. «Скрыть» убирает игрока с арены.</small>
+<input id="sFilter" placeholder="Поиск по имени…">
+<div class="tscroll"><table class="ttable"><thead><tr><th>Менеджер</th><th>Отдел</th><th>План/день</th><th>План/месяц</th><th>Скрыть</th></tr></thead><tbody id="sRows"></tbody></table></div>
+</div>
+<div class="acts">
+<button class="btn" id="exportBtn">Экспорт настроек</button>
+<button class="btn" id="importBtn">Импорт</button>
+<span style="flex:1"></span>
+<button class="btn" id="cancelBtn">Отмена</button>
+<button class="btn pri" id="saveBtn">Сохранить</button>
+</div>
+</div>
 </div>
 
 <script>
-/* ===== Конфигурация воронки ===== */
+/* ===== Конфигурация ===== */
 const CFG = {
-  categoryId: 0,              // «Первичный»
-  orderStage: 'UC_IP5X36',    // «Заказ»
   tz: 'Asia/Almaty', tzOffset: '+05:00',
-  bigBadge: 2000000,          // бейдж «2M+»
+  bigBadge: 2000000,
   streakLookbackDays: 14,
   orderDateField: 'UF_CRM_1784559416867', // «Дата заказа» — по нему считается день заказа
   // Стадии «факт кассы»: Первичный → Заказ, Заказ на подтверждение; Доставка → Заказ, Заказ на подтверждение, Курьерская доставка, Доработка, Доставлено/Оплачено
-  factStages: ['UC_IP5X36','WON','C1:NEW','C1:PREPARATION','C1:PREPAYMENT_INVOICE','C1:FINAL_INVOICE','C1:WON']
+  factStages: ['UC_IP5X36','WON','C1:NEW','C1:PREPARATION','C1:PREPAYMENT_INVOICE','C1:FINAL_INVOICE','C1:WON'],
+  // Уровни по сумме за месяц
+  tiers: [
+    {min:0,       name:'Новичок', c:'#8f8ab8'},
+    {min:300000,  name:'Бронза',  c:'#ff9a5c'},
+    {min:700000,  name:'Серебро', c:'#c9d1e6'},
+    {min:1200000, name:'Золото',  c:'#ffc83d'},
+    {min:2000000, name:'Платина', c:'#22d3ee'},
+    {min:3000000, name:'Легенда', c:'#ff4fa3'}
+  ]
 };
 const LS = 'nephora_lb_v1';
-// Входящий вебхук Bitrix24 по умолчанию (не коммитьте реальный URL в публичный репозиторий)
-const DEFAULT_WEBHOOK = /^https?:/.test(location.protocol) && !/bitrix24\./.test(location.host) ? '/api/rest/' : '';  // на сервере — через прокси
+const DEFAULT_WEBHOOK = /^https?:/.test(location.protocol) && !/bitrix24\./.test(location.host) ? '/api/rest/' : '';
 const DEF = {webhook:DEFAULT_WEBHOOK, defDay:0, defMon:0, cps:'14:00, 17:00, 20:00', refresh:60, targets:{}, hidden:{}, dept:'all'};
 let S = load();
-let D = null;   // загруженные данные
-let timer = null;
+let D = null, timer = null;
+let prevRanks = null, seenOrders = null;
 
 function load(){ let s; try{ s = Object.assign({}, DEF, JSON.parse(localStorage.getItem(LS)||'{}')); }catch(e){ s = {...DEF}; } if(!s.webhook) s.webhook = DEFAULT_WEBHOOK; return s; }
 const IN_APP = window.self!==window.top && new URLSearchParams(location.search).has('DOMAIN');
@@ -199,9 +264,9 @@ function save(){
 const dfmt = new Intl.DateTimeFormat('en-CA',{timeZone:CFG.tz,year:'numeric',month:'2-digit',day:'2-digit'});
 const tfmt = new Intl.DateTimeFormat('ru-RU',{timeZone:CFG.tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
 const hmfmt = new Intl.DateTimeFormat('en-GB',{timeZone:CFG.tz,hour:'2-digit',minute:'2-digit',hour12:false});
-const dayKey = d => dfmt.format(d);              // YYYY-MM-DD
+const dayKey = d => dfmt.format(d);
 const addDays = (key,n) => { const d=new Date(key+'T12:00:00'+CFG.tzOffset); d.setUTCDate(d.getUTCDate()+n); return dayKey(d); };
-const money = n => Math.round(n||0).toLocaleString('ru-RU').replace(/ |,/g,' ') + ' ₸';
+const money = n => Math.round(n||0).toLocaleString('ru-RU').replace(/\s|,/g,' ') + ' ₸';
 const short = n => n>=1e6 ? (Math.round(n/1e5)/10+'M').replace('.0M','M') : n>=1e3 ? Math.round(n/1e3)+'K' : String(Math.round(n));
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -216,7 +281,6 @@ function qs(obj, prefix){
   return out.filter(Boolean).join('&');
 }
 async function call(method, params={}){
-  // Внутри портала Bitrix24 (BX.rest) — без вебхука
   const sdk = IN_APP ? window.BX24 : (window.BX && BX.rest);
   if(sdk && (IN_APP || !S.webhook)){
     return new Promise((ok,fail)=>sdk.callMethod(method,params,r=>{
@@ -225,13 +289,12 @@ async function call(method, params={}){
   }
   if(!S.webhook) throw new Error('NO_WEBHOOK');
   const url = S.webhook.replace(/\/?$/,'/') + method + '.json';
-  // form-urlencoded = «простой» CORS-запрос, без preflight
   const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:qs(params)});
   const j = await res.json().catch(()=>({}));
   if(!res.ok || j.error) throw new Error(j.error_description||j.error||('HTTP '+res.status));
   return j;
 }
-async function batch(cmds){ // cmds: {key: [method, params]} → {key: result}
+async function batch(cmds){
   const keys=Object.keys(cmds), out={};
   for(let i=0;i<keys.length;i+=50){
     const cmd={}; keys.slice(i,i+50).forEach(k=>cmd[k]=cmds[k][0]+'?'+qs(cmds[k][1]));
@@ -243,7 +306,7 @@ async function batch(cmds){ // cmds: {key: [method, params]} → {key: result}
   }
   return out;
 }
-async function listAll(method, params, pick){ // постраничная выборка
+async function listAll(method, params, pick){
   const first = await call(method,{...params,start:0});
   const items = [...pick(first.result)];
   const total = first.total||0;
@@ -255,28 +318,23 @@ async function listAll(method, params, pick){ // постраничная выб
 
 /* ===== Загрузка данных ===== */
 async function fetchData(){
-const now = new Date(), today = dayKey(now);
-const monthStart = today.slice(0,8)+'01';
-const fromKey = [monthStart, addDays(today,-CFG.streakLookbackDays)].sort()[0];
-const F = CFG.orderDateField;
-
-// Факт = сделки в стадиях CFG.factStages, день заказа — поле «Дата заказа»
-const [deps, users, deals] = await Promise.all([
-call('department.get',{}).then(r=>r.result),
-listAll('user.get',{FILTER:{ACTIVE:true}},r=>r||[]),
-listAll('crm.deal.list',{order:{ID:'ASC'},
-filter:{'@STAGE_ID':CFG.factStages, ['>='+F]:fromKey, ['<'+F]:addDays(today,1)},
-select:['ID','OPPORTUNITY','ASSIGNED_BY_ID','MOVED_TIME',F]}, r=>r||[])
-]);
-
-// уволенные/неактивные с заказами
-const umap = Object.fromEntries(users.map(u=>[String(u.ID),u]));
-const missing = [...new Set(deals.map(d=>String(d.ASSIGNED_BY_ID)))].filter(id=>!umap[id]);
-if(missing.length){ (await call('user.get',{FILTER:{ID:missing}})).result.forEach(u=>umap[String(u.ID)]=u); }
-
-const orders = deals.map(d=>({id:d.ID, uid:String(d.ASSIGNED_BY_ID), sum:+d.OPPORTUNITY||0,
-t:new Date(d.MOVED_TIME||now), dk:String(d[F]||'').slice(0,10)})).filter(o=>o.dk);
-return {now, today, monthStart, deps, umap, orders};
+  const now = new Date(), today = dayKey(now);
+  const monthStart = today.slice(0,8)+'01';
+  const fromKey = [monthStart, addDays(today,-CFG.streakLookbackDays)].sort()[0];
+  const F = CFG.orderDateField;
+  const [deps, users, deals] = await Promise.all([
+    call('department.get',{}).then(r=>r.result),
+    listAll('user.get',{FILTER:{ACTIVE:true}},r=>r||[]),
+    listAll('crm.deal.list',{order:{ID:'ASC'},
+      filter:{'@STAGE_ID':CFG.factStages, ['>='+F]:fromKey, ['<'+F]:addDays(today,1)},
+      select:['ID','OPPORTUNITY','ASSIGNED_BY_ID','MOVED_TIME',F]}, r=>r||[])
+  ]);
+  const umap = Object.fromEntries(users.map(u=>[String(u.ID),u]));
+  const missing = [...new Set(deals.map(d=>String(d.ASSIGNED_BY_ID)))].filter(id=>!umap[id]);
+  if(missing.length){ (await call('user.get',{FILTER:{ID:missing}})).result.forEach(u=>umap[String(u.ID)]=u); }
+  const orders = deals.map(d=>({id:String(d.ID), uid:String(d.ASSIGNED_BY_ID), sum:+d.OPPORTUNITY||0,
+    t:new Date(d.MOVED_TIME||now), dk:String(d[F]||'').slice(0,10)})).filter(o=>o.dk);
+  return {now, today, monthStart, deps, umap, orders};
 }
 
 /* ===== Расчёт ===== */
@@ -286,13 +344,17 @@ function deptTree(deps){
   return {sub};
 }
 function tgt(uid){ const t=S.targets[uid]||{}; return {day: t.day!==undefined&&t.day!=='' ? +t.day : +S.defDay||0, mon: t.mon!==undefined&&t.mon!=='' ? +t.mon : +S.defMon||0}; }
+function tierOf(sum){
+  let i=0; CFG.tiers.forEach((t,k)=>{ if(sum>=t.min) i=k; });
+  const t=CFG.tiers[i], nx=CFG.tiers[i+1];
+  return {...t, lvl:i+1, next:nx, prog: nx ? (sum-t.min)/(nx.min-t.min) : 1};
+}
 function compute(){
   const {today, monthStart, deps, umap, orders, now} = D;
   const tree = deptTree(deps);
   const allowed = S.dept==='all' ? null : new Set(tree.sub(S.dept));
   const depName = Object.fromEntries(deps.map(d=>[String(d.ID),d.NAME]));
   const inDept = u => !allowed || (u.UF_DEPARTMENT||[]).some(x=>allowed.has(String(x)));
-
   const M = {};
   const get = uid => M[uid] || (M[uid]={uid, u:umap[uid]||{ID:uid,NAME:'ID '+uid}, day:0, mon:0, cnt:0, dayCnt:0, days:{}, todayOrders:[]});
   for(const o of orders){
@@ -302,98 +364,159 @@ function compute(){
     if(k>=monthStart){ m.mon+=o.sum; m.cnt++; }
     if(k===today){ m.day+=o.sum; m.dayCnt++; m.todayOrders.push(o); }
   }
-  // менеджеры с планом, но без заказов
   for(const uid in S.targets){ const t=S.targets[uid]; const u=umap[uid];
     if(u && !S.hidden[uid] && inDept(u) && (+t.day>0 || +t.mon>0)) get(uid); }
-
   const list = Object.values(M).filter(m=>m.mon>0 || m.day>0 || S.targets[m.uid]);
   for(const m of list){
     m.t = tgt(m.uid);
     m.dep = (m.u.UF_DEPARTMENT||[]).map(x=>depName[x]).filter(Boolean)[0]||'';
-    // серия: дни подряд, когда выполнен дневной план (или были заказы, если плана нет)
     const hit = k => m.t.day>0 ? (m.days[k]||0)>=m.t.day : (m.days[k]||0)>0;
     let k = hit(today) ? today : addDays(today,-1), s=0;
     while(hit(k) && s<=CFG.streakLookbackDays){ s++; k=addDays(k,-1); }
     m.streak = s;
+    m.tier = tierOf(m.mon);
   }
   list.sort((a,b)=>b.mon-a.mon || b.day-a.day);
-
   const tot = {day:0, mon:0, tDay:0, tMon:0, cnt:0, dayCnt:0};
   list.forEach(m=>{tot.day+=m.day; tot.mon+=m.mon; tot.tDay+=m.t.day; tot.tMon+=m.t.mon; tot.cnt+=m.cnt; tot.dayCnt+=m.dayCnt;});
-
-  // контрольные точки дня
-  const todays = list.flatMap(m=>m.todayOrders);
+  const todays = list.flatMap(m=>m.todayOrders.map(o=>({...o, m})));
+  // первый заказ дня → бейдж «Первая кровь»
+  const firstToday = [...todays].sort((a,b)=>a.t-b.t)[0];
   const nowHM = hmfmt.format(now);
   const cps = S.cps.split(/[,;\s]+/).filter(x=>/^\d{1,2}:\d{2}$/.test(x)).map(x=>x.padStart(5,'0')).sort().map(hm=>({
     hm, passed: nowHM>=hm, sum: todays.filter(o=>hmfmt.format(o.t)<hm).reduce((a,o)=>a+o.sum,0)
   }));
   const leaderDay = [...list].sort((a,b)=>b.day-a.day)[0];
-  return {list, tot, cps, leaderDay, depName};
+  return {list, tot, cps, leaderDay, depName, todays, firstUid: firstToday && firstToday.uid};
 }
 
 /* ===== Отрисовка ===== */
+const $ = id => document.getElementById(id);
 const pct = (v,t) => t>0 ? Math.round(v/t*100) : null;
-const pctHtml = (v,t,cls='') => { const p=pct(v,t); return p===null ? `<span class="p na ${cls}">—</span>` : `<span class="p ${cls}">${p}%</span>`; };
-const bar = (v,t,kind) => { const w = t>0 ? Math.min(100,v/t*100) : (v>0?100:0); return `<div class="bar ${kind}"><i style="width:${w}%"></i></div>`; };
+const w = (v,t) => t>0 ? Math.min(100,v/t*100) : (v>0?100:0);
 const nameOf = u => [u.NAME,u.LAST_NAME].filter(Boolean).join(' ').trim() || u.EMAIL || ('ID '+u.ID);
-function avatar(u,big){
-  const ini = nameOf(u).split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  return u.PERSONAL_PHOTO ? `<img class="av ${big?'big':''}" src="${esc(u.PERSONAL_PHOTO)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=&quot;av ${big?'big':''}&quot;>${esc(ini)}</div>'">`
-                          : `<div class="av ${big?'big':''}">${esc(ini)}</div>`;
+function avatar(m,cls=''){
+  const u=m.u, tr=m.tier||tierOf(0);
+  const ini = esc(nameOf(u).split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase());
+  const img = u.PERSONAL_PHOTO ? `<img src="${esc(u.PERSONAL_PHOTO)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createTextNode('${ini}'))">` : ini;
+  return `<div class="av ${cls}" style="--c:${tr.c}">${img}<span class="lv">${tr.lvl}</span></div>`;
+}
+function badges(m, firstUid){
+  const b=[`<span class="bd tier" style="background:${m.tier.c}">${esc(m.tier.name)}</span>`];
+  if(m.streak>=2) b.push(`<span class="bd fire">🔥 ${m.streak} дн.</span>`);
+  if(m.uid===firstUid) b.push(`<span class="bd bolt">⚡ Первый заказ</span>`);
+  if(m.t.day>0 && m.day>=m.t.day) b.push(`<span class="bd goal">🎯 План дня</span>`);
+  if(m.mon>=CFG.bigBadge) b.push(`<span class="bd star">⭐ ${short(CFG.bigBadge)}+</span>`);
+  if(m.dep && S.dept==='all') b.push(`<span class="bd">${esc(m.dep)}</span>`);
+  return b.join('');
 }
 function render(){
   if(!D) return;
-  const {list, tot, cps, leaderDay, depName} = compute();
-  // вкладки отделов (верхний уровень)
+  const {list, tot, cps, leaderDay, depName, todays, firstUid} = compute();
+
   const topDeps = D.deps.filter(d=>{ const p=D.deps.find(x=>String(x.ID)===String(d.PARENT)); return p && !p.PARENT; });
-  document.getElementById('tabs').innerHTML = [`<button data-d="all" class="${S.dept==='all'?'on':''}">Все</button>`]
+  $('tabs').innerHTML = [`<button data-d="all" class="${S.dept==='all'?'on':''}">Все</button>`]
     .concat(topDeps.map(d=>`<button data-d="${d.ID}" class="${S.dept==String(d.ID)?'on':''}">${esc(d.NAME)}</button>`)).join('');
-  const deptLabel = S.dept==='all' ? 'Все отделы' : (depName[S.dept]||'Отдел');
+  const deptLabel = S.dept==='all' ? 'вся команда' : (depName[S.dept]||'отдел');
 
-  const top = list[0];
-  const tp = document.getElementById('toppill');
-  tp.hidden = !top || top.mon<=0;
-  if(top) tp.innerHTML = `<span class="lbl">👑 Топ месяца</span>${avatar(top.u)}<div><b>${esc(nameOf(top.u))}</b><small>${money(top.mon)}</small></div>`;
-
-  document.getElementById('deptCard').innerHTML = `
-    <div class="h"><div class="ico">📈</div><div><b>${esc(deptLabel)}</b><small>Статистика отдела · ${tot.cnt} заказов за месяц</small></div></div>
-    <div class="stat"><div class="row"><span class="k">Сегодня · ${tot.dayCnt} зак.</span>${pctHtml(tot.day,tot.tDay,'pct day').replace('class="p','class="pct day')}</div>
-      ${bar(tot.day,tot.tDay,'day')}<div class="v">${money(tot.day)} ${tot.tDay?`<span>/ ${money(tot.tDay)}</span>`:''}</div></div>
-    <div class="stat"><div class="row"><span class="k">Месяц</span>${pctHtml(tot.mon,tot.tMon).replace('class="p','class="pct mon')}</div>
-      ${bar(tot.mon,tot.tMon,'mon')}<div class="v">${money(tot.mon)} ${tot.tMon?`<span>/ ${money(tot.tMon)}</span>`:''}</div></div>`;
-
-  const L = leaderDay && leaderDay.day>0 ? leaderDay : null;
+  // Миссия дня
+  const p = pct(tot.day, tot.tDay);
+  const fill = tot.tDay>0 ? w(tot.day,tot.tDay) : 0;
+  const avg = tot.dayCnt ? tot.day/tot.dayCnt : 0;
+  const active = list.filter(m=>m.dayCnt>0).length;
+  // отметки контрольных точек: позиция по времени рабочего дня 09:00–22:00
+  const pos = hm => { const [h,mi]=hm.split(':').map(Number); return Math.max(0,Math.min(100,((h*60+mi)-540)/(780)*100)); };
   const nextCp = cps.find(c=>!c.passed);
-  document.getElementById('leaderCard').innerHTML = L ? `
-    <div class="leader">${avatar(L.u,true)}<div class="who"><span class="tag">⚡ ТОП</span><b>${esc(nameOf(L.u))}</b><span class="tag">🏆 Лидер дня</span></div></div>
-    <div class="two">
-      <div class="stat"><span class="k">Сегодня</span><div class="v">${money(L.day)}</div><small style="color:var(--muted)">цель: ${L.t.day?money(L.t.day):'—'}</small><div>${pctHtml(L.day,L.t.day).replace('class="p','class="pct day')}</div></div>
-      <div class="stat"><span class="k">Месяц</span><div class="v">${money(L.mon)}</div><small style="color:var(--muted)">цель: ${L.t.mon?money(L.t.mon):'—'}</small><div>${pctHtml(L.mon,L.t.mon).replace('class="p','class="pct mon')}</div></div>
+  $('mission').innerHTML = `
+    <div>
+      <div class="ptitle">🎯 <b>Миссия дня</b> · ${esc(deptLabel)}</div>
+      <div class="big disp num">${money(tot.day)} ${tot.tDay?`<small>/ ${money(tot.tDay)}</small>`:''}</div>
+      <div class="hp">${tot.tDay>0?`<i style="width:${fill}%"></i><span class="pct">${p}%</span>`:`<i style="width:${pos(hmfmt.format(D.now))}%;opacity:.35"></i><span class="pct" style="color:var(--muted)">план не задан · ⚙</span>`}
+        ${cps.map(c=>`<div class="ms ${c.passed?'done':''}" style="left:${pos(c.hm)}%"><span>${c.hm}</span></div>`).join('')}
+      </div>
+      <div class="cps">${cps.map(c=>`<div class="cp ${c.passed?'done':''} ${c===nextCp?'now':''}">🕒 ${c.hm} <b>${c.passed?money(c.sum):'ожидается'}</b></div>`).join('')}</div>
     </div>
-    <div class="cps">${cps.map(c=>`<div class="cp ${c===nextCp?'now':''}"><span>🕒 ${c.hm}</span><b>${c.passed?money(c.sum):'ожидается'}</b></div>`).join('')}</div>`
-    : `<div class="h"><div class="ico">🏆</div><div><b>Лидер дня</b><small>Сегодня ещё нет заказов</small></div></div>
-       <div class="cps">${cps.map(c=>`<div class="cp ${c===nextCp?'now':''}"><span>🕒 ${c.hm}</span><b>${c.passed?money(c.sum):'ожидается'}</b></div>`).join('')}</div>`;
+    <div class="chips">
+      <div class="chip"><div class="k">Заказов сегодня</div><div class="v disp num">${tot.dayCnt}</div></div>
+      <div class="chip"><div class="k">Средний чек</div><div class="v disp num">${money(avg)}</div></div>
+      <div class="chip"><div class="k">Игроков в деле</div><div class="v disp num">${active}<span style="color:var(--muted);font-size:14px"> / ${list.length}</span></div></div>
+      <div class="chip"><div class="k">Месяц · ${tot.cnt} зак.</div><div class="v disp num">${short(tot.mon)}${tot.tMon?` <span style="color:var(--muted);font-size:14px">${pct(tot.mon,tot.tMon)}%</span>`:''}</div></div>
+    </div>`;
 
-  const rows = list.map((m,i)=>`
-    <div class="trow ${i<3?'r'+(i+1):''}">
-      <div class="rank">${i+1}</div>
-      <div class="mgr">${avatar(m.u)}<div style="min-width:0"><div class="nm">${esc(nameOf(m.u))}${i===0?' 👑':''}</div>
-        <div class="sub">${m.dep&&S.dept==='all'?`<span class="b dep">${esc(m.dep)}</span>`:''}<span class="b cnt">${m.cnt} зак.</span>${m.streak>=2?`<span class="b fire">🔥 ${m.streak}</span>`:''}${m.mon>=CFG.bigBadge?`<span class="b m2">⭐ ${short(CFG.bigBadge)}+</span>`:''}</div></div></div>
-      <div class="metric day"><div class="line"><span class="sum">${money(m.day)}${m.t.day?` <span>/ ${money(m.t.day)}</span>`:''}</span>${pctHtml(m.day,m.t.day)}</div>${bar(m.day,m.t.day,'day')}</div>
-      <div class="metric mon"><div class="line"><span class="sum">${money(m.mon)}${m.t.mon?` <span>/ ${money(m.t.mon)}</span>`:''}</span>${pctHtml(m.mon,m.t.mon)}</div>${bar(m.mon,m.t.mon,'mon')}</div>
-    </div>`).join('');
-  document.getElementById('table').innerHTML =
-    `<div class="trow thead"><div>#</div><div>Менеджер</div><div>Сегодня</div><div>Месяц</div></div>` +
+  // Пьедестал
+  const slot = (m,place) => {
+    if(!m) return `<div class="pl p${place} empty"><div class="av ${place===1?'xl':'lg'}">?</div><div class="nm">—</div><div class="ped disp">${place}</div></div>`;
+    return `<div class="pl p${place}">${place===1?'<div class="crown">👑</div>':''}${avatar(m,place===1?'xl':'lg')}
+      <div class="nm">${esc(nameOf(m.u))}</div><div class="sum disp num">${money(m.mon)}</div>
+      <div class="badges" style="justify-content:center"><span class="bd tier" style="background:${m.tier.c}">${esc(m.tier.name)}</span>${m.streak>=2?`<span class="bd fire">🔥 ${m.streak}</span>`:''}</div>
+      <div class="ped disp">${place}</div></div>`;
+  };
+  $('podium').innerHTML = slot(list[1],2)+slot(list[0],1)+slot(list[2],3);
+
+  // MVP дня
+  const L = leaderDay && leaderDay.day>0 ? leaderDay : null;
+  $('mvp').innerHTML = `<div class="ptitle">💥 <b>MVP дня</b></div>` + (L ? `
+    <div class="mvp">${avatar(L,'lg')}<div style="min-width:0"><span class="tag">MVP</span><b>${esc(nameOf(L.u))}</b>
+      <div class="sum disp num">${money(L.day)}</div>
+      <div style="color:var(--muted);font-size:12px;margin-top:2px">${L.dayCnt} зак. сегодня${L.t.day?` · план ${pct(L.day,L.t.day)}%`:''}</div></div></div>`
+    : `<div class="empty" style="padding:16px">Сегодня ещё нет заказов — кто откроет счёт?</div>`);
+
+  // Лента
+  const feed = [...todays].sort((a,b)=>b.t-a.t).slice(0,30);
+  $('feed').innerHTML = feed.length ? feed.map(o=>`<div class="fi ${seenOrders && !seenOrders.has(o.id)?'new':''}">${avatar(o.m)}<span class="who">${esc(nameOf(o.m.u))}</span><span class="t num">${hmfmt.format(o.t)}</span><span class="s num">+${money(o.sum)}</span></div>`).join('')
+    : `<div class="empty" style="padding:16px">Пока тихо…</div>`;
+
+  // Таблица
+  const ranks = {};
+  list.forEach((m,i)=>ranks[m.uid]=i+1);
+  const rows = list.map((m,i)=>{
+    const r=i+1, pr = prevRanks && prevRanks[m.uid];
+    const mv = pr && pr!==r ? (pr>r?`<span class="mv up">▲${pr-r}</span>`:`<span class="mv dn">▼${r-pr}</span>`) : '';
+    const tr=m.tier;
+    return `<div class="row">
+      <div class="rk disp" style="${r<=3?`color:${['var(--gold)','var(--silver)','var(--bronze)'][r-1]}`:''}">${r}${mv}</div>
+      <div class="who">${avatar(m)}<div style="min-width:0"><div class="nm">${esc(nameOf(m.u))}${r===1?' 👑':''}</div><div class="badges">${badges(m,firstUid)}</div></div></div>
+      <div class="val day"><div class="s num">${money(m.day)}${m.t.day?` <span>/ ${short(m.t.day)}</span>`:''}</div><div class="sub">${m.dayCnt} зак.${m.t.day?` · ${pct(m.day,m.t.day)}%`:''}</div><div class="mini day"><i style="width:${w(m.day,m.t.day||Math.max(1,leaderDay?leaderDay.day:1))}%"></i></div></div>
+      <div class="val mon"><div class="s num">${money(m.mon)}${m.t.mon?` <span>/ ${short(m.t.mon)}</span>`:''}</div><div class="sub">${m.cnt} зак.${m.t.mon?` · ${pct(m.mon,m.t.mon)}%`:''}</div><div class="mini mon"><i style="width:${w(m.mon,m.t.mon||Math.max(1,list[0].mon))}%"></i></div></div>
+      <div class="xp" style="--c:${tr.c}"><div class="lbl"><span>LVL <b>${tr.lvl}</b> · ${esc(tr.name)}</span><span>${tr.next?`до «${esc(tr.next.name)}» ${short(tr.next.min-m.mon)}`:'MAX'}</span></div><div class="xpbar"><i style="width:${Math.round(tr.prog*100)}%"></i></div></div>
+    </div>`;
+  }).join('');
+  $('board').innerHTML = `<div class="ptitle">🎮 <b>Рейтинг игроков</b> · ${list.length}</div>
+    <div class="row head"><div>#</div><div>Игрок</div><div>Сегодня</div><div>Месяц</div><div>Уровень</div></div>` +
     (rows || `<div class="empty">В этом месяце заказов пока нет</div>`);
+
+  // События: новые заказы → тост и конфетти
+  if(seenOrders){
+    const fresh = todays.filter(o=>!seenOrders.has(o.id)).sort((a,b)=>b.sum-a.sum);
+    if(fresh.length) celebrate(fresh[0], fresh.length);
+  }
+  seenOrders = new Set(D.orders.map(o=>o.id));
+  prevRanks = ranks;
+}
+
+/* ===== Эффекты ===== */
+let toastT;
+function celebrate(o, n){
+  const t=$('toast');
+  t.innerHTML = `${avatar(o.m)}<div><div style="font-weight:800">${esc(nameOf(o.m.u))}</div><div style="color:var(--muted);font-size:12px">${n>1?`новых заказов: ${n}`:'новый заказ!'}</div></div><div class="big disp num">+${money(o.sum)}</div>`;
+  t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),5000);
+  confetti();
+}
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c=$('fx'), x=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+  const cols=['#7c5cff','#22d3ee','#ff4fa3','#a3ff5c','#ffc83d'];
+  const P=Array.from({length:160},()=>({x:innerWidth/2+(Math.random()-.5)*200,y:innerHeight*.25,vx:(Math.random()-.5)*14,vy:Math.random()*-12-4,r:Math.random()*6+3,c:cols[Math.random()*cols.length|0],a:Math.random()*6}));
+  let f=0;(function step(){ x.clearRect(0,0,c.width,c.height); P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.a+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);x.restore();}); if(++f<150) requestAnimationFrame(step); else x.clearRect(0,0,c.width,c.height); })();
 }
 
 /* ===== Цикл обновления ===== */
 async function refresh(){
-  const live = document.getElementById('live'), msg = document.getElementById('msg');
+  const live = $('live'), msg = $('msg');
   try{
     D = await fetchData();
     msg.innerHTML=''; live.classList.remove('off');
-    document.getElementById('updated').textContent = 'обновлено ' + hmfmt.format(new Date());
+    $('updated').textContent = 'обновлено ' + hmfmt.format(new Date());
     render(); if(IN_APP) try{ BX24.fitWindow(); }catch(_){}
   }catch(e){
     live.classList.add('off');
@@ -404,20 +527,19 @@ async function refresh(){
   }
   clearTimeout(timer); timer = setTimeout(refresh, Math.max(15,+S.refresh||60)*1000);
 }
-setInterval(()=>document.getElementById('clock').textContent = tfmt.format(new Date()), 1000);
+setInterval(()=>$('clock').textContent = tfmt.format(new Date()), 1000);
 
 /* ===== Настройки ===== */
-const $ = id => document.getElementById(id);
 function openSettings(){
   $('sWebhook').closest('.f').style.display = IN_APP ? 'none' : '';
   $('sWebhook').value=S.webhook; $('sDefDay').value=S.defDay||''; $('sDefMon').value=S.defMon||''; $('sCps').value=S.cps; $('sRefresh').value=S.refresh;
   const depName = D ? Object.fromEntries(D.deps.map(d=>[String(d.ID),d.NAME])) : {};
   const users = D ? Object.values(D.umap).filter(u=>u.ACTIVE!==false && u.ACTIVE!=='N').sort((a,b)=>nameOf(a).localeCompare(nameOf(b),'ru')) : [];
   $('sRows').innerHTML = users.length ? users.map(u=>{ const t=S.targets[u.ID]||{}; return `<tr data-u="${u.ID}" data-n="${esc(nameOf(u).toLowerCase())}">
-      <td>${esc(nameOf(u))}</td><td style="color:var(--muted)">${esc((u.UF_DEPARTMENT||[]).map(x=>depName[x]).filter(Boolean).join(', '))}</td>
-      <td><input type="number" min="0" step="1000" data-k="day" value="${t.day??''}" placeholder="${S.defDay||0}"></td>
-      <td><input type="number" min="0" step="10000" data-k="mon" value="${t.mon??''}" placeholder="${S.defMon||0}"></td>
-      <td><input type="checkbox" data-k="hide" ${S.hidden[u.ID]?'checked':''}></td></tr>`;}).join('')
+    <td>${esc(nameOf(u))}</td><td style="color:var(--muted)">${esc((u.UF_DEPARTMENT||[]).map(x=>depName[x]).filter(Boolean).join(', '))}</td>
+    <td><input type="number" min="0" step="1000" data-k="day" value="${t.day??''}" placeholder="${S.defDay||0}"></td>
+    <td><input type="number" min="0" step="10000" data-k="mon" value="${t.mon??''}" placeholder="${S.defMon||0}"></td>
+    <td><input type="checkbox" data-k="hide" ${S.hidden[u.ID]?'checked':''}></td></tr>`;}).join('')
     : `<tr><td colspan="5" style="color:var(--muted);padding:14px">Список менеджеров появится после подключения вебхука.</td></tr>`;
   $('sFilter').value=''; $('modal').classList.add('on');
 }
@@ -441,12 +563,10 @@ $('exportBtn').onclick = ()=>{ const {webhook,...rest}=S; const a=document.creat
   a.href=URL.createObjectURL(new Blob([JSON.stringify(rest,null,2)],{type:'application/json'})); a.download='leaderboard-settings.json'; a.click(); };
 $('importBtn').onclick = ()=>{ const i=document.createElement('input'); i.type='file'; i.accept='.json,application/json';
   i.onchange=async()=>{ try{ const j=JSON.parse(await i.files[0].text()); delete j.webhook; S=Object.assign(S,j); save(); openSettings(); render(); }catch(e){ alert('Не удалось прочитать файл'); } }; i.click(); };
-$('tabs').onclick = e => { const b=e.target.closest('button'); if(!b) return; S.dept=b.dataset.d; save(); render(); };
+$('tabs').onclick = e => { const b=e.target.closest('button'); if(!b) return; S.dept=b.dataset.d; save(); prevRanks=null; render(); };
 
-// ?webhook=... в адресе — разовая подстановка (удаляется из адресной строки)
 (()=>{ const p=new URLSearchParams(location.search); if(p.get('webhook')){ S.webhook=p.get('webhook'); save(); history.replaceState(null,'',location.pathname); } })();
 
-// Запуск: внутри Bitrix24 (локальное приложение) — через BX24 SDK, настройки общие для всех (appOption)
 if(IN_APP){
   $('setBtn').title = 'Настройки (общие для всех)';
   const s = document.createElement('script'); s.src = 'https://api.bitrix24.com/api/v1/';
@@ -455,7 +575,7 @@ if(IN_APP){
     try{ BX24.fitWindow(); }catch(e){}
     refresh();
   });
-  s.onerror = () => { document.getElementById('msg').innerHTML = '<div class="err">Не удалось загрузить Bitrix24 SDK</div>'; };
+  s.onerror = () => { $('msg').innerHTML = '<div class="err">Не удалось загрузить Bitrix24 SDK</div>'; };
   document.head.appendChild(s);
 } else refresh();
 </script>
