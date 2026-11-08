@@ -142,7 +142,7 @@ button,input,select{font:inherit;color:inherit}
   <div class="sheet">
     <h2>Настройки лидерборда</h2>
     <div class="hint">
-      Данные: воронка <b>«Первичный»</b>, сделка считается после перехода в стадию <b>«Заказ»</b>, день заказа берётся из поля <b>«Дата заказа»</b> (если пусто — дата перехода). Стадия «Предзаказ» не считается — сделка попадёт в лидерборд, только когда дойдёт до «Заказ».<br>
+      Данные: сделки в стадиях «Заказ» и «Заказ на подтверждение» (Первичный) и «Заказ», «Заказ на подтверждение», «Курьерская доставка», «Доработка», «Доставлено/Оплачено» (Доставка). День заказа — поле <b>«Дата заказа»</b>. «Предзаказ» и отказы не считаются.<br>
       Вебхук: Bitrix24 → Разработчикам → Другое → <b>Входящий вебхук</b>, права: <code>crm</code>, <code>user</code>, <code>department</code>. Вставьте URL вида <code>https://nephora.bitrix24.kz/rest/1/xxxx/</code>. Он хранится только в этом браузере.
     </div>
     <div class="f"><label>URL вебхука</label><input id="sWebhook" placeholder="https://nephora.bitrix24.kz/rest/1/xxxxxxxx/" autocomplete="off"></div>
@@ -176,7 +176,9 @@ const CFG = {
   tz: 'Asia/Almaty', tzOffset: '+05:00',
   bigBadge: 2000000,          // бейдж «2M+»
   streakLookbackDays: 14,
-  orderDateField: 'UF_CRM_1784559416867' // «Дата заказа» — по нему считается день заказа
+  orderDateField: 'UF_CRM_1784559416867', // «Дата заказа» — по нему считается день заказа
+  // Стадии «факт кассы»: Первичный → Заказ, Заказ на подтверждение; Доставка → Заказ, Заказ на подтверждение, Курьерская доставка, Доработка, Доставлено/Оплачено
+  factStages: ['UC_IP5X36','WON','C1:NEW','C1:PREPARATION','C1:PREPAYMENT_INVOICE','C1:FINAL_INVOICE','C1:WON']
 };
 const LS = 'nephora_lb_v1';
 // Входящий вебхук Bitrix24 по умолчанию (не коммитьте реальный URL в публичный репозиторий)
@@ -253,40 +255,28 @@ async function listAll(method, params, pick){ // постраничная выб
 
 /* ===== Загрузка данных ===== */
 async function fetchData(){
-  const now = new Date(), today = dayKey(now);
-  const monthStart = today.slice(0,8)+'01';
-  const fromKey = [monthStart, addDays(today,-CFG.streakLookbackDays)].sort()[0];
+const now = new Date(), today = dayKey(now);
+const monthStart = today.slice(0,8)+'01';
+const fromKey = [monthStart, addDays(today,-CFG.streakLookbackDays)].sort()[0];
+const F = CFG.orderDateField;
 
-  const [deps, users, hist] = await Promise.all([
-    call('department.get',{}).then(r=>r.result),
-    listAll('user.get',{FILTER:{ACTIVE:true}},r=>r||[]),
-    listAll('crm.stagehistory.list',{entityTypeId:2,order:{ID:'ASC'},
-      filter:{STAGE_ID:CFG.orderStage, CATEGORY_ID:CFG.categoryId, '>=CREATED_TIME':fromKey+'T00:00:00'+CFG.tzOffset},
-      select:['ID','OWNER_ID','CREATED_TIME']}, r=>(r&&r.items)||[])
-  ]);
+// Факт = сделки в стадиях CFG.factStages, день заказа — поле «Дата заказа»
+const [deps, users, deals] = await Promise.all([
+call('department.get',{}).then(r=>r.result),
+listAll('user.get',{FILTER:{ACTIVE:true}},r=>r||[]),
+listAll('crm.deal.list',{order:{ID:'ASC'},
+filter:{'@STAGE_ID':CFG.factStages, ['>='+F]:fromKey, ['<'+F]:addDays(today,1)},
+select:['ID','OPPORTUNITY','ASSIGNED_BY_ID','MOVED_TIME',F]}, r=>r||[])
+]);
 
-  // одна сделка = один заказ (первый переход в «Заказ» за период)
-  const first = {};
-  for(const h of hist){ const t=new Date(h.CREATED_TIME); if(!first[h.OWNER_ID] || t<first[h.OWNER_ID]) first[h.OWNER_ID]=t; }
-  // сделки, которые уже были в «Заказ» раньше окна выборки (повторный заход) — не считаем
-  const allIds = Object.keys(first), pc={};
-  for(let i=0;i<allIds.length;i+=50) pc['h'+i]=['crm.stagehistory.list',{entityTypeId:2,
-    filter:{STAGE_ID:CFG.orderStage, CATEGORY_ID:CFG.categoryId, '@OWNER_ID':allIds.slice(i,i+50), '<CREATED_TIME':fromKey+'T00:00:00'+CFG.tzOffset}, select:['OWNER_ID']}];
-  const prior = new Set();
-  if(allIds.length){ const pr = await batch(pc); Object.values(pr).forEach(r=>((r&&r.items)||[]).forEach(x=>prior.add(String(x.OWNER_ID)))); }
-  const ids = allIds.filter(id=>!prior.has(String(id)));
-  const cmds={};
-  for(let i=0;i<ids.length;i+=50) cmds['d'+i]=['crm.deal.list',{filter:{'@ID':ids.slice(i,i+50)},select:['ID','OPPORTUNITY','ASSIGNED_BY_ID','TITLE',CFG.orderDateField]}];
-  const dr = Object.keys(cmds).length ? await batch(cmds) : {};
-  const deals = Object.values(dr).flat();
+// уволенные/неактивные с заказами
+const umap = Object.fromEntries(users.map(u=>[String(u.ID),u]));
+const missing = [...new Set(deals.map(d=>String(d.ASSIGNED_BY_ID)))].filter(id=>!umap[id]);
+if(missing.length){ (await call('user.get',{FILTER:{ID:missing}})).result.forEach(u=>umap[String(u.ID)]=u); }
 
-  // уволенные/неактивные с заказами
-  const umap = Object.fromEntries(users.map(u=>[String(u.ID),u]));
-  const missing = [...new Set(deals.map(d=>String(d.ASSIGNED_BY_ID)))].filter(id=>!umap[id]);
-  if(missing.length){ (await call('user.get',{FILTER:{ID:missing}})).result.forEach(u=>umap[String(u.ID)]=u); }
-
-  const orders = deals.map(d=>({id:d.ID, uid:String(d.ASSIGNED_BY_ID), sum:+d.OPPORTUNITY||0, t:first[d.ID], dk:String(d[CFG.orderDateField]||'').slice(0,10) || dayKey(first[d.ID])}));
-  return {now, today, monthStart, deps, umap, orders};
+const orders = deals.map(d=>({id:d.ID, uid:String(d.ASSIGNED_BY_ID), sum:+d.OPPORTUNITY||0,
+t:new Date(d.MOVED_TIME||now), dk:String(d[F]||'').slice(0,10)})).filter(o=>o.dk);
+return {now, today, monthStart, deps, umap, orders};
 }
 
 /* ===== Расчёт ===== */
