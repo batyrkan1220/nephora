@@ -142,7 +142,7 @@ button,input,select{font:inherit;color:inherit}
   <div class="sheet">
     <h2>Настройки лидерборда</h2>
     <div class="hint">
-      Данные: воронка <b>«Первичный»</b>, сделка считается в момент перехода в стадию <b>«Заказ»</b>. Стадия «Предзаказ» не считается — сделка попадёт в лидерборд, только когда дойдёт до «Заказ».<br>
+      Данные: воронка <b>«Первичный»</b>, сделка считается после перехода в стадию <b>«Заказ»</b>, день заказа берётся из поля <b>«Дата заказа»</b> (если пусто — дата перехода). Стадия «Предзаказ» не считается — сделка попадёт в лидерборд, только когда дойдёт до «Заказ».<br>
       Вебхук: Bitrix24 → Разработчикам → Другое → <b>Входящий вебхук</b>, права: <code>crm</code>, <code>user</code>, <code>department</code>. Вставьте URL вида <code>https://nephora.bitrix24.kz/rest/1/xxxx/</code>. Он хранится только в этом браузере.
     </div>
     <div class="f"><label>URL вебхука</label><input id="sWebhook" placeholder="https://nephora.bitrix24.kz/rest/1/xxxxxxxx/" autocomplete="off"></div>
@@ -175,7 +175,8 @@ const CFG = {
   orderStage: 'UC_IP5X36',    // «Заказ»
   tz: 'Asia/Almaty', tzOffset: '+05:00',
   bigBadge: 2000000,          // бейдж «2M+»
-  streakLookbackDays: 14
+  streakLookbackDays: 14,
+  orderDateField: 'UF_CRM_1784559416867' // «Дата заказа» — по нему считается день заказа
 };
 const LS = 'nephora_lb_v1';
 // Входящий вебхук Bitrix24 по умолчанию (не коммитьте реальный URL в публичный репозиторий)
@@ -275,7 +276,7 @@ async function fetchData(){
   if(allIds.length){ const pr = await batch(pc); Object.values(pr).forEach(r=>((r&&r.items)||[]).forEach(x=>prior.add(String(x.OWNER_ID)))); }
   const ids = allIds.filter(id=>!prior.has(String(id)));
   const cmds={};
-  for(let i=0;i<ids.length;i+=50) cmds['d'+i]=['crm.deal.list',{filter:{'@ID':ids.slice(i,i+50)},select:['ID','OPPORTUNITY','ASSIGNED_BY_ID','TITLE']}];
+  for(let i=0;i<ids.length;i+=50) cmds['d'+i]=['crm.deal.list',{filter:{'@ID':ids.slice(i,i+50)},select:['ID','OPPORTUNITY','ASSIGNED_BY_ID','TITLE',CFG.orderDateField]}];
   const dr = Object.keys(cmds).length ? await batch(cmds) : {};
   const deals = Object.values(dr).flat();
 
@@ -284,7 +285,7 @@ async function fetchData(){
   const missing = [...new Set(deals.map(d=>String(d.ASSIGNED_BY_ID)))].filter(id=>!umap[id]);
   if(missing.length){ (await call('user.get',{FILTER:{ID:missing}})).result.forEach(u=>umap[String(u.ID)]=u); }
 
-  const orders = deals.map(d=>({id:d.ID, uid:String(d.ASSIGNED_BY_ID), sum:+d.OPPORTUNITY||0, t:first[d.ID]}));
+  const orders = deals.map(d=>({id:d.ID, uid:String(d.ASSIGNED_BY_ID), sum:+d.OPPORTUNITY||0, t:first[d.ID], dk:String(d[CFG.orderDateField]||'').slice(0,10) || dayKey(first[d.ID])}));
   return {now, today, monthStart, deps, umap, orders};
 }
 
@@ -306,7 +307,7 @@ function compute(){
   const get = uid => M[uid] || (M[uid]={uid, u:umap[uid]||{ID:uid,NAME:'ID '+uid}, day:0, mon:0, cnt:0, dayCnt:0, days:{}, todayOrders:[]});
   for(const o of orders){
     const u = umap[o.uid]; if(S.hidden[o.uid] || (u && !inDept(u))) continue;
-    const k = dayKey(o.t), m = get(o.uid);
+    const k = o.dk, m = get(o.uid);
     m.days[k]=(m.days[k]||0)+o.sum;
     if(k>=monthStart){ m.mon+=o.sum; m.cnt++; }
     if(k===today){ m.day+=o.sum; m.dayCnt++; m.todayOrders.push(o); }
