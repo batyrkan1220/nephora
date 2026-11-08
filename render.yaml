@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: nephora-leaderboard
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: "true"
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: BITRIX_WEBHOOK
+        sync: false
+      - key: DASH_PASSWORD
+        sync: false

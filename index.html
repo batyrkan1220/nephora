@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nephora Лидерборд</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1f0fb; --card:#ffffff; --ink:#1b1830; --muted:#7a7894; --line:#e7e5f3; --track:#e4e2f0;
+  --day1:#ec4f8f; --day2:#9b5cf0; --mon1:#5fd8c4; --mon2:#6ddc6a;
+  --gold:#fff3d1; --gold-b:#f5c542; --silver:#eef0f4; --silver-b:#a9b0bf; --bronze:#fbe6d9; --bronze-b:#e47a3b;
+  --accent:#4f7cf7; --ok:#25b36b; --warn:#f08a24;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+.app{display:flex;flex-direction:column;gap:16px;padding:16px 20px;min-height:100%}
+/* header */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.live{display:inline-flex;align-items:center;gap:6px;background:#e3f7ea;color:var(--ok);font-weight:700;font-size:12px;padding:6px 10px;border-radius:99px;letter-spacing:.04em}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.6s infinite}
+.live.off{background:#fde8e8;color:#d33}.live.off i{background:#d33;animation:none}
+@keyframes pulse{50%{opacity:.3}}
+.clock{font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)}
+.toppill{display:flex;align-items:center;gap:10px;border:2px solid var(--accent);background:linear-gradient(90deg,#eef3ff,#f7f4ff);border-radius:16px;padding:6px 14px 6px 8px}
+.toppill .lbl{color:var(--accent);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.toppill b{display:block;font-size:14px}.toppill small{color:var(--accent);font-weight:600}
+.tabs{display:flex;gap:6px;background:var(--card);padding:4px;border-radius:12px;margin-left:auto;flex-wrap:wrap}
+.tabs button{border:0;background:none;padding:8px 14px;border-radius:9px;cursor:pointer;font-weight:600;color:var(--muted)}
+.tabs button.on{background:var(--ink);color:#fff}
+.iconbtn{border:0;background:var(--card);width:38px;height:38px;border-radius:10px;cursor:pointer;font-size:18px}
+.updated{color:var(--muted);font-size:12px}
+/* layout */
+.grid{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:20px;padding:20px;box-shadow:0 1px 0 rgba(30,20,80,.04)}
+.side{display:flex;flex-direction:column;gap:16px}
+.h{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.h .ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#f7d6f3,#e2d6ff);display:grid;place-items:center;font-size:20px}
+.h b{font-size:20px;display:block}.h small{color:var(--muted)}
+.stat{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px}
+.stat .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.stat .k{color:var(--muted);font-weight:600}
+.pct{font-weight:800;font-size:24px}
+.pct.day{color:var(--day2)}.pct.mon{color:var(--ok)}
+.stat .v{font-weight:700;font-size:16px;margin-top:8px;font-variant-numeric:tabular-nums}
+.stat .v span{color:var(--muted);font-weight:500}
+.bar{height:8px;border-radius:99px;background:var(--track);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:99px;min-width:0;transition:width .6s}
+.bar.day i{background:linear-gradient(90deg,var(--day2),var(--day1))}
+.bar.mon i{background:linear-gradient(90deg,var(--mon1),var(--mon2))}
+.leader{display:flex;gap:14px;align-items:center}
+.leader .who b{font-size:19px;display:block}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:#fff1d6;color:#c98a00}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two .stat{margin-top:12px}
+.two .stat .v{font-size:15px}
+.cps{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.cp{display:flex;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-variant-numeric:tabular-nums}
+.cp.now{border-color:var(--day2);background:#f7f2ff}
+.cp span{color:var(--muted)}
+/* avatar */
+.av{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;background:#e9e7f5;display:grid;place-items:center;font-weight:700;color:#6c6890;font-size:14px;border:2px solid #fff;box-shadow:0 0 0 2px #dcd8f0}
+.av.big{width:76px;height:76px;font-size:22px;box-shadow:0 0 0 3px var(--gold-b)}
+/* table */
+.tbl{padding:8px 0;overflow:hidden}
+.trow{display:grid;grid-template-columns:44px minmax(220px,1.3fr) 1fr 1fr;gap:18px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--line)}
+.trow:last-child{border-bottom:0}
+@media(max-width:700px){
+  .app{padding:12px 16px}
+  .trow{grid-template-columns:32px 1fr;gap:10px 12px;padding:12px 14px}
+  .trow .metric{grid-column:2}
+  .thead div:nth-child(n+3){display:none}
+  .metric .line::before{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase}
+  .metric.day .line::before{content:'Сегодня'}.metric.mon .line::before{content:'Месяц'}
+  .metric .line{flex-wrap:wrap}
+}
+.thead{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding-top:12px;padding-bottom:12px}
+.rank{font-weight:800;font-size:16px;color:var(--muted);text-align:center}
+.r1{background:var(--gold);box-shadow:inset 4px 0 0 var(--gold-b)}.r1 .rank{color:#c98a00}
+.r2{background:var(--silver);box-shadow:inset 4px 0 0 var(--silver-b)}
+.r3{background:var(--bronze);box-shadow:inset 4px 0 0 var(--bronze-b)}.r3 .rank{color:var(--bronze-b)}
+.mgr{display:flex;align-items:center;gap:12px;min-width:0}
+.mgr .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mgr .sub{display:flex;gap:6px;align-items:center;margin-top:3px;flex-wrap:wrap}
+.b{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px}
+.b.fire{background:#ffe9db;color:#e8661c}.b.m2{background:#fff1d6;color:#c98a00}.b.dep{background:#efedf8;color:#6c6890}.b.cnt{background:#eaf3ff;color:#3d6fe0}
+.metric .line{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.metric .sum{font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
+.metric .sum span{color:var(--muted);font-weight:500;font-size:12px}
+.metric .p{font-weight:800;font-size:17px}
+.metric.day .p{color:var(--day2)}.metric.mon .p{color:var(--ok)}
+.p.na{color:var(--muted)!important;font-weight:600;font-size:13px}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(20,16,40,.45);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow:auto;z-index:10}
+.modal.on{display:flex}
+.sheet{background:var(--card);border-radius:20px;padding:24px;width:min(900px,100%)}
+.sheet h2{margin:0 0 16px;font-size:20px}
+.f{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.f label{font-weight:600;font-size:13px}.f small{color:var(--muted)}
+.f input,.f select{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fbfbfe;width:100%}
+.fr{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.ttable{width:100%;border-collapse:collapse;margin-top:8px}
+.ttable th{text-align:left;font-size:12px;color:var(--muted);padding:6px;border-bottom:1px solid var(--line)}
+.ttable td{padding:5px 6px;border-bottom:1px solid var(--line)}
+.ttable input[type=number]{width:130px;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.tscroll{max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:0 8px}
+.acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;background:#efedf8}
+.btn.pri{background:var(--ink);color:#fff}
+.err{background:#fde8e8;color:#b42318;padding:12px 16px;border-radius:12px;font-weight:600}
+.hint{background:#f4f2ff;border-radius:12px;padding:12px 14px;color:#4b4769;font-size:13px;line-height:1.5;margin-bottom:14px}
+.hint code{background:#fff;padding:1px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <span class="live" id="live"><i></i>LIVE</span>
+    <span class="clock" id="clock">--:--:--</span>
+    <div class="toppill" id="toppill" hidden></div>
+    <div class="tabs" id="tabs"></div>
+    <span class="updated" id="updated"></span>
+    <button class="iconbtn" id="refreshBtn" title="Обновить">⟳</button>
+    <button class="iconbtn" id="setBtn" title="Настройки">⚙</button>
+  </div>
+  <div id="msg"></div>
+  <div class="grid">
+    <div class="side">
+      <div class="card" id="deptCard"></div>
+      <div class="card" id="leaderCard"></div>
+    </div>
+    <div class="card tbl" id="table"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="sheet">
+    <h2>Настройки лидерборда</h2>
+    <div class="hint">
+      Данные: воронка <b>«Первичный»</b>, сделка считается в момент перехода в стадию <b>«Заказ»</b>. Стадия «Предзаказ» не считается — сделка попадёт в лидерборд, только когда дойдёт до «Заказ».<br>
+      Вебхук: Bitrix24 → Разработчикам → Другое → <b>Входящий вебхук</b>, права: <code>crm</code>, <code>user</code>, <code>department</code>. Вставьте URL вида <code>https://nephora.bitrix24.kz/rest/1/xxxx/</code>. Он хранится только в этом браузере.
+    </div>
+    <div class="f"><label>URL вебхука</label><input id="sWebhook" placeholder="https://nephora.bitrix24.kz/rest/1/xxxxxxxx/" autocomplete="off"></div>
+    <div class="fr">
+      <div class="f"><label>План на день по умолчанию, ₸</label><input id="sDefDay" type="number" min="0" step="1000"></div>
+      <div class="f"><label>План на месяц по умолчанию, ₸</label><input id="sDefMon" type="number" min="0" step="10000"></div>
+      <div class="f"><label>Контрольные точки</label><input id="sCps" placeholder="14:00, 17:00, 20:00"></div>
+      <div class="f"><label>Обновление, сек</label><input id="sRefresh" type="number" min="15"></div>
+    </div>
+    <div class="f">
+      <label>Планы менеджеров</label>
+      <small>Пустое поле = план по умолчанию. «Скрыть» убирает человека из лидерборда.</small>
+      <input id="sFilter" placeholder="Поиск по имени…">
+      <div class="tscroll"><table class="ttable"><thead><tr><th>Менеджер</th><th>Отдел</th><th>План/день</th><th>План/месяц</th><th>Скрыть</th></tr></thead><tbody id="sRows"></tbody></table></div>
+    </div>
+    <div class="acts">
+      <button class="btn" id="exportBtn">Экспорт настроек</button>
+      <button class="btn" id="importBtn">Импорт</button>
+      <span style="flex:1"></span>
+      <button class="btn" id="cancelBtn">Отмена</button>
+      <button class="btn pri" id="saveBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Конфигурация воронки ===== */
+const CFG = {
+  categoryId: 0,              // «Первичный»
+  orderStage: 'UC_IP5X36',    // «Заказ»
+  tz: 'Asia/Almaty', tzOffset: '+05:00',
+  bigBadge: 2000000,          // бейдж «2M+»
+  streakLookbackDays: 14
+};
+const LS = 'nephora_lb_v1';
+// Входящий вебхук Bitrix24 по умолчанию (не коммитьте реальный URL в публичный репозиторий)
+const DEFAULT_WEBHOOK = /^https?:/.test(location.protocol) && !/bitrix24\./.test(location.host) ? '/api/rest/' : '';  // на сервере — через прокси
+const DEF = {webhook:DEFAULT_WEBHOOK, defDay:0, defMon:0, cps:'14:00, 17:00, 20:00', refresh:60, targets:{}, hidden:{}, dept:'all'};
+let S = load();
+let D = null;   // загруженные данные
+let timer = null;
+
+function load(){ let s; try{ s = Object.assign({}, DEF, JSON.parse(localStorage.getItem(LS)||'{}')); }catch(e){ s = {...DEF}; } if(!s.webhook) s.webhook = DEFAULT_WEBHOOK; return s; }
+const IN_APP = window.self!==window.top && new URLSearchParams(location.search).has('DOMAIN');
+function save(){
+  try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){}
+  if(IN_APP && window.BX24){ const {webhook, dept, ...shared} = S; try{ BX24.appOption.set('settings', JSON.stringify(shared)); }catch(e){} }
+}
+
+/* ===== Время (Алматы) ===== */
+const dfmt = new Intl.DateTimeFormat('en-CA',{timeZone:CFG.tz,year:'numeric',month:'2-digit',day:'2-digit'});
+const tfmt = new Intl.DateTimeFormat('ru-RU',{timeZone:CFG.tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+const hmfmt = new Intl.DateTimeFormat('en-GB',{timeZone:CFG.tz,hour:'2-digit',minute:'2-digit',hour12:false});
+const dayKey = d => dfmt.format(d);              // YYYY-MM-DD
+const addDays = (key,n) => { const d=new Date(key+'T12:00:00'+CFG.tzOffset); d.setUTCDate(d.getUTCDate()+n); return dayKey(d); };
+const money = n => Math.round(n||0).toLocaleString('ru-RU').replace(/ |,/g,' ') + ' ₸';
+const short = n => n>=1e6 ? (Math.round(n/1e5)/10+'M').replace('.0M','M') : n>=1e3 ? Math.round(n/1e3)+'K' : String(Math.round(n));
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ===== Bitrix24 REST ===== */
+function qs(obj, prefix){
+  const out=[];
+  for(const k in obj){ const v=obj[k]; if(v===undefined) continue;
+    const key = prefix ? `${prefix}[${k}]` : k;
+    if(v!==null && typeof v==='object') out.push(qs(v,key));
+    else out.push(encodeURIComponent(key)+'='+encodeURIComponent(v===null?'':v));
+  }
+  return out.filter(Boolean).join('&');
+}
+async function call(method, params={}){
+  // Внутри портала Bitrix24 (BX.rest) — без вебхука
+  const sdk = IN_APP ? window.BX24 : (window.BX && BX.rest);
+  if(sdk && (IN_APP || !S.webhook)){
+    return new Promise((ok,fail)=>sdk.callMethod(method,params,r=>{
+      if(r.error()) fail(new Error(String(r.error()))); else ok({result:r.data(), total:r.total&&r.total(), next:r.more()?1:undefined});
+    }));
+  }
+  if(!S.webhook) throw new Error('NO_WEBHOOK');
+  const url = S.webhook.replace(/\/?$/,'/') + method + '.json';
+  // form-urlencoded = «простой» CORS-запрос, без preflight
+  const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:qs(params)});
+  const j = await res.json().catch(()=>({}));
+  if(!res.ok || j.error) throw new Error(j.error_description||j.error||('HTTP '+res.status));
+  return j;
+}
+async function batch(cmds){ // cmds: {key: [method, params]} → {key: result}
+  const keys=Object.keys(cmds), out={};
+  for(let i=0;i<keys.length;i+=50){
+    const cmd={}; keys.slice(i,i+50).forEach(k=>cmd[k]=cmds[k][0]+'?'+qs(cmds[k][1]));
+    const r = await call('batch',{halt:0,cmd});
+    const res = r.result.result||{}, errs = r.result.result_error||{};
+    const ek = Object.keys(errs).filter(k=>errs[k] && (Array.isArray(errs[k])?errs[k].length:true));
+    if(ek.length) throw new Error(ek.map(k=>errs[k].error_description||errs[k].error||JSON.stringify(errs[k])).join('; '));
+    Object.assign(out,res);
+  }
+  return out;
+}
+async function listAll(method, params, pick){ // постраничная выборка
+  const first = await call(method,{...params,start:0});
+  const items = [...pick(first.result)];
+  const total = first.total||0;
+  const cmds={};
+  for(let s=50;s<total;s+=50) cmds['p'+s]=[method,{...params,start:s}];
+  if(Object.keys(cmds).length){ const r=await batch(cmds); Object.keys(cmds).forEach(k=>items.push(...pick(r[k]))); }
+  return items;
+}
+
+/* ===== Загрузка данных ===== */
+async function fetchData(){
+  const now = new Date(), today = dayKey(now);
+  const monthStart = today.slice(0,8)+'01';
+  const fromKey = [monthStart, addDays(today,-CFG.streakLookbackDays)].sort()[0];
+
+  const [deps, users, hist] = await Promise.all([
+    call('department.get',{}).then(r=>r.result),
+    listAll('user.get',{FILTER:{ACTIVE:true}},r=>r||[]),
+    listAll('crm.stagehistory.list',{entityTypeId:2,order:{ID:'ASC'},
+      filter:{STAGE_ID:CFG.orderStage, CATEGORY_ID:CFG.categoryId, '>=CREATED_TIME':fromKey+'T00:00:00'+CFG.tzOffset},
+      select:['ID','OWNER_ID','CREATED_TIME']}, r=>(r&&r.items)||[])
+  ]);
+
+  // одна сделка = один заказ (первый переход в «Заказ» за период)
+  const first = {};
+  for(const h of hist){ const t=new Date(h.CREATED_TIME); if(!first[h.OWNER_ID] || t<first[h.OWNER_ID]) first[h.OWNER_ID]=t; }
+  // сделки, которые уже были в «Заказ» раньше окна выборки (повторный заход) — не считаем
+  const allIds = Object.keys(first), pc={};
+  for(let i=0;i<allIds.length;i+=50) pc['h'+i]=['crm.stagehistory.list',{entityTypeId:2,
+    filter:{STAGE_ID:CFG.orderStage, CATEGORY_ID:CFG.categoryId, '@OWNER_ID':allIds.slice(i,i+50), '<CREATED_TIME':fromKey+'T00:00:00'+CFG.tzOffset}, select:['OWNER_ID']}];
+  const prior = new Set();
+  if(allIds.length){ const pr = await batch(pc); Object.values(pr).forEach(r=>((r&&r.items)||[]).forEach(x=>prior.add(String(x.OWNER_ID)))); }
+  const ids = allIds.filter(id=>!prior.has(String(id)));
+  const cmds={};
+  for(let i=0;i<ids.length;i+=50) cmds['d'+i]=['crm.deal.list',{filter:{'@ID':ids.slice(i,i+50)},select:['ID','OPPORTUNITY','ASSIGNED_BY_ID','TITLE']}];
+  const dr = Object.keys(cmds).length ? await batch(cmds) : {};
+  const deals = Object.values(dr).flat();
+
+  // уволенные/неактивные с заказами
+  const umap = Object.fromEntries(users.map(u=>[String(u.ID),u]));
+  const missing = [...new Set(deals.map(d=>String(d.ASSIGNED_BY_ID)))].filter(id=>!umap[id]);
+  if(missing.length){ (await call('user.get',{FILTER:{ID:missing}})).result.forEach(u=>umap[String(u.ID)]=u); }
+
+  const orders = deals.map(d=>({id:d.ID, uid:String(d.ASSIGNED_BY_ID), sum:+d.OPPORTUNITY||0, t:first[d.ID]}));
+  return {now, today, monthStart, deps, umap, orders};
+}
+
+/* ===== Расчёт ===== */
+function deptTree(deps){
+  const kids={}; deps.forEach(d=>{(kids[d.PARENT]=kids[d.PARENT]||[]).push(String(d.ID));});
+  const sub = id => [String(id), ...(kids[id]||[]).flatMap(sub)];
+  return {sub};
+}
+function tgt(uid){ const t=S.targets[uid]||{}; return {day: t.day!==undefined&&t.day!=='' ? +t.day : +S.defDay||0, mon: t.mon!==undefined&&t.mon!=='' ? +t.mon : +S.defMon||0}; }
+function compute(){
+  const {today, monthStart, deps, umap, orders, now} = D;
+  const tree = deptTree(deps);
+  const allowed = S.dept==='all' ? null : new Set(tree.sub(S.dept));
+  const depName = Object.fromEntries(deps.map(d=>[String(d.ID),d.NAME]));
+  const inDept = u => !allowed || (u.UF_DEPARTMENT||[]).some(x=>allowed.has(String(x)));
+
+  const M = {};
+  const get = uid => M[uid] || (M[uid]={uid, u:umap[uid]||{ID:uid,NAME:'ID '+uid}, day:0, mon:0, cnt:0, dayCnt:0, days:{}, todayOrders:[]});
+  for(const o of orders){
+    const u = umap[o.uid]; if(S.hidden[o.uid] || (u && !inDept(u))) continue;
+    const k = dayKey(o.t), m = get(o.uid);
+    m.days[k]=(m.days[k]||0)+o.sum;
+    if(k>=monthStart){ m.mon+=o.sum; m.cnt++; }
+    if(k===today){ m.day+=o.sum; m.dayCnt++; m.todayOrders.push(o); }
+  }
+  // менеджеры с планом, но без заказов
+  for(const uid in S.targets){ const t=S.targets[uid]; const u=umap[uid];
+    if(u && !S.hidden[uid] && inDept(u) && (+t.day>0 || +t.mon>0)) get(uid); }
+
+  const list = Object.values(M).filter(m=>m.mon>0 || m.day>0 || S.targets[m.uid]);
+  for(const m of list){
+    m.t = tgt(m.uid);
+    m.dep = (m.u.UF_DEPARTMENT||[]).map(x=>depName[x]).filter(Boolean)[0]||'';
+    // серия: дни подряд, когда выполнен дневной план (или были заказы, если плана нет)
+    const hit = k => m.t.day>0 ? (m.days[k]||0)>=m.t.day : (m.days[k]||0)>0;
+    let k = hit(today) ? today : addDays(today,-1), s=0;
+    while(hit(k) && s<=CFG.streakLookbackDays){ s++; k=addDays(k,-1); }
+    m.streak = s;
+  }
+  list.sort((a,b)=>b.mon-a.mon || b.day-a.day);
+
+  const tot = {day:0, mon:0, tDay:0, tMon:0, cnt:0, dayCnt:0};
+  list.forEach(m=>{tot.day+=m.day; tot.mon+=m.mon; tot.tDay+=m.t.day; tot.tMon+=m.t.mon; tot.cnt+=m.cnt; tot.dayCnt+=m.dayCnt;});
+
+  // контрольные точки дня
+  const todays = list.flatMap(m=>m.todayOrders);
+  const nowHM = hmfmt.format(now);
+  const cps = S.cps.split(/[,;\s]+/).filter(x=>/^\d{1,2}:\d{2}$/.test(x)).map(x=>x.padStart(5,'0')).sort().map(hm=>({
+    hm, passed: nowHM>=hm, sum: todays.filter(o=>hmfmt.format(o.t)<hm).reduce((a,o)=>a+o.sum,0)
+  }));
+  const leaderDay = [...list].sort((a,b)=>b.day-a.day)[0];
+  return {list, tot, cps, leaderDay, depName};
+}
+
+/* ===== Отрисовка ===== */
+const pct = (v,t) => t>0 ? Math.round(v/t*100) : null;
+const pctHtml = (v,t,cls='') => { const p=pct(v,t); return p===null ? `<span class="p na ${cls}">—</span>` : `<span class="p ${cls}">${p}%</span>`; };
+const bar = (v,t,kind) => { const w = t>0 ? Math.min(100,v/t*100) : (v>0?100:0); return `<div class="bar ${kind}"><i style="width:${w}%"></i></div>`; };
+const nameOf = u => [u.NAME,u.LAST_NAME].filter(Boolean).join(' ').trim() || u.EMAIL || ('ID '+u.ID);
+function avatar(u,big){
+  const ini = nameOf(u).split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  return u.PERSONAL_PHOTO ? `<img class="av ${big?'big':''}" src="${esc(u.PERSONAL_PHOTO)}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=&quot;av ${big?'big':''}&quot;>${esc(ini)}</div>'">`
+                          : `<div class="av ${big?'big':''}">${esc(ini)}</div>`;
+}
+function render(){
+  if(!D) return;
+  const {list, tot, cps, leaderDay, depName} = compute();
+  // вкладки отделов (верхний уровень)
+  const topDeps = D.deps.filter(d=>{ const p=D.deps.find(x=>String(x.ID)===String(d.PARENT)); return p && !p.PARENT; });
+  document.getElementById('tabs').innerHTML = [`<button data-d="all" class="${S.dept==='all'?'on':''}">Все</button>`]
+    .concat(topDeps.map(d=>`<button data-d="${d.ID}" class="${S.dept==String(d.ID)?'on':''}">${esc(d.NAME)}</button>`)).join('');
+  const deptLabel = S.dept==='all' ? 'Все отделы' : (depName[S.dept]||'Отдел');
+
+  const top = list[0];
+  const tp = document.getElementById('toppill');
+  tp.hidden = !top || top.mon<=0;
+  if(top) tp.innerHTML = `<span class="lbl">👑 Топ месяца</span>${avatar(top.u)}<div><b>${esc(nameOf(top.u))}</b><small>${money(top.mon)}</small></div>`;
+
+  document.getElementById('deptCard').innerHTML = `
+    <div class="h"><div class="ico">📈</div><div><b>${esc(deptLabel)}</b><small>Статистика отдела · ${tot.cnt} заказов за месяц</small></div></div>
+    <div class="stat"><div class="row"><span class="k">Сегодня · ${tot.dayCnt} зак.</span>${pctHtml(tot.day,tot.tDay,'pct day').replace('class="p','class="pct day')}</div>
+      ${bar(tot.day,tot.tDay,'day')}<div class="v">${money(tot.day)} ${tot.tDay?`<span>/ ${money(tot.tDay)}</span>`:''}</div></div>
+    <div class="stat"><div class="row"><span class="k">Месяц</span>${pctHtml(tot.mon,tot.tMon).replace('class="p','class="pct mon')}</div>
+      ${bar(tot.mon,tot.tMon,'mon')}<div class="v">${money(tot.mon)} ${tot.tMon?`<span>/ ${money(tot.tMon)}</span>`:''}</div></div>`;
+
+  const L = leaderDay && leaderDay.day>0 ? leaderDay : null;
+  const nextCp = cps.find(c=>!c.passed);
+  document.getElementById('leaderCard').innerHTML = L ? `
+    <div class="leader">${avatar(L.u,true)}<div class="who"><span class="tag">⚡ ТОП</span><b>${esc(nameOf(L.u))}</b><span class="tag">🏆 Лидер дня</span></div></div>
+    <div class="two">
+      <div class="stat"><span class="k">Сегодня</span><div class="v">${money(L.day)}</div><small style="color:var(--muted)">цель: ${L.t.day?money(L.t.day):'—'}</small><div>${pctHtml(L.day,L.t.day).replace('class="p','class="pct day')}</div></div>
+      <div class="stat"><span class="k">Месяц</span><div class="v">${money(L.mon)}</div><small style="color:var(--muted)">цель: ${L.t.mon?money(L.t.mon):'—'}</small><div>${pctHtml(L.mon,L.t.mon).replace('class="p','class="pct mon')}</div></div>
+    </div>
+    <div class="cps">${cps.map(c=>`<div class="cp ${c===nextCp?'now':''}"><span>🕒 ${c.hm}</span><b>${c.passed?money(c.sum):'ожидается'}</b></div>`).join('')}</div>`
+    : `<div class="h"><div class="ico">🏆</div><div><b>Лидер дня</b><small>Сегодня ещё нет заказов</small></div></div>
+       <div class="cps">${cps.map(c=>`<div class="cp ${c===nextCp?'now':''}"><span>🕒 ${c.hm}</span><b>${c.passed?money(c.sum):'ожидается'}</b></div>`).join('')}</div>`;
+
+  const rows = list.map((m,i)=>`
+    <div class="trow ${i<3?'r'+(i+1):''}">
+      <div class="rank">${i+1}</div>
+      <div class="mgr">${avatar(m.u)}<div style="min-width:0"><div class="nm">${esc(nameOf(m.u))}${i===0?' 👑':''}</div>
+        <div class="sub">${m.dep&&S.dept==='all'?`<span class="b dep">${esc(m.dep)}</span>`:''}<span class="b cnt">${m.cnt} зак.</span>${m.streak>=2?`<span class="b fire">🔥 ${m.streak}</span>`:''}${m.mon>=CFG.bigBadge?`<span class="b m2">⭐ ${short(CFG.bigBadge)}+</span>`:''}</div></div></div>
+      <div class="metric day"><div class="line"><span class="sum">${money(m.day)}${m.t.day?` <span>/ ${money(m.t.day)}</span>`:''}</span>${pctHtml(m.day,m.t.day)}</div>${bar(m.day,m.t.day,'day')}</div>
+      <div class="metric mon"><div class="line"><span class="sum">${money(m.mon)}${m.t.mon?` <span>/ ${money(m.t.mon)}</span>`:''}</span>${pctHtml(m.mon,m.t.mon)}</div>${bar(m.mon,m.t.mon,'mon')}</div>
+    </div>`).join('');
+  document.getElementById('table').innerHTML =
+    `<div class="trow thead"><div>#</div><div>Менеджер</div><div>Сегодня</div><div>Месяц</div></div>` +
+    (rows || `<div class="empty">В этом месяце заказов пока нет</div>`);
+}
+
+/* ===== Цикл обновления ===== */
+async function refresh(){
+  const live = document.getElementById('live'), msg = document.getElementById('msg');
+  try{
+    D = await fetchData();
+    msg.innerHTML=''; live.classList.remove('off');
+    document.getElementById('updated').textContent = 'обновлено ' + hmfmt.format(new Date());
+    render(); if(IN_APP) try{ BX24.fitWindow(); }catch(_){}
+  }catch(e){
+    live.classList.add('off');
+    msg.innerHTML = e.message==='NO_WEBHOOK'
+      ? `<div class="err">Укажите URL входящего вебхука Bitrix24 в настройках (⚙).</div>`
+      : `<div class="err">Ошибка загрузки: ${esc(e.message)}</div>`;
+    if(e.message==='NO_WEBHOOK') openSettings();
+  }
+  clearTimeout(timer); timer = setTimeout(refresh, Math.max(15,+S.refresh||60)*1000);
+}
+setInterval(()=>document.getElementById('clock').textContent = tfmt.format(new Date()), 1000);
+
+/* ===== Настройки ===== */
+const $ = id => document.getElementById(id);
+function openSettings(){
+  $('sWebhook').closest('.f').style.display = IN_APP ? 'none' : '';
+  $('sWebhook').value=S.webhook; $('sDefDay').value=S.defDay||''; $('sDefMon').value=S.defMon||''; $('sCps').value=S.cps; $('sRefresh').value=S.refresh;
+  const depName = D ? Object.fromEntries(D.deps.map(d=>[String(d.ID),d.NAME])) : {};
+  const users = D ? Object.values(D.umap).filter(u=>u.ACTIVE!==false && u.ACTIVE!=='N').sort((a,b)=>nameOf(a).localeCompare(nameOf(b),'ru')) : [];
+  $('sRows').innerHTML = users.length ? users.map(u=>{ const t=S.targets[u.ID]||{}; return `<tr data-u="${u.ID}" data-n="${esc(nameOf(u).toLowerCase())}">
+      <td>${esc(nameOf(u))}</td><td style="color:var(--muted)">${esc((u.UF_DEPARTMENT||[]).map(x=>depName[x]).filter(Boolean).join(', '))}</td>
+      <td><input type="number" min="0" step="1000" data-k="day" value="${t.day??''}" placeholder="${S.defDay||0}"></td>
+      <td><input type="number" min="0" step="10000" data-k="mon" value="${t.mon??''}" placeholder="${S.defMon||0}"></td>
+      <td><input type="checkbox" data-k="hide" ${S.hidden[u.ID]?'checked':''}></td></tr>`;}).join('')
+    : `<tr><td colspan="5" style="color:var(--muted);padding:14px">Список менеджеров появится после подключения вебхука.</td></tr>`;
+  $('sFilter').value=''; $('modal').classList.add('on');
+}
+$('sFilter').oninput = e => { const q=e.target.value.toLowerCase(); document.querySelectorAll('#sRows tr[data-u]').forEach(tr=>tr.style.display=tr.dataset.n.includes(q)?'':'none'); };
+$('setBtn').onclick = openSettings;
+$('cancelBtn').onclick = ()=>$('modal').classList.remove('on');
+$('refreshBtn').onclick = refresh;
+$('saveBtn').onclick = ()=>{
+  const wh = $('sWebhook').value.trim();
+  const changedWh = wh!==S.webhook;
+  S.webhook=wh; S.defDay=+$('sDefDay').value||0; S.defMon=+$('sDefMon').value||0; S.cps=$('sCps').value; S.refresh=+$('sRefresh').value||60;
+  document.querySelectorAll('#sRows tr[data-u]').forEach(tr=>{
+    const id=tr.dataset.u, day=tr.querySelector('[data-k=day]').value, mon=tr.querySelector('[data-k=mon]').value;
+    if(day!==''||mon!=='') S.targets[id]={day:day===''?undefined:+day, mon:mon===''?undefined:+mon}; else delete S.targets[id];
+    if(tr.querySelector('[data-k=hide]').checked) S.hidden[id]=1; else delete S.hidden[id];
+  });
+  save(); $('modal').classList.remove('on');
+  if(changedWh || !D) refresh(); else render();
+};
+$('exportBtn').onclick = ()=>{ const {webhook,...rest}=S; const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(rest,null,2)],{type:'application/json'})); a.download='leaderboard-settings.json'; a.click(); };
+$('importBtn').onclick = ()=>{ const i=document.createElement('input'); i.type='file'; i.accept='.json,application/json';
+  i.onchange=async()=>{ try{ const j=JSON.parse(await i.files[0].text()); delete j.webhook; S=Object.assign(S,j); save(); openSettings(); render(); }catch(e){ alert('Не удалось прочитать файл'); } }; i.click(); };
+$('tabs').onclick = e => { const b=e.target.closest('button'); if(!b) return; S.dept=b.dataset.d; save(); render(); };
+
+// ?webhook=... в адресе — разовая подстановка (удаляется из адресной строки)
+(()=>{ const p=new URLSearchParams(location.search); if(p.get('webhook')){ S.webhook=p.get('webhook'); save(); history.replaceState(null,'',location.pathname); } })();
+
+// Запуск: внутри Bitrix24 (локальное приложение) — через BX24 SDK, настройки общие для всех (appOption)
+if(IN_APP){
+  $('setBtn').title = 'Настройки (общие для всех)';
+  const s = document.createElement('script'); s.src = 'https://api.bitrix24.com/api/v1/';
+  s.onload = () => BX24.init(() => {
+    try{ const raw = BX24.appOption.get('settings'); if(raw){ const j = JSON.parse(raw); delete j.webhook; S = Object.assign(S, j); } }catch(e){}
+    try{ BX24.fitWindow(); }catch(e){}
+    refresh();
+  });
+  s.onerror = () => { document.getElementById('msg').innerHTML = '<div class="err">Не удалось загрузить Bitrix24 SDK</div>'; };
+  document.head.appendChild(s);
+} else refresh();
+</script>
+</body>
+</html>
