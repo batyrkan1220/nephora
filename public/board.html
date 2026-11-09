@@ -16,8 +16,8 @@
 html,body{margin:0;height:100%;overflow:hidden}
 body{background:var(--bg);color:var(--ink);font-family:Poppins,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .num{font-variant-numeric:tabular-nums}
-#app{position:absolute;inset:1.6vh;background:#fff;border-radius:3.2vh;box-shadow:0 30px 80px -50px rgba(31,107,255,.35);display:flex;flex-direction:column;padding:3vh 2.4vw 1.8vh;gap:1.8vh;font-size:clamp(11px,1.5vh,20px)}
-html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;left:1.6vh;top:1.6vw;transform-origin:top left;transform:translateX(calc(100vw - 3.2vh)) rotate(90deg);font-size:clamp(11px,1.5vw,20px);border-radius:3.2vw}
+#app{position:absolute;inset:1.6vh;background:#fff;border-radius:3.2vh;box-shadow:0 30px 80px -50px rgba(31,107,255,.35);display:flex;flex-direction:column;padding:3vh 2.4vw 1.8vh;gap:1.8vh}
+html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;left:1.6vh;top:1.6vw;transform-origin:top left;transform:translateX(calc(100vw - 3.2vh)) rotate(90deg);border-radius:3.2vw}
 
 /* ===== шапка ===== */
 .hd{display:flex;align-items:stretch;gap:1.2em;flex-wrap:wrap}
@@ -106,8 +106,24 @@ html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;le
 .center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:clamp(14px,2.4vh,26px);color:var(--muted2);padding:2em}
 .center b{display:block;color:var(--ink);font-size:1.6em;font-weight:500;margin-bottom:.3em}
 
+/* ===== вертикальный экран (ТВ стоит вертикально или повёрнут) ===== */
+html.pt .hd{flex-wrap:wrap;gap:1em}
+html.pt .ttl{flex-basis:100%}
+html.pt .ttl h1{font-size:2.8em;white-space:normal}
+html.pt .stat{flex:1;min-width:0}
+html.pt .stat.plan{min-width:0}
+html.pt .clock{display:none}
+html.pt .top{gap:1.1em}
+html.pt .tc{flex-direction:column;text-align:center;padding:1.6em 1em 1.3em;gap:.7em}
+html.pt .tc .info{width:100%}
+html.pt .tc .pl{justify-content:center}
+html.pt .tc .nm{white-space:normal;line-height:1.2;min-height:2.4em;display:flex;align-items:center;justify-content:center}
+html.pt .tc .v{font-size:1.8em}
+html.pt .tc .av{width:5.4em;height:5.4em}
+html.pt .tc .crown{left:calc(50% - 2.4em);top:.55em}
+html.pt .tbl{padding:1em}
 /* ===== телефон ===== */
-@media (max-width:760px){
+@media (max-width:600px){
   html,body{overflow:auto;height:auto}
   #app{position:static;margin:10px;padding:18px 14px 20px;gap:14px;font-size:13px;border-radius:26px}
   .hd{gap:8px}.ttl{flex-basis:100%}.ttl h1{font-size:1.9em;white-space:normal}
@@ -178,12 +194,19 @@ function render() {
   document.title = D.board.name + ' · Leaderboard';
 
   // колонки таблицы
-  const PH = innerWidth <= 760 && !document.documentElement.classList.contains('rot');
+  const ROT = document.documentElement.classList.contains('rot');
+  const PH = innerWidth <= 600 && !ROT;
+  // эффективный размер экрана (в повёрнутом режиме стороны меняются местами)
+  const W = ROT ? innerHeight : innerWidth, HH = ROT ? innerWidth : innerHeight;
+  const PT = !PH && HH > W;
+  document.documentElement.classList.toggle('pt', PT);
+  // масштаб от эталона 1920×1080 (вертикально 1080×1920): на любом ТВ выглядит одинаково
+  $('#app').style.fontSize = PH ? '' : (PT ? Math.min(W * 0.015, HH * 0.00844) : Math.min(HH * 0.015, W * 0.00844)).toFixed(2) + 'px';
   const C = [['2.2em', '#', ''], ['minmax(0,2.4fr)', 'Менеджер', '']];
-  if (cols.today && !PH) C.push(['minmax(0,1.6fr)', 'Сегодня', '']);
+  if (cols.today && !PH && !PT) C.push(['minmax(0,1.6fr)', 'Сегодня', '']);
   if (cols.sales) C.push(['minmax(0,1.9fr)', 'Продажи', '']);
   if (cols.count) C.push(['5em', 'Кол-во', 'cnt']);
-  if (cols.pct && !PH) C.push(['minmax(0,1fr)', '% от продаж', 'r']);
+  if (cols.pct && !PH && !PT) C.push(['minmax(0,1fr)', '% от продаж', 'r']);
   if (cols.salary && !PH) C.push(['minmax(0,1.1fr)', 'Зарплата', 'r']);
   const tmpl = C.map(c => c[0]).join(' ');
 
@@ -202,10 +225,10 @@ function render() {
     const up = prev[r.uid] !== undefined && prev[r.uid] < r.sum ? 'up' : '';
     let h = `<div class="tr row ${t} ${lose} ${up}"><span class="place num">${r.place}</span>
       <div class="mg">${t ? CROWN(CC[r.place - 1], 'cr') : ''}${av(r)}<div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${esc(r.dep)}</div></div></div>`;
-    if (cols.today && !PH) h += `<div>${bar(r.daySum, r.dayPlan, `<div class="sub num"><b>${short(r.daySum)}</b>${r.dayPlan ? ' / ' + short(r.dayPlan) + ' ₸' : ' ₸'}</div>`)}</div>`;
+    if (cols.today && !PH && !PT) h += `<div>${bar(r.daySum, r.dayPlan, `<div class="sub num"><b>${short(r.daySum)}</b>${r.dayPlan ? ' / ' + short(r.dayPlan) + ' ₸' : ' ₸'}</div>`)}</div>`;
     if (cols.sales) h += `<div>${bar(r.sum, r.plan, `<div class="sub num"><b>${short(r.sum)}</b>${r.plan ? ' / ' + short(r.plan) + ' ₸' : ' ₸'}</div>`)}</div>`;
     if (cols.count) h += `<span class="cnt num">${r.cnt}</span>`;
-    if (cols.pct && !PH) h += `<span class="r pct num">${r.comm ? money(r.comm) : '—'}<small>${r.comm ? (Math.round(r.commPct * 10) / 10) + '%' : ''}</small></span>`;
+    if (cols.pct && !PH && !PT) h += `<span class="r pct num">${r.comm ? money(r.comm) : '—'}<small>${r.comm ? (Math.round(r.commPct * 10) / 10) + '%' : ''}</small></span>`;
     if (cols.salary && !PH) h += `<span class="r big num">${money(r.salary)}</span>`;
     return h + '</div>';
   };
