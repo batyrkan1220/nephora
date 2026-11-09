@@ -7,130 +7,214 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#1f1640;--muted:#7a7196;--line:#ece7f6;--soft:#f6f3fc;--card:#fff;--bg:#faf8ff;
-  --grad:linear-gradient(90deg,#ff3d8b,#a24bff 55%,#22b8f0);--pink:#ff3d8b;--violet:#7b5cff;--green:#0fa968;--red:#e11d48}
+:root{--ink:#0f1222;--muted:#9aa1b5;--muted2:#6b7286;--line:#edf0f7;--soft:#f5f7fd;--panel:#f7f9fe;--card:#fff;--bg:#eef2fb;
+  --blue:#1f6bff;--blue2:#3d82ff;--purple:#d68bf7;--purple2:#c86df2;--yellow:#fcd94a;--green:#12b76a;--red:#ef4444;
+  --grad:linear-gradient(135deg,#3d82ff,#1f6bff);--sh:0 10px 30px -18px rgba(31,107,255,.35);--r:22px}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Poppins,system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 .num{font-variant-numeric:tabular-nums}
 button,input,select,textarea{font:inherit;color:inherit}
-.lay{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
-aside{background:#fff;border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.08em;padding:0 10px 18px}
-.logo i{width:32px;height:32px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:900}
-.logo small{display:block;font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:600}
-aside a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-weight:600;color:#4b3f75}
-aside a:hover{background:var(--soft)}
-aside a.on{background:var(--ink);color:#fff}
-aside .sp{flex:1}
-aside .out{color:var(--muted);font-weight:500}
-main{padding:28px 34px 120px;min-width:0}
-.top{display:flex;align-items:flex-end;gap:14px;margin-bottom:18px;flex-wrap:wrap}
-.top h1{margin:0;font-size:28px;font-weight:800;flex:1}
-.top .sub{color:var(--muted);font-size:13px;width:100%;margin-top:-10px}
+.shell{margin:28px;background:#fff;border-radius:44px;min-height:calc(100vh - 56px);display:grid;grid-template-columns:270px minmax(0,1fr);box-shadow:0 30px 80px -50px rgba(31,107,255,.35)}
+aside{padding:44px 28px 30px 34px;position:sticky;top:28px;height:calc(100vh - 56px);display:flex;flex-direction:column;gap:6px}
+.logo{display:flex;align-items:center;gap:14px;font-weight:500;font-size:19px;margin-bottom:48px}
+.logo i{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1f6bff 40%,#c86df2);color:#fff;display:grid;place-items:center;font-style:normal}
+.logo i svg{width:22px;height:22px}
+.navl{font-size:12.5px;letter-spacing:.04em;color:var(--muted);margin:26px 0 8px 2px;text-transform:uppercase}
+aside a{display:flex;align-items:center;gap:16px;padding:7px 0;color:var(--muted);font-size:15px;transition:.15s}
+aside a .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;color:#a3abc0;flex:none;transition:.15s}
+aside a .ic svg{width:22px;height:22px}
+aside a:hover{color:var(--ink)}aside a:hover .ic{background:var(--soft)}
+aside a.on{color:var(--ink);font-weight:500}
+aside a.on .ic{background:var(--blue);color:#fff;box-shadow:0 10px 22px -10px rgba(31,107,255,.9)}
+aside .sp{flex:1;min-height:20px}
+.promo{background:var(--grad);border-radius:28px;padding:24px 18px 20px;color:#fff;text-align:center;box-shadow:0 24px 40px -22px rgba(31,107,255,.9);margin-bottom:12px}
+.promo svg{width:64px;height:64px;margin-bottom:8px}
+.promo b{display:block;font-weight:500;font-size:15px;margin-bottom:14px}
+.promo a{display:inline-flex;justify-content:center;gap:8px;background:#fff;color:var(--blue);border-radius:99px;padding:8px 18px;font-size:14px;font-weight:500}
+.promo a .ic{display:none}
+aside .out{font-size:13.5px}
+main{padding:44px 44px 120px 10px;min-width:0}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:26px;flex-wrap:wrap}
+.top h1{margin:0;font-size:34px;font-weight:500;letter-spacing:-.01em;flex:1}
+.top .sub{color:var(--muted2);font-size:14px;width:100%;margin-top:-10px}
+.top .sub a{color:var(--blue)}
 .burger{display:none}
-@media (max-width:900px){
-  .lay{grid-template-columns:1fr}
-  aside{position:fixed;z-index:40;left:0;top:0;width:250px;transform:translateX(-100%);transition:.25s;box-shadow:0 0 40px rgba(0,0,0,.2)}
+@media (max-width:1000px){
+  .shell{margin:0;border-radius:0;grid-template-columns:1fr}
+  aside{position:fixed;z-index:40;left:0;top:0;height:100vh;width:270px;background:#fff;transform:translateX(-100%);transition:.25s;box-shadow:0 0 40px rgba(0,0,0,.2);overflow:auto}
   body.menu aside{transform:none}
-  .burger{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer}
-  main{padding:18px 14px 120px}
+  .burger{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:14px;border:0;background:var(--soft);cursor:pointer;font-size:18px}
+  main{padding:20px 16px 120px}
 }
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:16px}
-.card h3{margin:0 0 4px;font-size:16px}
-.card .hint{color:var(--muted);font-size:12.5px;margin:0 0 12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px}
-.kpi{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px}
-.kpi small{color:var(--muted);font-weight:600;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
-.kpi b{display:block;font-size:26px;font-weight:800;margin-top:4px;letter-spacing:-.01em}
-.kpi span{color:var(--muted);font-size:12.5px}
-.kpi.g b{color:var(--green)}.kpi.v b{background:var(--grad);-webkit-background-clip:text;color:transparent}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:18px;box-shadow:var(--sh)}
+.card h3{margin:0 0 4px;font-size:18px;font-weight:500}
+.card .hint{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:18px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:0;background:var(--soft);padding:8px 14px;border-radius:99px;cursor:pointer;font-weight:500}
-.chip.on{background:var(--ink);color:#fff}
-.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer;background:var(--ink);color:#fff;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
-.btn.g{background:var(--grad)}
-.btn.l{background:#fff;color:var(--ink);border:1px solid var(--line)}
-.btn.s{padding:6px 11px;border-radius:10px;font-size:12.5px}
-.btn.d{background:#fff1f2;color:var(--red)}
+.chip{border:0;background:var(--soft);padding:8px 14px;border-radius:99px;cursor:pointer;color:var(--muted2);font-size:13px}
+.chip.on{background:var(--blue);color:#fff;box-shadow:0 8px 18px -10px rgba(31,107,255,.9)}
+.btn{border:0;border-radius:14px;padding:11px 18px;font-weight:500;cursor:pointer;background:var(--blue);color:#fff;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:0 10px 22px -12px rgba(31,107,255,.9)}
+.btn.g{background:linear-gradient(135deg,#3d82ff,#c86df2)}
+.btn.l{background:#fff;color:var(--blue);border:1.5px solid #dfe6f5;box-shadow:none}
+.btn.s{padding:7px 12px;border-radius:11px;font-size:13px}
+.btn.d{background:#fff1f2;color:var(--red);box-shadow:none}
 .btn:disabled{opacity:.5;cursor:default}
-label.f{display:block;margin-bottom:12px}
-label.f>span{display:block;font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
-.in,select.in,textarea.in{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;outline:none}
-.in:focus{border-color:#a24bff}
-.in.sm{padding:7px 9px;border-radius:9px}
+.ibtn{width:58px;height:58px;border-radius:18px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 16px 30px -12px rgba(31,107,255,.9);flex:none}
+.ibtn svg{width:26px;height:26px}
+label.f{display:block;margin-bottom:14px}
+label.f>span{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.in,select.in,textarea.in{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;background:#fff;outline:none;transition:.15s}
+.in:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(31,107,255,.1)}
+.in.sm{padding:8px 10px;border-radius:11px}
 .row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-.ck{display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer}
-.ck input{width:18px;height:18px;accent-color:#7b5cff}
-.sw{position:relative;width:40px;height:23px;flex:none}
+.ck{display:flex;align-items:center;gap:12px;padding:7px 0;cursor:pointer}
+.ck input{width:18px;height:18px;accent-color:var(--blue)}
+.sw{position:relative;width:42px;height:24px;flex:none}
 .sw input{opacity:0;position:absolute;inset:0;cursor:pointer;z-index:1;margin:0}
-.sw i{position:absolute;inset:0;border-radius:99px;background:#ddd6ee;transition:.2s}
-.sw i::after{content:"";position:absolute;left:3px;top:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.2s}
-.sw input:checked+i{background:#7b5cff}.sw input:checked+i::after{left:20px}
+.sw i{position:absolute;inset:0;border-radius:99px;background:#dde3f0;transition:.2s}
+.sw i::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 2px 4px rgba(0,0,0,.15)}
+.sw input:checked+i{background:var(--blue)}.sw input:checked+i::after{left:21px}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{text-align:left;font-size:12.5px;font-weight:400;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
 tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:#fafbff}
 td.r,th.r{text-align:right}
-tfoot td{font-weight:700;border-top:2px solid var(--line)}
+td.num,td .num{white-space:nowrap}
+tfoot td{font-weight:600;border-top:2px solid var(--line)}
 .tw{overflow-x:auto}
-.who{display:flex;align-items:center;gap:10px;min-width:180px}
-.who small{display:block;color:var(--muted);font-size:12px}
-.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#efe7ff,#ffe3f0);display:grid;place-items:center;font-weight:700;font-size:12px;color:#6a3df5;overflow:hidden;flex:none}
+.who{display:flex;align-items:center;gap:12px;min-width:180px}
+.who small{display:block;color:var(--muted);font-size:12.5px}
+.av{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#e3ecff,#f6e6ff);display:grid;place-items:center;font-weight:600;font-size:13px;color:var(--blue);overflow:hidden;flex:none}
 .av img{width:100%;height:100%;object-fit:cover}
-.av.big{width:46px;height:46px;cursor:pointer;position:relative}
-.av.big:hover::after{content:"✎";position:absolute;inset:0;background:rgba(31,22,64,.55);color:#fff;display:grid;place-items:center;font-size:16px}
-.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--soft)}
-.pill.ok{background:#dcfce7;color:#15803d}.pill.no{background:#f1f5f9;color:#64748b}.pill.er{background:#ffe4e6;color:#be123c}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
-.tabs a{padding:10px 16px;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;white-space:nowrap}
-.tabs a.on{color:var(--ink);border-color:#a24bff}
-.chart{display:flex;align-items:flex-end;gap:3px;height:170px;padding-top:10px}
-.chart div{flex:1;min-width:3px;background:linear-gradient(180deg,#ff3d8b,#a24bff);border-radius:6px 6px 2px 2px;position:relative;cursor:default;opacity:.9}
-.chart div:hover{opacity:1;outline:2px solid #22b8f0}
-.chart div.z{background:var(--soft);height:3px!important}
-.cx{display:flex;gap:3px;color:var(--muted);font-size:10px;margin-top:6px}.cx span{flex:1;text-align:center;overflow:hidden}
-.top1{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#fff3c4,#ffe0ee 60%,#dff4ff);border-radius:18px;padding:16px 20px;margin-bottom:16px}
-.top1 .av{width:58px;height:58px;font-size:18px;box-shadow:0 0 0 3px #fff}
-.top1 small{color:#7a5a00;font-weight:700;font-size:11px;letter-spacing:.1em}
-.top1 b{display:block;font-size:20px}
-.top1 .s{margin-left:auto;text-align:right;font-weight:800;font-size:22px}
-.top1 .s span{display:block;font-size:12.5px;font-weight:500;color:var(--muted)}
-.themes{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-.th{border:2px solid var(--line);border-radius:16px;padding:12px;cursor:pointer}
-.th.on{border-color:#a24bff;box-shadow:0 0 0 3px rgba(162,75,255,.15)}
-.th .pv{height:70px;border-radius:10px;margin-bottom:8px;display:flex;gap:5px;padding:8px;align-items:flex-start}
-.th .pv i{flex:1;height:26px;border-radius:6px}
-.th b{display:block}.th small{color:var(--muted);font-size:12px}
-.tier{display:grid;grid-template-columns:1fr 1fr 90px 36px;gap:8px;margin-bottom:8px;align-items:center}
-.tier.b{grid-template-columns:1fr 1fr 36px}
-.x{border:0;background:#fff1f2;color:var(--red);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:16px}
-.bonus{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:#fcfbff}
-.link{display:flex;gap:8px;align-items:center;background:var(--soft);border-radius:12px;padding:8px 8px 8px 14px;font-family:ui-monospace,monospace;font-size:13px;word-break:break-all}
+.av.big{width:48px;height:48px;cursor:pointer;position:relative}
+.av.big:hover::after{content:"✎";position:absolute;inset:0;background:rgba(31,107,255,.6);color:#fff;display:grid;place-items:center;font-size:16px}
+.pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:12.5px;font-weight:500;background:var(--soft);color:var(--muted2)}
+.pill.ok{background:#e7f8ef;color:#0f9a5a}.pill.no{background:#f1f3f8;color:#7b8297}.pill.er{background:#ffecec;color:#d92d20}
+.tabs{display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;background:var(--soft);padding:5px;border-radius:16px;width:max-content;max-width:100%}
+.tabs a{padding:9px 18px;color:var(--muted2);border-radius:12px;white-space:nowrap}
+.tabs a.on{color:#fff;background:var(--blue);box-shadow:0 8px 18px -10px rgba(31,107,255,.9)}
+.chart{display:flex;align-items:flex-end;gap:4px;height:190px;padding-top:10px}
+.chart div{flex:1;min-width:3px;background:linear-gradient(180deg,#c86df2,#3d82ff);border-radius:8px 8px 3px 3px;opacity:.85;transition:.15s}
+.chart div:hover{opacity:1;transform:scaleY(1.02)}
+.chart div.z{background:var(--soft);height:4px!important}
+.cx{display:flex;gap:4px;color:var(--muted);font-size:10.5px;margin-top:8px}.cx span{flex:1;text-align:center;overflow:hidden}
+.themes{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.th{border:2px solid var(--line);border-radius:18px;padding:12px;cursor:pointer;transition:.15s}
+.th.on{border-color:var(--blue);box-shadow:0 0 0 4px rgba(31,107,255,.12)}
+.th .pv{height:70px;border-radius:12px;margin-bottom:10px;display:flex;gap:5px;padding:8px;align-items:flex-start}
+.th .pv i{flex:1;height:26px;border-radius:7px}
+.th b{display:block;font-weight:500}.th small{color:var(--muted);font-size:12.5px}
+.tier{display:grid;grid-template-columns:1fr 1fr 90px 38px;gap:8px;margin-bottom:8px;align-items:center}
+.tier.b{grid-template-columns:1fr 1fr 38px}
+.x{border:0;background:#fff1f2;color:var(--red);width:36px;height:36px;border-radius:11px;cursor:pointer;font-size:16px}
+.bonus{border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;background:var(--panel)}
+.link{display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px 8px 8px 16px;font-family:ui-monospace,monospace;font-size:13px;word-break:break-all}
 .link span{flex:1}
-.save{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(140%);transition:.25s;background:var(--ink);color:#fff;border-radius:16px;padding:10px 10px 10px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 20px 50px -15px rgba(31,22,64,.6);z-index:50}
-.save{opacity:0;visibility:hidden}.save.on{transform:translateX(-50%);opacity:1;visibility:visible}
-.save .btn{background:var(--grad)}
-.toast{position:fixed;right:20px;top:20px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;z-index:60;animation:tin .25s}
+.save{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);opacity:0;visibility:hidden;transition:.25s;background:#0f1222;color:#fff;border-radius:20px;padding:10px 10px 10px 22px;display:flex;align-items:center;gap:14px;box-shadow:0 20px 50px -15px rgba(15,18,34,.6);z-index:50}
+.save.on{transform:translateX(-50%);opacity:1;visibility:visible}
+.toast{position:fixed;right:24px;top:24px;background:#0f1222;color:#fff;padding:13px 20px;border-radius:14px;z-index:60;animation:tin .25s}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}}
-.dept{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 12px}
-.empty{color:var(--muted);text-align:center;padding:24px}
-.warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:14px;padding:12px 16px;margin-bottom:16px}
+.dept{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:16px;padding:6px 14px}
+.empty{color:var(--muted);text-align:center;padding:26px}
+.warn{background:#fff8eb;border:1px solid #fde4b0;color:#9a5b00;border-radius:16px;padding:13px 18px;margin-bottom:18px}
 .stg{columns:2 260px;column-gap:24px}
-.stg h4{margin:10px 0 4px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;break-after:avoid}
+.stg h4{margin:10px 0 4px;font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em;break-after:avoid}
+
+/* ===== Главная (CallAction) ===== */
+.dash{display:grid;grid-template-columns:minmax(330px,520px) minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:1300px){.dash{grid-template-columns:1fr}}
+.dash>div,.shell>main{min-width:0}
+@media (max-width:700px){.pnl{padding:22px 16px;border-radius:26px}.ph h1{font-size:28px}.kc .bg b{font-size:36px}.donut{margin:0 auto}.mc{padding:14px}.mc .v{margin-left:8px}.mc .v b{font-size:14px}}
+.pnl{background:var(--panel);border-radius:34px;padding:34px 30px 30px}
+.ph{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px}
+.ph h1{margin:0;font-size:36px;font-weight:500;letter-spacing:-.015em;line-height:1.15}
+.ph p{margin:4px 0 0;font-size:15px}
+.ph .burger{margin-right:4px}
+.flt{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+.flt .row2{gap:10px}
+.flt .in{background:#fff;border-color:transparent;box-shadow:0 6px 16px -12px rgba(31,107,255,.4);padding:10px 12px;font-size:13.5px}
+.sh{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+.sh h2{margin:0;font-size:21px;font-weight:400;color:#a3abc0;flex:1}
+.ar{width:34px;height:34px;border-radius:11px;border:0;background:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 14px -10px rgba(15,18,34,.35)}
+.ar:disabled{opacity:.4;cursor:default}
+.ar svg{width:16px;height:16px}
+.cal{color:var(--blue)}.cal svg{width:24px;height:24px}
+.mc{background:#fff;border-radius:20px;padding:18px 20px 14px;margin-bottom:16px;box-shadow:0 10px 26px -20px rgba(15,18,34,.35)}
+.mc .t{display:flex;align-items:center;gap:12px}
+.mc .av{width:48px;height:48px;border-radius:14px}
+.mc .n{flex:1;min-width:0}
+.mc .n b{display:block;font-weight:500;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc .n small{color:var(--muted);font-size:13px}
+.mc .v{text-align:right;margin-left:14px}
+.mc .v b{display:block;font-weight:500;font-size:16px}
+.mc .v small{color:var(--muted);font-size:12.5px}
+.mc .bt{display:flex;align-items:center;gap:20px;margin-top:14px}
+.mc .bt .tr{flex:1;height:4px;border-radius:99px;background:#d5e3ff;overflow:hidden;max-width:62%}
+.mc .bt .tr i{display:block;height:100%;background:var(--blue);border-radius:99px}
+.mc .bt a{margin-left:auto;color:var(--blue);font-size:13.5px;display:flex;align-items:center;gap:10px}
+.mc .bt a svg{width:22px}
+.mc .rk{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-size:12px;font-weight:600;background:var(--soft);color:var(--muted2);flex:none}
+.mc .rk.r1{background:#fff3c4;color:#a16207}.mc .rk.r2{background:#e8edf7;color:#475569}.mc .rk.r3{background:#ffe6d5;color:#b45309}
+.hr{height:1px;background:#e3e8f3;margin:26px 0 24px}
+.msg{display:flex;align-items:center;gap:14px;padding:10px 0}
+.msg .av{width:48px;height:48px;border-radius:50%;position:relative;overflow:visible}
+.msg .av img{border-radius:50%}
+.msg .av::after{content:"";position:absolute;right:-1px;bottom:1px;width:11px;height:11px;border-radius:50%;background:var(--yellow);border:2px solid var(--panel)}
+.msg .n{flex:1;min-width:0}
+.msg .n b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg .n small{color:var(--muted);font-size:13px;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg .bd{background:#f0dafc;color:#8b2fc9;border-radius:99px;padding:4px 10px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.live{background:#fff;border-radius:18px;display:flex;align-items:center;gap:14px;padding:14px 20px;margin-top:14px;box-shadow:0 10px 26px -20px rgba(15,18,34,.35)}
+.live .dot{width:9px;height:9px;border-radius:50%;background:#f43f5e;box-shadow:0 0 0 5px rgba(244,63,94,.15);animation:bl 1.4s infinite}
+@keyframes bl{50%{opacity:.35}}
+.live b{font-weight:500}.live span{color:var(--muted);font-size:13px}
+.live .cnt{margin-left:auto;background:#f0dafc;color:#8b2fc9;border-radius:99px;padding:3px 10px;font-weight:600;font-size:12.5px}
+.kp{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:44px}
+@media (max-width:700px){.kp{grid-template-columns:1fr}}
+.kc{border-radius:34px;padding:28px 30px 26px;color:#fff;position:relative;overflow:hidden}
+.kc.b{background:linear-gradient(160deg,#3d86ff,#1f6bff);box-shadow:0 24px 44px -26px rgba(31,107,255,.95)}
+.kc.p{background:linear-gradient(160deg,#e3a1fb,#cf7cf4);box-shadow:0 24px 44px -26px rgba(200,109,242,.95)}
+.kc .ki{width:62px;height:62px;border-radius:18px;background:#fff;display:grid;place-items:center;margin-bottom:26px}
+.kc.b .ki{color:var(--blue)}.kc.p .ki{color:var(--purple2)}
+.kc .ki svg{width:28px;height:28px}
+.kc .bg{display:flex;align-items:center;gap:12px}
+.kc .bg b{font-size:44px;font-weight:500;letter-spacing:-.02em;line-height:1}
+.kc .bg span{font-size:13.5px;line-height:1.35;opacity:.95}
+.kc hr{border:0;border-top:1px solid rgba(255,255,255,.4);margin:24px 0 16px}
+.kc .sm{display:flex;align-items:baseline;gap:12px}
+.kc .sm b{font-size:22px;font-weight:500}.kc .sm span{font-size:13.5px;opacity:.95}
+.perf{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:24px;align-items:center;margin-bottom:44px}
+@media (max-width:700px){.perf{grid-template-columns:1fr}}
+.perf h2,.geo h2{margin:0;font-size:24px;font-weight:500}
+.perf p,.geo p{margin:2px 0 22px;color:var(--muted);font-size:13.5px}
+.lg{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px 14px;align-items:center;font-size:15px;max-width:440px}
+.lg i{width:14px;height:14px;border-radius:4px}
+.lg span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lg b{font-weight:400;text-align:right}
+.donut{position:relative;width:240px;height:240px}
+.donut svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.donut .c b{display:block;font-size:22px;font-weight:500}.donut .c small{font-size:13px;font-weight:500}
+.geo .gh{display:flex;align-items:flex-start;gap:12px}
+.geo .gh div{flex:1}
 </style>
 </head>
 <body>
-<div class="lay">
+<div class="shell">
   <aside>
-    <div class="logo"><i>N</i><div>NEPHORA<small>LEADERBOARD</small></div></div>
-    <a href="#/" data-r="home">📊 Главная</a>
-    <a href="#/boards" data-r="boards">🏆 Лидерборды</a>
-    <a href="#/managers" data-r="managers">👥 Менеджеры</a>
-    <a href="#/sales" data-r="sales">💰 Продажи</a>
-    <a href="#/settings" data-r="settings">⚙️ Настройки</a>
+    <div class="logo"><i><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2L5 13.5h6L10 22l9-12.5h-6.2z"/></svg></i>Nephora</div>
+    <a href="#/" data-r="home"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg></span>Главная</a>
+    <a href="#/boards" data-r="boards"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 12l3-3 3 2 4-4"/></svg></span>Лидерборды</a>
+    <a href="#/sales" data-r="sales"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 15v-3M12 15V9M15 15v-5"/></svg></span>Продажи</a>
+    <div class="navl">Управление</div>
+    <a href="#/managers" data-r="managers"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.2c2.6.3 4.5 2.6 4.5 5.3"/></svg></span>Менеджеры</a>
+    <a href="#/settings" data-r="settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5V2.5h6v1M9 10h6M9 14h4"/></svg></span>Настройки</a>
     <div class="sp"></div>
-    <a href="/logout" class="out">↩ Выйти</a>
+    <div class="promo"><svg viewBox="0 0 64 64" fill="none"><path d="M32 4l24 14v28L32 60 8 46V18z" stroke="#fff" stroke-opacity=".5" stroke-width="2"/><path d="M32 16l14 8v16l-14 8-14-8V24z" fill="#fff"/><path d="M32 32l14-8M32 32v16M32 32l-14-8" stroke="#1f6bff" stroke-width="2"/></svg>
+      <b>Табло для зала</b><a id="tvLink" href="#/boards" target="_blank">Открыть ТВ →</a></div>
+    <a href="/logout" class="out"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg></span>Выйти</a>
   </aside>
   <main id="main"><div class="empty">Загрузка…</div></main>
 </div>
@@ -160,6 +244,7 @@ const uPhoto = id => { const u = S.users.find(x => x.id === id); return u ? u.ph
 async function loadState() {
   S = await api('/api/admin/state');
   cfg = JSON.parse(JSON.stringify(S.cfg)); saved = JSON.stringify(cfg); setDirty();
+  const tb = cfg.boards.find(b => b.active) || cfg.boards[0]; if (tb && tb.key) $('#tvLink').href = '/b/' + tb.key;
 }
 function setDirty() { dirty = JSON.stringify(cfg) !== saved; $('#save').classList.toggle('on', dirty); }
 $('#saveBtn').onclick = async () => {
@@ -221,36 +306,97 @@ const qs = extra => new URLSearchParams({ from: F.from, to: F.to, board: F.board
 /* ===== страницы ===== */
 const pages = {};
 
-pages.home = async () => {
-  const head = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Главная</h1>
-    <a class="btn l" id="csv">⬇ CSV</a><div class="sub">Период: ${fd(F.from) || '…'} — ${fd(F.to) || '…'}</div></div>`;
-  $('#main').innerHTML = head + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
-  $('#csv').href = '/api/admin/report?' + qs({ format: 'csv' });
-  let R; try { R = await api('/api/admin/report?' + qs()); } catch (e) { $('#main').querySelector('.empty').textContent = 'Ошибка: ' + e.message; return; }
-  const T = R.totals, mx = Math.max(1, ...R.days.map(d => d.sum));
-  $('#main').innerHTML = head.replace(/Период: [^<]*/, `Период: ${fd(R.from)} — ${fd(R.to)}`) + filters() + `
-    ${S.error ? `<div class="warn">Bitrix24: ${esc(S.error)}</div>` : ''}
-    <div class="grid">
-      <div class="kpi v"><small>Выручка</small><b class="num">${money(T.sum)}</b><span>${T.cnt} продаж</span></div>
-      <div class="kpi"><small>Средний чек</small><b class="num">${money(T.avg)}</b><span>Активных менеджеров: ${T.managers}</span></div>
-      <div class="kpi g"><small>Сегодня</small><b class="num">${money(T.todaySum)}</b><span>${T.todayCnt} продаж</span></div>
-      <div class="kpi"><small>% от продаж</small><b class="num">${money(T.comm)}</b><span>комиссия по ступеням</span></div>
-      <div class="kpi"><small>Бонусов начислено</small><b class="num">${money(T.bonus)}</b><span>по порогам дня/недели/периода</span></div>
-      <div class="kpi"><small>К выплате (итого)</small><b class="num" style="color:#3b6cf5">${money(T.salary)}</b><span>комиссия + бонусы</span></div>
-    </div>
-    ${R.top ? `<div class="top1">${av(R.top.name, R.top.photo)}<div><small>🏆 ТОП МЕНЕДЖЕР ПЕРИОДА</small><b>${esc(R.top.name)}</b><span style="color:var(--muted);font-size:13px">${R.top.cnt} продаж · ${T.sum ? Math.round(R.top.sum / T.sum * 100) : 0}% от общей выручки</span></div>
-      <div class="s num">${money(R.top.sum)}<span>ЗП: ${money(R.top.salary)}</span></div></div>` : ''}
-    <div class="card"><h3>Динамика продаж</h3><p class="hint">${money(T.sum)} · ${T.cnt} продаж — наведите на столбец, чтобы увидеть сумму за день</p>
-      <div class="chart">${R.days.map(d => `<div class="${d.sum ? '' : 'z'}" style="height:${(d.sum / mx * 100).toFixed(1)}%" title="${fd(d.dk)}: ${money(d.sum)} · ${d.cnt} прод."></div>`).join('')}</div>
-      <div class="cx">${R.days.map((d, i) => `<span>${R.days.length <= 31 || i % Math.ceil(R.days.length / 31) === 0 ? d.dk.slice(8, 10) : ''}</span>`).join('')}</div></div>
-    <div class="card"><h3>По менеджерам</h3><div class="tw"><table>
-      <thead><tr><th>Менеджер</th><th class="r">Продаж</th><th class="r">Выручка</th><th class="r">Ср. чек</th><th class="r">% от продаж</th><th class="r">Бонусы</th><th class="r">Зарплата</th></tr></thead>
-      <tbody>${R.rows.map(r => `<tr><td><div class="who">${av(r.name, r.photo)}<div>${esc(r.name)}<small>${esc(r.dep || r.board)}</small></div></div></td>
-        <td class="r num">${r.cnt}</td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${money(r.avg)}</td><td class="r num">${r.comm ? money(r.comm) : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td></tr>`).join('') || '<tr><td colspan="7" class="empty">Продаж за период нет</td></tr>'}</tbody>
-      ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${T.cnt}</td><td class="r num">${money(T.sum)}</td><td class="r num">${money(T.avg)}</td><td class="r num">${money(T.comm)}</td><td class="r num">+${money(T.bonus)}</td><td class="r num">${money(T.salary)}</td></tr></tfoot>` : ''}
-    </table></div></div>`;
-  bindFilters(); $('#csv').href = '/api/admin/report?' + qs({ format: 'csv' });
+const SV = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICO = {
+  left: SV('<path d="M19 12H5M11 6l-6 6 6 6"/>'), right: SV('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+  cal: SV('<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/>'),
+  dl: SV('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+  coin: SV('<circle cx="12" cy="12" r="8"/><path d="M14.5 9.5c-.4-.9-1.4-1.5-2.5-1.5-1.5 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1 2-2.5 2c-1.1 0-2.1-.6-2.5-1.5M12 6.5V8M12 16v1.5"/>'),
+  cart: SV('<path d="M4 5h2l2 10h10l2-7H7.2"/><circle cx="9.5" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/>'),
+  doc: SV('<rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 9h6M9 13h6M9 17h3"/>'),
+  arrow: '<svg viewBox="0 0 24 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 5h21M17 1l5 4-5 4"/></svg>',
+  tag: SV('<path d="M3 12V4h8l9 9-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>'),
 };
+const H = { page: 0 };
+function agoText(ts) { if (!ts) return 'нет данных'; const m = Math.round((Date.now() - ts) / 60000); return m < 1 ? 'Обновлено только что' : `Обновлено ${m} мин. назад`; }
+function donut(parts, center, sub) {
+  const R = 52, C = 2 * Math.PI * R; let off = 0;
+  const segs = parts.filter(p => p.v > 0).map(p => { const len = p.v * C; const s = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${p.c}" stroke-width="${p.w || 16}" stroke-dasharray="${Math.max(0, len - 2)} ${C}" stroke-dashoffset="${-off}" stroke-linecap="butt"/>`; off += len; return s; }).join('');
+  return `<div class="donut"><svg viewBox="0 0 120 120"><defs>
+      <linearGradient id="dgP" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c86df2"/><stop offset="1" stop-color="#f3b6ff"/></linearGradient>
+      <linearGradient id="dgB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1f6bff"/><stop offset="1" stop-color="#9cc0ff"/></linearGradient>
+      <linearGradient id="dgY" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd94a"/><stop offset="1" stop-color="#fff2b0"/></linearGradient></defs>
+    <circle cx="60" cy="60" r="${R}" fill="none" stroke="#f1f4fb" stroke-width="16"/>${segs}<circle cx="60" cy="60" r="38" fill="#fff"/></svg>
+    <div class="c"><div><b class="num">${center}</b><small>${sub}</small></div></div></div>`;
+}
+
+pages.home = async () => {
+  const P = presets(S.today);
+  if (F.p !== 'custom') { F.from = P[F.p][1]; F.to = P[F.p][2]; }
+  const filt = `<div class="flt"><div class="chips">${Object.entries(P).map(([k, v]) => `<button class="chip ${F.p === k ? 'on' : ''}" data-p="${k}">${v[0]}</button>`).join('')}</div>
+    ${F.p === 'custom' ? `<div class="row2"><input class="in" type="date" id="fFrom" value="${F.from}"><input class="in" type="date" id="fTo" value="${F.to}"></div>` : ''}
+    <div class="row2"><select class="in" id="fBoard"><option value="">Все лидерборды</option>${cfg.boards.map(b => `<option value="${b.id}" ${F.board === b.id ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select>
+    <select class="in" id="fUid"><option value="">Все менеджеры</option>${[...new Set([...S.dealUids, ...Object.keys(cfg.managers)])].sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}" ${F.uid === id ? 'selected' : ''}>${esc(uName(id))}</option>`).join('')}</select></div></div>`;
+  const head = `<div class="ph"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><div style="flex:1"><h1>Главная</h1><p>${agoText(S.syncedAt)}</p></div>
+    <a class="ibtn" id="csv" title="Скачать CSV">${ICO.dl}</a></div>`;
+  $('#main').innerHTML = `<div class="dash"><div class="pnl">${head}${filt}<div class="empty">Считаем…</div></div><div></div></div>`; bindFilters();
+  let R; try { R = await api('/api/admin/report?' + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  const T = R.totals, mx = Math.max(1, ...R.days.map(d => d.sum));
+
+  // план: если выбрана доска — личные планы
+  const bsel = cfg.boards.find(b => b.id === F.board);
+  const planOf = id => bsel ? (+(bsel.plans || {})[id] || +bsel.defaultPlan || 0) : 0;
+  const top = R.rows[0] ? R.rows[0].sum : 1;
+  const per = 3, pages_ = Math.max(1, Math.ceil(R.rows.length / per)); if (H.page >= pages_) H.page = 0;
+  const pr = R.rows.slice(H.page * per, H.page * per + per);
+  const card = (r, i) => { const pl = planOf(r.uid), pct = pl ? r.sum / pl * 100 : r.sum / top * 100; const place = H.page * per + i + 1;
+    return `<div class="mc"><div class="t"><span class="rk ${place <= 3 ? 'r' + place : ''}">${place}</span>${av(r.name, r.photo)}<div class="n"><b>${esc(r.name)}</b><small>${esc(r.dep || r.board || '—')}</small></div>
+      <div class="v"><b class="num">${money(r.sum)}</b><small>Выручка</small></div><div class="v"><b class="num">${r.cnt}</b><small>Продаж</small></div></div>
+      <div class="bt"><div class="tr" title="${pl ? 'План ' + Math.floor(pct) + '%' : 'От лидера ' + Math.floor(pct) + '%'}"><i style="width:${Math.min(100, pct).toFixed(1)}%"></i></div>
+      <a href="javascript:void 0" data-uid="${r.uid}">${pl ? Math.floor(pct) + '% плана' : 'Подробнее'} ${ICO.arrow}</a></div></div>`; };
+  const recent = R.deals.slice(0, 4);
+  const shareTop = R.rows.slice(0, 3).map(r => T.sum ? r.sum / T.sum : 0);
+  const planTot = bsel ? (+bsel.plan || R.rows.reduce((a, r) => a + planOf(r.uid), 0)) : 0;
+  const center = planTot ? Math.round(T.sum / planTot * 1000) / 10 + '%' : (shareTop[0] ? Math.round(shareTop[0] * 1000) / 10 + '%' : '—');
+  const colors = ['url(#dgP)', 'url(#dgB)', 'url(#dgY)'], sw = ['#d68bf7', '#1f6bff', '#fcd94a'];
+
+  $('#main').innerHTML = `<div class="dash">
+    <div class="pnl">${head}${filt}
+      <div class="sh"><h2>Рейтинг менеджеров</h2><button class="ar" id="pv" ${H.page ? '' : 'disabled'}>${ICO.left}</button><button class="ar" id="nx" ${H.page < pages_ - 1 ? '' : 'disabled'}>${ICO.right}</button>
+        <span class="cal" title="${fd(R.from)} — ${fd(R.to)}">${ICO.cal}</span></div>
+      ${pr.map(card).join('') || '<div class="mc empty">Продаж за период нет</div>'}
+      <div class="hr"></div>
+      <div class="sh"><h2>Последние продажи</h2><a class="cal" href="#/sales" title="Все продажи">${ICO.right}</a></div>
+      ${recent.map(d => `<div class="msg">${av(d.name, uPhoto(d.uid))}<div class="n"><b>${esc(d.name)}</b><small>${ICO.tag.replace('<svg', '<svg width="14" style="color:var(--blue);flex:none"')}${esc(d.title || 'Сделка #' + d.id)} · ${fd(d.dk)}</small></div><span class="bd num">${money(d.sum)}</span></div>`).join('') || '<div class="empty">Пока нет продаж</div>'}
+      <div class="live"><span class="dot"></span><b>Live</b><span>${S.syncedAt ? new Date(S.syncedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '—'} · Bitrix24 ${S.error ? '— ошибка' : 'на связи'}</span><span class="cnt">${T.todayCnt} сегодня</span></div>
+    </div>
+    <div>
+      ${S.error ? `<div class="warn">Bitrix24: ${esc(S.error)}</div>` : ''}
+      <div class="kp">
+        <div class="kc b"><div class="ki">${ICO.coin}</div><div class="bg"><b class="num">${short(T.sum)}</b><span>Выручка<br>за период</span></div><hr><div class="sm"><b class="num">${money(T.avg)}</b><span>Средний чек</span></div></div>
+        <div class="kc p"><div class="ki">${ICO.cart}</div><div class="bg"><b class="num">${T.cnt}</b><span>Продаж<br>за период</span></div><hr><div class="sm"><b class="num">${money(T.salary)}</b><span>К выплате</span></div></div>
+      </div>
+      <div class="perf"><div><h2>Эффективность</h2><p>${T.todayCnt} продаж сегодня на ${money(T.todaySum)} · ${T.managers} менеджеров</p>
+        <div class="lg">${R.rows.slice(0, 3).map((r, i) => `<i style="background:${sw[i]}"></i><span>${esc(r.name)}</span><b class="num">${(shareTop[i] * 100).toFixed(2)}%</b>`).join('')}
+          <i style="background:#e3e8f3"></i><span>Остальные</span><b class="num">${T.sum ? ((1 - shareTop.reduce((a, b) => a + b, 0)) * 100).toFixed(2) : '0.00'}%</b>
+          <i style="background:#12b76a"></i><span>% от продаж + бонусы</span><b class="num">${money(T.comm + T.bonus)}</b></div></div>
+        ${donut(shareTop.map((v, i) => ({ v, c: colors[i], w: i === 0 ? 20 : 16 })), center, planTot ? 'ПЛАН' : 'ЛИДЕР')}</div>
+      <div class="geo"><div class="gh"><div><h2>Динамика продаж</h2><p>${fd(R.from)} — ${fd(R.to)} · наведите на столбец</p></div><a class="btn l s" id="csv2">${ICO.doc.replace('<svg', '<svg width="18"')} CSV отчёт</a></div>
+        <div class="card" style="padding:18px 20px"><div class="chart">${R.days.map(d => `<div class="${d.sum ? '' : 'z'}" style="height:${(d.sum / mx * 100).toFixed(1)}%" title="${fd(d.dk)}: ${money(d.sum)} · ${d.cnt} прод."></div>`).join('')}</div>
+        <div class="cx">${R.days.map((d, i) => `<span>${R.days.length <= 31 || i % Math.ceil(R.days.length / 31) === 0 ? d.dk.slice(8, 10) : ''}</span>`).join('')}</div></div></div>
+    </div></div>
+      <div class="card" style="margin-top:40px"><h3>По менеджерам</h3><div class="tw"><table>
+        <thead><tr><th>Менеджер</th><th class="r">Продаж</th><th class="r">Выручка</th><th class="r">Ср. чек</th><th class="r">% от продаж</th><th class="r">Бонусы</th><th class="r">Зарплата</th></tr></thead>
+        <tbody>${R.rows.map(r => `<tr><td><div class="who">${av(r.name, r.photo)}<div>${esc(r.name)}<small>${esc(r.dep || r.board)}</small></div></div></td>
+          <td class="r num">${r.cnt}</td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${money(r.avg)}</td><td class="r num">${r.comm ? money(r.comm) : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td></tr>`).join('') || '<tr><td colspan="7" class="empty">Продаж за период нет</td></tr>'}</tbody>
+        ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${T.cnt}</td><td class="r num">${money(T.sum)}</td><td class="r num">${money(T.avg)}</td><td class="r num">${money(T.comm)}</td><td class="r num">+${money(T.bonus)}</td><td class="r num">${money(T.salary)}</td></tr></tfoot>` : ''}
+      </table></div></div>`;
+  bindFilters();
+  const csv = '/api/admin/report?' + qs({ format: 'csv' }); $('#csv').href = csv; $('#csv2').href = csv;
+  $('#pv').onclick = () => { H.page--; pages.home(); }; $('#nx').onclick = () => { H.page++; pages.home(); };
+  document.querySelectorAll('[data-uid]').forEach(a => a.onclick = () => { F.uid = a.dataset.uid; H.page = 0; pages.home(); });
+};
+const short = n => { n = Math.round(n || 0); return n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M' : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k' : String(n); };
 
 pages.sales = async () => {
   const head = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Продажи</h1><a class="btn l" id="csv">⬇ CSV</a>
