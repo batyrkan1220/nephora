@@ -403,14 +403,19 @@ pages.sales = async () => {
 };
 
 pages.boards = () => {
-  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Лидерборды <span class="pill">${cfg.boards.length}</span></h1><button class="btn g" id="add">+ Добавить</button>
+  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Лидерборды <span class="pill">${cfg.boards.length}</span></h1><button class="btn l" id="secs" title="Создать доски для секторов, у которых их нет">⟳ По секторам</button><button class="btn g" id="add">+ Добавить</button>
     <div class="sub">У каждой доски своя ссылка для телевизора, свой состав, план и бонусы.</div></div>
     <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Название</th><th>Период</th><th class="r">Общий план</th><th class="r">Менеджеры</th><th>Статус</th><th></th></tr></thead><tbody>
-    ${cfg.boards.map((b, i) => { const st = S.boards.find(x => x.id === b.id); return `<tr><td>${i + 1}</td><td><a href="#/board/${b.id}"><b>${esc(b.name)}</b></a></td>
+    ${cfg.boards.map((b, i) => { const st = S.boards.find(x => x.id === b.id); return `<tr><td>${i + 1}</td><td><a href="#/board/${b.id}"><b>${esc(b.name)}</b></a><div style="color:var(--muted);font-size:12.5px">${b.departments.length ? 'Сектор: ' + esc(b.departments.map(id => (S.deps.find(d => d.id === id) || { name: id }).name).join(', ')) : (b.members.length ? 'Выбранные менеджеры' : 'Все отделы')}</div></td>
       <td>${b.auto ? 'Текущий месяц' : fd(b.from) + ' — ' + fd(b.to)}</td><td class="r num">${b.plan ? money(b.plan) : '—'}</td><td class="r">${st ? st.members.length : '—'}</td>
       <td>${b.active ? '<span class="pill ok">Активный</span>' : '<span class="pill no">Пауза</span>'}</td>
       <td class="r" style="white-space:nowrap"><a class="btn l s" href="/b/${b.key}" target="_blank">Открыть ТВ ↗</a> <a class="btn s" href="#/board/${b.id}">Настроить</a></td></tr>`; }).join('')}
     </tbody></table></div></div>`;
+  $('#secs').onclick = async () => {
+    if (dirty) return toast('Сначала сохраните изменения');
+    const r = await api('/api/admin/sector-boards', { method: 'POST' });
+    await loadState(); route(); toast(r.created ? `Создано досок: ${r.created}` : 'Для всех секторов доски уже есть');
+  };
   $('#add').onclick = () => {
     const b = JSON.parse(JSON.stringify(cfg.boards[0] || {}));
     Object.assign(b, { id: uid(), key: '', name: 'Новый лидерборд', departments: [], members: [], exclude: [], plans: {}, plan: 0 });

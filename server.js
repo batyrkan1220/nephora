@@ -50,6 +50,7 @@ async function sync() {
       }
       seen = ids;
       Object.assign(cache, { deals, users, userMap, deps, range: { from, to }, syncedAt: Date.now(), error: '' });
+      await ensureSectorBoards(false);
     } catch (e) {
       cache.error = String(e.message || e);
       console.error('sync:', cache.error);
@@ -57,6 +58,33 @@ async function sync() {
   })();
   return syncing;
 }
+// Әр сектор (корневой бөлімнің тікелей бөлімдері) үшін жеке доска.
+// Бір рет жасалады: админ өшірсе, қайта жасалмайды (cfg.sectorBoards).
+async function ensureSectorBoards(force) {
+  const root = cache.deps.find(d => !d.parent);
+  if (!root) return 0;
+  const sectors = cache.deps.filter(d => d.parent === root.id);
+  cfg.sectorBoards = cfg.sectorBoards || [];
+  const base = cfg.boards[0] || C.defaultBoard();
+  let n = 0;
+  for (const sec of sectors) {
+    const exists = cfg.boards.some(b => (b.departments || []).length === 1 && String(b.departments[0]) === sec.id);
+    if (exists) { if (!cfg.sectorBoards.includes(sec.id)) cfg.sectorBoards.push(sec.id); continue; }
+    if (!force && cfg.sectorBoards.includes(sec.id)) continue;
+    const b = C.defaultBoard(sec.name);
+    b.departments = [sec.id];
+    b.commission = JSON.parse(JSON.stringify(base.commission || []));
+    b.bonuses = JSON.parse(JSON.stringify(base.bonuses || []));
+    b.screen = JSON.parse(JSON.stringify(base.screen || b.screen));
+    b.defaultPlan = base.defaultPlan || 0;
+    cfg.boards.push(b);
+    if (!cfg.sectorBoards.includes(sec.id)) cfg.sectorBoards.push(sec.id);
+    n++;
+  }
+  if (n || force) await store.set('config', cfg);
+  return n;
+}
+
 function loop() {
   clearTimeout(timer);
   timer = setTimeout(async () => { await sync(); loop(); }, Math.max(15, +cfg.settings.syncSec || 30) * 1000);
@@ -175,7 +203,7 @@ async function handle(req, res) {
   if (p === '/api/admin/config' && req.method === 'PUT') {
     const body = JSON.parse(await readBody(req));
     const prevStages = JSON.stringify([cfg.settings.stages, cfg.settings.dateField]);
-    cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards });
+    cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, sectorBoards: cfg.sectorBoards || [] });
     await store.set('config', cfg);
     if (JSON.stringify([cfg.settings.stages, cfg.settings.dateField]) !== prevStages) seen = null;
     sync().then(loop);
@@ -187,6 +215,11 @@ async function handle(req, res) {
     if (!/^data:image\/(png|jpeg|webp|gif);base64,/.test(data || '')) return send(res, 400, { error: 'Нужна картинка' });
     await store.set('photo:' + m[1], { data, ts: Date.now() });
     return send(res, 200, { ok: true, url: `/photo/${m[1]}?v=${Date.now()}` });
+  }
+  if (p === '/api/admin/sector-boards' && req.method === 'POST') {
+    if (!cache.syncedAt) await sync();
+    const n = await ensureSectorBoards(true); sync().then(loop);
+    return send(res, 200, { ok: true, created: n });
   }
   if (p === '/api/admin/resync' && req.method === 'POST') {
     cache.meta = null; await sync(); return send(res, 200, { ok: !cache.error, error: cache.error, syncedAt: cache.syncedAt });
