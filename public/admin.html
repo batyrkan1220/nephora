@@ -28,11 +28,6 @@ aside a:hover{color:var(--ink)}aside a:hover .ic{background:var(--soft)}
 aside a.on{color:var(--ink);font-weight:500}
 aside a.on .ic{background:var(--blue);color:#fff;box-shadow:0 10px 22px -10px rgba(31,107,255,.9)}
 aside .sp{flex:1;min-height:20px}
-.promo{background:var(--grad);border-radius:28px;padding:24px 18px 20px;color:#fff;text-align:center;box-shadow:0 24px 40px -22px rgba(31,107,255,.9);margin-bottom:12px}
-.promo svg{width:64px;height:64px;margin-bottom:8px}
-.promo b{display:block;font-weight:500;font-size:15px;margin-bottom:14px}
-.promo a{display:inline-flex;justify-content:center;gap:8px;background:#fff;color:var(--blue);border-radius:99px;padding:8px 18px;font-size:14px;font-weight:500}
-.promo a .ic{display:none}
 aside .out{font-size:13.5px}
 main{padding:44px 44px 120px 10px;min-width:0}
 .top{display:flex;align-items:center;gap:14px;margin-bottom:26px;flex-wrap:wrap}
@@ -212,8 +207,6 @@ tfoot td{font-weight:600;border-top:2px solid var(--line)}
     <a href="#/managers" data-r="managers"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.2c2.6.3 4.5 2.6 4.5 5.3"/></svg></span>Менеджеры</a>
     <a href="#/settings" data-r="settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5V2.5h6v1M9 10h6M9 14h4"/></svg></span>Настройки</a>
     <div class="sp"></div>
-    <div class="promo"><svg viewBox="0 0 64 64" fill="none"><path d="M32 4l24 14v28L32 60 8 46V18z" stroke="#fff" stroke-opacity=".5" stroke-width="2"/><path d="M32 16l14 8v16l-14 8-14-8V24z" fill="#fff"/><path d="M32 32l14-8M32 32v16M32 32l-14-8" stroke="#1f6bff" stroke-width="2"/></svg>
-      <b>Табло для зала</b><a id="tvLink" href="#/boards" target="_blank">Открыть ТВ →</a></div>
     <a href="/logout" class="out"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg></span>Выйти</a>
   </aside>
   <main id="main"><div class="empty">Загрузка…</div></main>
@@ -244,7 +237,6 @@ const uPhoto = id => { const u = S.users.find(x => x.id === id); return u ? u.ph
 async function loadState() {
   S = await api('/api/admin/state');
   cfg = JSON.parse(JSON.stringify(S.cfg)); saved = JSON.stringify(cfg); setDirty();
-  const tb = cfg.boards.find(b => b.active) || cfg.boards[0]; if (tb && tb.key) $('#tvLink').href = '/b/' + tb.key;
 }
 function setDirty() { dirty = JSON.stringify(cfg) !== saved; $('#save').classList.toggle('on', dirty); }
 $('#saveBtn').onclick = async () => {
