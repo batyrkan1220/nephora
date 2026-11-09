@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кабинет · Nephora Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1f1640;--muted:#7a7196;--line:#ece7f6;--soft:#f6f3fc;--card:#fff;--bg:#faf8ff;
+  --grad:linear-gradient(90deg,#ff3d8b,#a24bff 55%,#22b8f0);--pink:#ff3d8b;--violet:#7b5cff;--green:#0fa968;--red:#e11d48}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Poppins,system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.num{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+.lay{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
+aside{background:#fff;border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.08em;padding:0 10px 18px}
+.logo i{width:32px;height:32px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:900}
+.logo small{display:block;font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:600}
+aside a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-weight:600;color:#4b3f75}
+aside a:hover{background:var(--soft)}
+aside a.on{background:var(--ink);color:#fff}
+aside .sp{flex:1}
+aside .out{color:var(--muted);font-weight:500}
+main{padding:28px 34px 120px;min-width:0}
+.top{display:flex;align-items:flex-end;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.top h1{margin:0;font-size:28px;font-weight:800;flex:1}
+.top .sub{color:var(--muted);font-size:13px;width:100%;margin-top:-10px}
+.burger{display:none}
+@media (max-width:900px){
+  .lay{grid-template-columns:1fr}
+  aside{position:fixed;z-index:40;left:0;top:0;width:250px;transform:translateX(-100%);transition:.25s;box-shadow:0 0 40px rgba(0,0,0,.2)}
+  body.menu aside{transform:none}
+  .burger{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  main{padding:18px 14px 120px}
+}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:16px}
+.card h3{margin:0 0 4px;font-size:16px}
+.card .hint{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+.kpi small{color:var(--muted);font-weight:600;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+.kpi b{display:block;font-size:26px;font-weight:800;margin-top:4px;letter-spacing:-.01em}
+.kpi span{color:var(--muted);font-size:12.5px}
+.kpi.g b{color:var(--green)}.kpi.v b{background:var(--grad);-webkit-background-clip:text;color:transparent}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:0;background:var(--soft);padding:8px 14px;border-radius:99px;cursor:pointer;font-weight:500}
+.chip.on{background:var(--ink);color:#fff}
+.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer;background:var(--ink);color:#fff;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.g{background:var(--grad)}
+.btn.l{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.s{padding:6px 11px;border-radius:10px;font-size:12.5px}
+.btn.d{background:#fff1f2;color:var(--red)}
+.btn:disabled{opacity:.5;cursor:default}
+label.f{display:block;margin-bottom:12px}
+label.f>span{display:block;font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.in,select.in,textarea.in{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;outline:none}
+.in:focus{border-color:#a24bff}
+.in.sm{padding:7px 9px;border-radius:9px}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.ck{display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer}
+.ck input{width:18px;height:18px;accent-color:#7b5cff}
+.sw{position:relative;width:40px;height:23px;flex:none}
+.sw input{opacity:0;position:absolute;inset:0;cursor:pointer;z-index:1;margin:0}
+.sw i{position:absolute;inset:0;border-radius:99px;background:#ddd6ee;transition:.2s}
+.sw i::after{content:"";position:absolute;left:3px;top:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.2s}
+.sw input:checked+i{background:#7b5cff}.sw input:checked+i::after{left:20px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+tfoot td{font-weight:700;border-top:2px solid var(--line)}
+.tw{overflow-x:auto}
+.who{display:flex;align-items:center;gap:10px;min-width:180px}
+.who small{display:block;color:var(--muted);font-size:12px}
+.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#efe7ff,#ffe3f0);display:grid;place-items:center;font-weight:700;font-size:12px;color:#6a3df5;overflow:hidden;flex:none}
+.av img{width:100%;height:100%;object-fit:cover}
+.av.big{width:46px;height:46px;cursor:pointer;position:relative}
+.av.big:hover::after{content:"✎";position:absolute;inset:0;background:rgba(31,22,64,.55);color:#fff;display:grid;place-items:center;font-size:16px}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--soft)}
+.pill.ok{background:#dcfce7;color:#15803d}.pill.no{background:#f1f5f9;color:#64748b}.pill.er{background:#ffe4e6;color:#be123c}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+.tabs a{padding:10px 16px;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;white-space:nowrap}
+.tabs a.on{color:var(--ink);border-color:#a24bff}
+.chart{display:flex;align-items:flex-end;gap:3px;height:170px;padding-top:10px}
+.chart div{flex:1;min-width:3px;background:linear-gradient(180deg,#ff3d8b,#a24bff);border-radius:6px 6px 2px 2px;position:relative;cursor:default;opacity:.9}
+.chart div:hover{opacity:1;outline:2px solid #22b8f0}
+.chart div.z{background:var(--soft);height:3px!important}
+.cx{display:flex;gap:3px;color:var(--muted);font-size:10px;margin-top:6px}.cx span{flex:1;text-align:center;overflow:hidden}
+.top1{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#fff3c4,#ffe0ee 60%,#dff4ff);border-radius:18px;padding:16px 20px;margin-bottom:16px}
+.top1 .av{width:58px;height:58px;font-size:18px;box-shadow:0 0 0 3px #fff}
+.top1 small{color:#7a5a00;font-weight:700;font-size:11px;letter-spacing:.1em}
+.top1 b{display:block;font-size:20px}
+.top1 .s{margin-left:auto;text-align:right;font-weight:800;font-size:22px}
+.top1 .s span{display:block;font-size:12.5px;font-weight:500;color:var(--muted)}
+.themes{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.th{border:2px solid var(--line);border-radius:16px;padding:12px;cursor:pointer}
+.th.on{border-color:#a24bff;box-shadow:0 0 0 3px rgba(162,75,255,.15)}
+.th .pv{height:70px;border-radius:10px;margin-bottom:8px;display:flex;gap:5px;padding:8px;align-items:flex-start}
+.th .pv i{flex:1;height:26px;border-radius:6px}
+.th b{display:block}.th small{color:var(--muted);font-size:12px}
+.tier{display:grid;grid-template-columns:1fr 1fr 90px 36px;gap:8px;margin-bottom:8px;align-items:center}
+.tier.b{grid-template-columns:1fr 1fr 36px}
+.x{border:0;background:#fff1f2;color:var(--red);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:16px}
+.bonus{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:#fcfbff}
+.link{display:flex;gap:8px;align-items:center;background:var(--soft);border-radius:12px;padding:8px 8px 8px 14px;font-family:ui-monospace,monospace;font-size:13px;word-break:break-all}
+.link span{flex:1}
+.save{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(140%);transition:.25s;background:var(--ink);color:#fff;border-radius:16px;padding:10px 10px 10px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 20px 50px -15px rgba(31,22,64,.6);z-index:50}
+.save{opacity:0;visibility:hidden}.save.on{transform:translateX(-50%);opacity:1;visibility:visible}
+.save .btn{background:var(--grad)}
+.toast{position:fixed;right:20px;top:20px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;z-index:60;animation:tin .25s}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+.dept{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 12px}
+.empty{color:var(--muted);text-align:center;padding:24px}
+.warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:14px;padding:12px 16px;margin-bottom:16px}
+.stg{columns:2 260px;column-gap:24px}
+.stg h4{margin:10px 0 4px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;break-after:avoid}
+</style>
+</head>
+<body>
+<div class="lay">
+  <aside>
+    <div class="logo"><i>N</i><div>NEPHORA<small>LEADERBOARD</small></div></div>
+    <a href="#/" data-r="home">📊 Главная</a>
+    <a href="#/boards" data-r="boards">🏆 Лидерборды</a>
+    <a href="#/managers" data-r="managers">👥 Менеджеры</a>
+    <a href="#/sales" data-r="sales">💰 Продажи</a>
+    <a href="#/settings" data-r="settings">⚙️ Настройки</a>
+    <div class="sp"></div>
+    <a href="/logout" class="out">↩ Выйти</a>
+  </aside>
+  <main id="main"><div class="empty">Загрузка…</div></main>
+</div>
+<div class="save" id="save"><span>Есть несохранённые изменения</span><button class="btn l s" id="undo" style="background:transparent;color:#fff;border-color:#4b3f75">Отменить</button><button class="btn" id="saveBtn">Сохранить</button></div>
+<input type="file" id="file" accept="image/*" hidden>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = n => Math.round(n || 0).toLocaleString('ru-RU').replace(/\s/g, ' ') + ' ₸';
+const fd = k => k ? k.slice(8, 10) + '.' + k.slice(5, 7) + '.' + k.slice(0, 4) : '';
+const ini = n => esc(String(n || '?').split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase());
+const av = (name, photo, cls = '') => `<div class="av ${cls}">${photo ? `<img src="${esc(photo)}" referrerpolicy="no-referrer" alt="" onerror="this.replaceWith(document.createTextNode('${ini(name)}'))">` : ini(name)}</div>`;
+const uid = () => Math.random().toString(16).slice(2, 10);
+const toast = t => { const e = document.createElement('div'); e.className = 'toast'; e.textContent = t; document.body.appendChild(e); setTimeout(() => e.remove(), 2600); };
+const api = async (url, opt = {}) => {
+  const r = await fetch(url, { ...opt, headers: { 'Content-Type': 'application/json', ...(opt.headers || {}) } });
+  if (r.status === 401) { location.reload(); throw new Error('unauthorized'); }
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || 'HTTP ' + r.status); return j;
+};
+
+let S = null, cfg = null, saved = '', dirty = false;
+const users = () => S.users;
+const uName = id => { const m = cfg.managers[id] || {}; const u = S.users.find(x => x.id === id); return m.name || (u ? u.name : 'ID ' + id); };
+const uPhoto = id => { const u = S.users.find(x => x.id === id); return u ? u.photoUrl : ''; };
+
+async function loadState() {
+  S = await api('/api/admin/state');
+  cfg = JSON.parse(JSON.stringify(S.cfg)); saved = JSON.stringify(cfg); setDirty();
+}
+function setDirty() { dirty = JSON.stringify(cfg) !== saved; $('#save').classList.toggle('on', dirty); }
+$('#saveBtn').onclick = async () => {
+  $('#saveBtn').disabled = true;
+  try { await api('/api/admin/config', { method: 'PUT', body: JSON.stringify(cfg) }); await loadState(); toast('Сохранено'); route(); }
+  catch (e) { toast('Ошибка: ' + e.message); }
+  $('#saveBtn').disabled = false;
+};
+$('#undo').onclick = () => { cfg = JSON.parse(saved); setDirty(); route(); };
+addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ===== привязка полей: data-k="boards.0.name" ===== */
+function getP(o, p) { return p.split('.').reduce((a, k) => a == null ? a : a[k], o); }
+function setP(o, p, v) { const ks = p.split('.'); const last = ks.pop(); const t = ks.reduce((a, k) => a[k] ??= {}, o); t[last] = v; }
+document.addEventListener('input', e => {
+  const el = e.target; if (!el.dataset.k) return;
+  let v = el.type === 'checkbox' ? el.checked : el.value;
+  if (el.dataset.t === 'n') v = v === '' ? '' : +v;
+  setP(cfg, el.dataset.k, v); setDirty();
+  if (el.dataset.re) route();
+});
+document.addEventListener('change', e => { if (e.target.dataset.k && e.target.tagName === 'SELECT') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+const val = k => esc(getP(cfg, k) ?? '');
+const inp = (k, ph = '', t = 'text', cls = '') => `<input class="in ${cls}" data-k="${k}" ${t === 'number' ? 'data-t="n" type="number" step="any"' : `type="${t}"`} value="${val(k)}" placeholder="${esc(ph)}">`;
+const sw = (k, re) => `<span class="sw"><input type="checkbox" data-k="${k}" ${getP(cfg, k) ? 'checked' : ''} ${re ? 'data-re="1"' : ''}><i></i></span>`;
+
+/* ===== периоды ===== */
+const addD = (k, n) => { const d = new Date(k + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+function presets(today) {
+  const wd = (new Date(today + 'T00:00:00Z').getUTCDay() || 7);
+  const ms = today.slice(0, 8) + '01';
+  const pm = new Date(ms + 'T00:00:00Z'); pm.setUTCMonth(pm.getUTCMonth() - 1);
+  const pms = pm.toISOString().slice(0, 10);
+  const me = new Date(ms + 'T00:00:00Z'); me.setUTCMonth(me.getUTCMonth() + 1); me.setUTCDate(0);
+  return {
+    today: ['Сегодня', today, today], yest: ['Вчера', addD(today, -1), addD(today, -1)],
+    week: ['Эта неделя', addD(today, 1 - wd), today], month: ['Этот месяц', ms, today],
+    prev: ['Прошлый месяц', pms, addD(ms, -1)], custom: ['Произвольный'],
+  };
+}
+const F = { p: 'month', from: '', to: '', board: '', uid: '' };
+function filters() {
+  const P = presets(S.today);
+  if (F.p !== 'custom') { F.from = P[F.p][1]; F.to = P[F.p][2]; }
+  return `<div class="card"><div class="chips">${Object.entries(P).map(([k, v]) => `<button class="chip ${F.p === k ? 'on' : ''}" data-p="${k}">${v[0]}</button>`).join('')}</div>
+    ${F.p === 'custom' ? `<div class="row2" style="margin-top:12px"><label class="f"><span>С</span><input class="in" type="date" id="fFrom" value="${F.from}"></label><label class="f"><span>По</span><input class="in" type="date" id="fTo" value="${F.to}"></label></div>` : ''}
+    <div class="row2" style="margin-top:12px">
+      <label class="f"><span>Лидерборд</span><select class="in" id="fBoard"><option value="">Все</option>${cfg.boards.map(b => `<option value="${b.id}" ${F.board === b.id ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select></label>
+      <label class="f"><span>Менеджер</span><select class="in" id="fUid"><option value="">Все</option>${[...new Set([...S.dealUids, ...Object.keys(cfg.managers)])].sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}" ${F.uid === id ? 'selected' : ''}>${esc(uName(id))}</option>`).join('')}</select></label>
+    </div></div>`;
+}
+function bindFilters() {
+  document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { F.p = b.dataset.p; route(); });
+  const on = (id, k) => { const el = $('#' + id); if (el) el.onchange = () => { F[k] = el.value; route(); }; };
+  on('fFrom', 'from'); on('fTo', 'to'); on('fBoard', 'board'); on('fUid', 'uid');
+}
+const qs = extra => new URLSearchParams({ from: F.from, to: F.to, board: F.board, uid: F.uid, ...extra }).toString();
+
+/* ===== страницы ===== */
+const pages = {};
+
+pages.home = async () => {
+  const head = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Главная</h1>
+    <a class="btn l" id="csv">⬇ CSV</a><div class="sub">Период: ${fd(F.from) || '…'} — ${fd(F.to) || '…'}</div></div>`;
+  $('#main').innerHTML = head + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
+  $('#csv').href = '/api/admin/report?' + qs({ format: 'csv' });
+  let R; try { R = await api('/api/admin/report?' + qs()); } catch (e) { $('#main').querySelector('.empty').textContent = 'Ошибка: ' + e.message; return; }
+  const T = R.totals, mx = Math.max(1, ...R.days.map(d => d.sum));
+  $('#main').innerHTML = head.replace(/Период: [^<]*/, `Период: ${fd(R.from)} — ${fd(R.to)}`) + filters() + `
+    ${S.error ? `<div class="warn">Bitrix24: ${esc(S.error)}</div>` : ''}
+    <div class="grid">
+      <div class="kpi v"><small>Выручка</small><b class="num">${money(T.sum)}</b><span>${T.cnt} продаж</span></div>
+      <div class="kpi"><small>Средний чек</small><b class="num">${money(T.avg)}</b><span>Активных менеджеров: ${T.managers}</span></div>
+      <div class="kpi g"><small>Сегодня</small><b class="num">${money(T.todaySum)}</b><span>${T.todayCnt} продаж</span></div>
+      <div class="kpi"><small>% от продаж</small><b class="num">${money(T.comm)}</b><span>комиссия по ступеням</span></div>
+      <div class="kpi"><small>Бонусов начислено</small><b class="num">${money(T.bonus)}</b><span>по порогам дня/недели/периода</span></div>
+      <div class="kpi"><small>К выплате (итого)</small><b class="num" style="color:#3b6cf5">${money(T.salary)}</b><span>комиссия + бонусы</span></div>
+    </div>
+    ${R.top ? `<div class="top1">${av(R.top.name, R.top.photo)}<div><small>🏆 ТОП МЕНЕДЖЕР ПЕРИОДА</small><b>${esc(R.top.name)}</b><span style="color:var(--muted);font-size:13px">${R.top.cnt} продаж · ${T.sum ? Math.round(R.top.sum / T.sum * 100) : 0}% от общей выручки</span></div>
+      <div class="s num">${money(R.top.sum)}<span>ЗП: ${money(R.top.salary)}</span></div></div>` : ''}
+    <div class="card"><h3>Динамика продаж</h3><p class="hint">${money(T.sum)} · ${T.cnt} продаж — наведите на столбец, чтобы увидеть сумму за день</p>
+      <div class="chart">${R.days.map(d => `<div class="${d.sum ? '' : 'z'}" style="height:${(d.sum / mx * 100).toFixed(1)}%" title="${fd(d.dk)}: ${money(d.sum)} · ${d.cnt} прод."></div>`).join('')}</div>
+      <div class="cx">${R.days.map((d, i) => `<span>${R.days.length <= 31 || i % Math.ceil(R.days.length / 31) === 0 ? d.dk.slice(8, 10) : ''}</span>`).join('')}</div></div>
+    <div class="card"><h3>По менеджерам</h3><div class="tw"><table>
+      <thead><tr><th>Менеджер</th><th class="r">Продаж</th><th class="r">Выручка</th><th class="r">Ср. чек</th><th class="r">% от продаж</th><th class="r">Бонусы</th><th class="r">Зарплата</th></tr></thead>
+      <tbody>${R.rows.map(r => `<tr><td><div class="who">${av(r.name, r.photo)}<div>${esc(r.name)}<small>${esc(r.dep || r.board)}</small></div></div></td>
+        <td class="r num">${r.cnt}</td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${money(r.avg)}</td><td class="r num">${r.comm ? money(r.comm) : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td></tr>`).join('') || '<tr><td colspan="7" class="empty">Продаж за период нет</td></tr>'}</tbody>
+      ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${T.cnt}</td><td class="r num">${money(T.sum)}</td><td class="r num">${money(T.avg)}</td><td class="r num">${money(T.comm)}</td><td class="r num">+${money(T.bonus)}</td><td class="r num">${money(T.salary)}</td></tr></tfoot>` : ''}
+    </table></div></div>`;
+  bindFilters(); $('#csv').href = '/api/admin/report?' + qs({ format: 'csv' });
+};
+
+pages.sales = async () => {
+  const head = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Продажи</h1><a class="btn l" id="csv">⬇ CSV</a>
+    <div class="sub">Сделки из Bitrix24 в стадиях «факт кассы». Дата — по полю из настроек.</div></div>`;
+  $('#main').innerHTML = head + filters() + '<div class="empty">Загрузка…</div>'; bindFilters();
+  const R = await api('/api/admin/report?' + qs());
+  $('#main').innerHTML = head + filters() + `<div class="card"><h3>${R.deals.length} продаж · ${money(R.totals.sum)}</h3><div class="tw"><table>
+    <thead><tr><th>Дата</th><th>Менеджер</th><th>Сделка</th><th class="r">Сумма</th></tr></thead>
+    <tbody>${R.deals.slice(0, 1000).map(d => `<tr><td class="num">${fd(d.dk)}</td><td><div class="who">${av(d.name, uPhoto(d.uid))}${esc(d.name)}</div></td><td>#${esc(d.id)} ${esc(d.title)}</td><td class="r num"><b>${money(d.sum)}</b></td></tr>`).join('') || '<tr><td colspan="4" class="empty">Продаж за период нет</td></tr>'}</tbody></table></div>
+    ${R.deals.length > 1000 ? '<p class="hint">Показаны первые 1000 — полный список в CSV</p>' : ''}</div>`;
+  bindFilters(); $('#csv').href = '/api/admin/report?' + qs({ format: 'csv', kind: 'deals' });
+};
+
+pages.boards = () => {
+  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Лидерборды <span class="pill">${cfg.boards.length}</span></h1><button class="btn g" id="add">+ Добавить</button>
+    <div class="sub">У каждой доски своя ссылка для телевизора, свой состав, план и бонусы.</div></div>
+    <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Название</th><th>Период</th><th class="r">Общий план</th><th class="r">Менеджеры</th><th>Статус</th><th></th></tr></thead><tbody>
+    ${cfg.boards.map((b, i) => { const st = S.boards.find(x => x.id === b.id); return `<tr><td>${i + 1}</td><td><a href="#/board/${b.id}"><b>${esc(b.name)}</b></a></td>
+      <td>${b.auto ? 'Текущий месяц' : fd(b.from) + ' — ' + fd(b.to)}</td><td class="r num">${b.plan ? money(b.plan) : '—'}</td><td class="r">${st ? st.members.length : '—'}</td>
+      <td>${b.active ? '<span class="pill ok">Активный</span>' : '<span class="pill no">Пауза</span>'}</td>
+      <td class="r" style="white-space:nowrap"><a class="btn l s" href="/b/${b.key}" target="_blank">Открыть ТВ ↗</a> <a class="btn s" href="#/board/${b.id}">Настроить</a></td></tr>`; }).join('')}
+    </tbody></table></div></div>`;
+  $('#add').onclick = () => {
+    const b = JSON.parse(JSON.stringify(cfg.boards[0] || {}));
+    Object.assign(b, { id: uid(), key: '', name: 'Новый лидерборд', departments: [], members: [], exclude: [], plans: {}, plan: 0 });
+    cfg.boards.push(b); setDirty(); location.hash = '#/board/' + b.id;
+  };
+};
+
+pages.board = (id, tab = 'main') => {
+  const i = cfg.boards.findIndex(b => b.id === id); if (i < 0) { location.hash = '#/boards'; return; }
+  const b = cfg.boards[i], K = `boards.${i}`;
+  const tabs = [['main', 'Настройки'], ['screen', 'Экран'], ['people', 'Участники']];
+  let h = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>${esc(b.name)}</h1>
+    ${b.key ? `<a class="btn l" href="/b/${b.key}" target="_blank">Открыть ТВ ↗</a>` : ''}<div class="sub"><a href="#/boards">← Все лидерборды</a></div></div>
+    <div class="tabs">${tabs.map(([k, n]) => `<a href="#/board/${id}/${k}" class="${tab === k ? 'on' : ''}">${n}</a>`).join('')}</div>`;
+
+  if (tab === 'main') {
+    h += `<div class="card"><h3>Доска</h3><p class="hint">Как конкурс называется на ТВ и в кабинете.</p>
+        <label class="f"><span>Название</span>${inp(K + '.name')}</label>
+        <label class="ck">${sw(K + '.active')} Активный — публичная ссылка работает только у активной доски</label></div>
+      <div class="card"><h3>Период</h3><p class="hint">Какие продажи попадают на это табло.</p>
+        <label class="ck">${sw(K + '.auto', 1)} Всегда текущий месяц (сам переключается 1-го числа)</label>
+        ${b.auto ? '' : `<div class="row2" style="margin-top:8px"><label class="f"><span>С</span>${inp(K + '.from', '', 'date')}</label><label class="f"><span>По</span>${inp(K + '.to', '', 'date')}</label></div>`}</div>
+      <div class="card"><h3>Рейтинг</h3><p class="hint">По чему менеджеры занимают места.</p>
+        <label class="ck"><input type="radio" name="rk" ${b.rankBy !== 'count' ? 'checked' : ''} onchange="cfg.boards[${i}].rankBy='sum';setDirty()"> <b>По выручке</b> — выше тот, кто продал на большую сумму</label>
+        <label class="ck"><input type="radio" name="rk" ${b.rankBy === 'count' ? 'checked' : ''} onchange="cfg.boards[${i}].rankBy='count';setDirty()"> <b>По количеству продаж</b> — выше тот, у кого больше сделок</label></div>
+      <div class="card"><h3>План</h3><p class="hint">План отдела — для шкалы команды на табло (если пусто — сумма личных планов). Дневной план = план ÷ рабочие дни периода.</p>
+        <div class="row2"><label class="f"><span>План отдела (₸)</span>${inp(K + '.plan', '0', 'number')}</label>
+        <label class="f"><span>Личный план по умолчанию (₸)</span>${inp(K + '.defaultPlan', '0', 'number')}</label></div>
+        <p class="hint" style="margin:0">Личный план каждого менеджера — во вкладке «Участники».</p></div>
+      <div class="card"><h3>Комиссия</h3><p class="hint">Процент от суммы каждой сделки. Другая сумма сделки — другой процент. Пустое «До» = без верхней границы.</p>
+        ${b.commission.length ? `<div class="tier" style="color:var(--muted);font-size:11.5px;font-weight:600"><span>ОТ (₸)</span><span>ДО (₸)</span><span>% КОМ.</span><span></span></div>` : ''}
+        ${b.commission.map((t, j) => `<div class="tier">${inp(`${K}.commission.${j}.from`, '0', 'number', 'sm')}${inp(`${K}.commission.${j}.to`, '∞', 'number', 'sm')}${inp(`${K}.commission.${j}.pct`, '%', 'number', 'sm')}<button class="x" data-del="${K}.commission.${j}">×</button></div>`).join('')}
+        <button class="btn l s" data-add="${K}.commission">+ Добавить ступень</button></div>
+      <div class="card"><h3>Бонусы</h3><p class="hint">Доплата, если менеджер набрал порог за день, неделю или весь период. Берётся самая высокая достигнутая ступень. Считается отдельно от комиссии.</p>
+        ${b.bonuses.map((x, j) => { const BK = `${K}.bonuses.${j}`; return `<div class="bonus"><div class="row2">
+          <label class="f"><span>Название</span>${inp(BK + '.name', 'Бонус недели')}</label>
+          <label class="f"><span>За</span><select class="in" data-k="${BK}.period">${[['day', 'День'], ['week', 'Неделю'], ['period', 'Весь период']].map(([v, n]) => `<option value="${v}" ${x.period === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+          <label class="f"><span>Порог по</span><select class="in" data-k="${BK}.metric">${[['sum', 'Сумме продаж (₸)'], ['count', 'Количеству продаж']].map(([v, n]) => `<option value="${v}" ${x.metric === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div>
+          <div class="tier b" style="color:var(--muted);font-size:11.5px;font-weight:600"><span>ПОРОГ ОТ</span><span>БОНУС (₸)</span><span></span></div>
+          ${x.tiers.map((t, k) => `<div class="tier b">${inp(`${BK}.tiers.${k}.min`, '0', 'number', 'sm')}${inp(`${BK}.tiers.${k}.amount`, '0', 'number', 'sm')}<button class="x" data-del="${BK}.tiers.${k}">×</button></div>`).join('')}
+          <button class="btn l s" data-add="${BK}.tiers">+ Порог</button> <button class="btn d s" data-del="${BK}">Удалить бонус</button></div>`; }).join('')}
+        <button class="btn s" data-addbonus="${K}.bonuses">+ Создать бонус</button></div>
+      ${cfg.boards.length > 1 ? `<button class="btn d" id="delBoard">Удалить лидерборд</button>` : ''}`;
+  }
+
+  if (tab === 'screen') {
+    const link = b.key ? location.origin + '/b/' + b.key : '';
+    const TH = [['arena', 'Арена', 'Яркие градиенты, подиум тройки', 'linear-gradient(135deg,#ffe1ef,#fff8f0,#dff3ff)', ['#ffc21a', '#22b8f0', '#ff5c9d']],
+      ['day', 'Классика · дневная', 'Таблица, светлый фон', '#f4f5fa', ['#ffe08a', '#d9dfeb', '#f6c49b']],
+      ['night', 'Классика · ночная', 'Таблица, тёмный фон', '#0b0a1a', ['#ffb703', '#4361ee', '#f72585']]];
+    h += `<div class="card"><h3>Ссылка на лидерборд</h3><p class="hint">Для телевизора, компьютера и телефона. Открывается без пароля — не публикуйте её в открытом доступе.</p>
+        ${link ? `<div class="link"><span>${esc(link)}</span><button class="btn s" id="copy">Копировать</button><a class="btn l s" href="${esc(link)}" target="_blank">Открыть</a></div>
+        <p style="margin:10px 0 0"><button class="btn l s" id="rekey">Сменить ссылку</button> <button class="btn g s" id="test">🎉 Показать тестовую продажу</button></p>` : '<p class="hint">Ссылка появится после сохранения.</p>'}</div>
+      <div class="card"><h3>Ориентация экрана</h3>
+        <div class="chips">${[['horizontal', 'Горизонтальный'], ['vertical', 'Вертикальный']].map(([v, n]) => `<button class="chip ${b.screen.orientation === v ? 'on' : ''}" data-set="${K}.screen.orientation" data-v="${v}">${n}</button>`).join('')}</div>
+        <p class="hint" style="margin-top:10px">Вертикальный — для телевизора, повёрнутого на 90°: картинка разворачивается сама. На телефоне поворота нет.</p></div>
+      <div class="card"><h3>Тема лидерборда</h3><p class="hint">На самом табло тему можно временно переключить кнопками в углу.</p><div class="themes">
+        ${TH.map(([v, n, d, bg, c]) => `<div class="th ${b.screen.theme === v ? 'on' : ''}" data-set="${K}.screen.theme" data-v="${v}"><div class="pv" style="background:${bg}">${c.map(x => `<i style="background:${x}"></i>`).join('')}</div><b>${n}</b><small>${d}</small></div>`).join('')}</div></div>
+      <div class="card"><h3>Колонки таблицы</h3>
+        ${[['today', 'Сегодня', 'Продажи за сегодня и полоса к дневному плану'], ['sales', 'Продажи', 'Сумма за период и полоса к личному плану'], ['count', 'Количество', 'Сколько продаж за период'], ['pct', '% от продаж', 'Комиссия по настройкам «Комиссии»'], ['salary', 'Зарплата (итого)', 'Комиссия плюс все бонусы за период']]
+          .map(([k, n, d]) => `<label class="ck">${sw(`${K}.screen.cols.${k}`)} <span><b>${n}</b> <span style="color:var(--muted)">— ${d}</span></span></label>`).join('')}
+        <label class="ck">${sw(K + '.screen.losers')} <span><b>Подсветить последних трёх</b> <span style="color:var(--muted)">— красным, если в рейтинге больше 6 человек</span></span></label></div>
+      <div class="card"><h3>Продажа на экране</h3>
+        <label class="ck">${sw(K + '.screen.popup')} Показывать попап новой продажи (фото, сумма, конфетти)</label>
+        <label class="ck">${sw(K + '.screen.sound')} Звук продажи</label>
+        <label class="f" style="max-width:240px;margin-top:8px"><span>Показ продажи, сек (3–60)</span>${inp(K + '.screen.popupSec', '8', 'number')}</label></div>`;
+  }
+
+  if (tab === 'people') {
+    const st = S.boards.find(x => x.id === b.id);
+    const mem = st ? st.members : [];
+    const depKids = {}; S.deps.forEach(d => { (depKids[d.parent] = depKids[d.parent] || []).push(d); });
+    const tree = (p, lvl) => (depKids[p] || []).map(d => `<label class="ck" style="padding-left:${lvl * 20}px"><input type="checkbox" data-dep="${d.id}" ${b.departments.includes(d.id) ? 'checked' : ''}> ${esc(d.name)}</label>` + tree(d.id, lvl + 1)).join('');
+    const pool = S.users.filter(u => u.active && !b.members.includes(u.id)).sort((a, c) => a.name.localeCompare(c.name, 'ru'));
+    h += `<div class="card"><h3>Отделы из Bitrix24</h3><p class="hint">Все активные сотрудники отмеченных отделов (и подотделов) участвуют в рейтинге — даже без продаж. Если ничего не выбрано и нет ручных участников — на доске все, у кого есть продажи за период.</p>
+        <div class="dept">${tree('', 0) || '<div class="empty">Нет данных об отделах</div>'}</div></div>
+      <div class="card"><h3>Добавить вручную</h3><div style="display:flex;gap:8px"><select class="in" id="addU"><option value="">Выберите сотрудника…</option>${pool.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select><button class="btn" id="addUB">Добавить</button></div>
+        ${b.members.length ? `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${b.members.map(id => `<span class="pill">${esc(uName(id))} <a href="javascript:void 0" data-rmm="${id}" style="color:var(--red)">×</a></span>`).join('')}</div>` : ''}</div>
+      <div class="card"><h3>Состав и личные планы <span class="pill">${mem.length}</span></h3><p class="hint">План — сумма в тенге за период. Пусто — берётся «Личный план по умолчанию». Список обновляется после сохранения.</p>
+        <div class="tw"><table><thead><tr><th>Менеджер</th><th style="width:220px">План за период (₸)</th><th></th></tr></thead><tbody>
+        ${mem.map(id => `<tr><td><div class="who">${av(uName(id), uPhoto(id))}<div>${esc(uName(id))}<small>${esc((cfg.managers[id] || {}).category || '')}</small></div></div></td>
+          <td>${inp(`${K}.plans.${id}`, b.defaultPlan ? String(b.defaultPlan) : '0', 'number', 'sm')}</td><td class="r"><button class="btn d s" data-ex="${id}">Убрать</button></td></tr>`).join('') || '<tr><td colspan="3" class="empty">Пока никого</td></tr>'}
+        </tbody></table></div>
+        ${b.exclude.length ? `<p class="hint" style="margin-top:12px">Убраны с доски: ${b.exclude.map(id => `<span class="pill">${esc(uName(id))} <a href="javascript:void 0" data-unex="${id}" style="color:#15803d">вернуть</a></span>`).join(' ')}</p>` : ''}</div>`;
+  }
+  $('#main').innerHTML = h;
+
+  // действия
+  document.querySelectorAll('[data-add]').forEach(el => el.onclick = () => { const arr = getP(cfg, el.dataset.add); arr.push(el.dataset.add.endsWith('commission') ? { from: '', to: '', pct: '' } : { min: '', amount: '' }); setDirty(); route(); });
+  document.querySelectorAll('[data-addbonus]').forEach(el => el.onclick = () => { getP(cfg, el.dataset.addbonus).push({ id: uid(), name: 'Бонус недели', period: 'week', metric: 'sum', tiers: [{ min: '', amount: '' }] }); setDirty(); route(); });
+  document.querySelectorAll('[data-del]').forEach(el => el.onclick = () => { const p = el.dataset.del.split('.'); const j = +p.pop(); getP(cfg, p.join('.')).splice(j, 1); setDirty(); route(); });
+  document.querySelectorAll('[data-set]').forEach(el => el.onclick = () => { setP(cfg, el.dataset.set, el.dataset.v); setDirty(); route(); });
+  document.querySelectorAll('[data-dep]').forEach(el => el.onchange = () => { const s = new Set(b.departments); el.checked ? s.add(el.dataset.dep) : s.delete(el.dataset.dep); b.departments = [...s]; setDirty(); });
+  document.querySelectorAll('[data-rmm]').forEach(el => el.onclick = () => { b.members = b.members.filter(x => x !== el.dataset.rmm); setDirty(); route(); });
+  document.querySelectorAll('[data-ex]').forEach(el => el.onclick = () => { b.exclude = [...new Set([...b.exclude, el.dataset.ex])]; b.members = b.members.filter(x => x !== el.dataset.ex); setDirty(); el.closest('tr').style.opacity = .35; });
+  document.querySelectorAll('[data-unex]').forEach(el => el.onclick = () => { b.exclude = b.exclude.filter(x => x !== el.dataset.unex); setDirty(); route(); });
+  const on = (s, f) => { const el = $(s); if (el) el.onclick = f; };
+  on('#addUB', () => { const v = $('#addU').value; if (!v) return; b.members.push(v); b.exclude = b.exclude.filter(x => x !== v); setDirty(); route(); });
+  on('#copy', () => { navigator.clipboard.writeText(location.origin + '/b/' + b.key); toast('Ссылка скопирована'); });
+  on('#rekey', () => { if (confirm('Старая ссылка перестанет работать на всех телевизорах. Сменить?')) { b.key = ''; setDirty(); toast('Нажмите «Сохранить» — появится новая ссылка'); route(); } });
+  on('#test', async () => { if (dirty) return toast('Сначала сохраните изменения'); await api(`/api/admin/board/${b.id}/test-sale`, { method: 'POST' }); toast('Тестовая продажа появится на табло в течение 5 секунд'); });
+  on('#delBoard', () => { if (confirm(`Удалить лидерборд «${b.name}»? Ссылка ТВ перестанет работать.`)) { cfg.boards.splice(i, 1); setDirty(); location.hash = '#/boards'; } });
+};
+
+pages.managers = () => {
+  const q = (pages.managers.q || '').toLowerCase();
+  const list = S.users.filter(u => u.active || cfg.managers[u.id] || S.dealUids.includes(u.id))
+    .filter(u => !q || uName(u.id).toLowerCase().includes(q) || u.name.toLowerCase().includes(q))
+    .sort((a, b) => (S.dealUids.includes(b.id) - S.dealUids.includes(a.id)) || a.name.localeCompare(b.name, 'ru'));
+  const inBoards = id => cfg.boards.filter(b => (S.boards.find(x => x.id === b.id) || { members: [] }).members.includes(id)).map(b => b.name);
+  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Менеджеры <span class="pill">${list.length}</span></h1>
+    <input class="in" id="q" placeholder="Поиск…" style="max-width:260px" value="${esc(pages.managers.q || '')}">
+    <div class="sub">Сотрудники приходят из Bitrix24. Здесь можно заменить фото, имя на табло, подпись (категорию) и скрыть человека со всех досок.</div></div>
+    <div class="card"><div class="tw"><table><thead><tr><th>Фото</th><th>Сотрудник Bitrix24</th><th>Имя на табло</th><th>Подпись / категория</th><th>Лидерборды</th><th>Скрыть</th></tr></thead><tbody>
+    ${list.map(u => { const K = `managers.${u.id}`; return `<tr>
+      <td>${av(uName(u.id), u.photoUrl, 'big" data-ph="' + u.id)}${S.users.find(x => x.id === u.id).photoUrl && String(u.photoUrl).startsWith('/photo') ? `<div><a href="javascript:void 0" data-rmph="${u.id}" style="font-size:11px;color:var(--red)">сбросить</a></div>` : ''}</td>
+      <td><b>${esc(u.name)}</b><div style="color:var(--muted);font-size:12px">${esc(u.position)}${S.dealUids.includes(u.id) ? ' · есть продажи' : ''}</div></td>
+      <td>${inp(K + '.name', u.name, 'text', 'sm')}</td><td>${inp(K + '.category', 'напр. Премиум', 'text', 'sm')}</td>
+      <td>${inBoards(u.id).map(n => `<span class="pill">${esc(n)}</span>`).join(' ') || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${sw(K + '.hidden')}</td></tr>`; }).join('')}
+    </tbody></table></div></div>`;
+  $('#q').oninput = e => { pages.managers.q = e.target.value; clearTimeout(pages.managers.t); pages.managers.t = setTimeout(() => { route(); const el = $('#q'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }, 250); };
+  document.querySelectorAll('[data-ph]').forEach(el => el.onclick = () => { const f = $('#file'); f.value = ''; f.onchange = () => upload(el.dataset.ph, f.files[0]); f.click(); });
+  document.querySelectorAll('[data-rmph]').forEach(el => el.onclick = async () => { await api('/api/admin/photo/' + el.dataset.rmph, { method: 'DELETE' }); await refreshUsers(); toast('Фото сброшено'); });
+};
+async function refreshUsers() { const s = await api('/api/admin/state'); S.users = s.users; route(); }
+function upload(id, f) {
+  if (!f) return;
+  const img = new Image(), r = new FileReader();
+  r.onload = () => { img.src = r.result; };
+  img.onload = async () => {
+    const n = 320, c = document.createElement('canvas'); c.width = c.height = n;
+    const s = Math.min(img.width, img.height), x = c.getContext('2d');
+    x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, n, n);
+    try { await api('/api/admin/photo/' + id, { method: 'POST', body: JSON.stringify({ data: c.toDataURL('image/jpeg', .86) }) }); await refreshUsers(); toast('Фото обновлено'); }
+    catch (e) { toast('Ошибка: ' + e.message); }
+  };
+  r.readAsDataURL(f);
+}
+
+pages.settings = () => {
+  const s = cfg.settings, M = S.meta || {};
+  const cats = {}; (M.stages || []).forEach(st => { (cats[st.category] = cats[st.category] || []).push(st); });
+  const known = new Set((M.stages || []).map(x => x.id));
+  const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Настройки</h1></div>
+    <div class="card"><h3>Bitrix24</h3>
+      <p>${S.bitrix ? (S.error ? `<span class="pill er">Ошибка</span> ${esc(S.error)}` : '<span class="pill ok">Подключено</span>') : '<span class="pill er">BITRIX_WEBHOOK не задан в Render</span>'}
+      ${S.syncedAt ? ` · последняя синхронизация ${new Date(S.syncedAt).toLocaleTimeString('ru-RU')}` : ''} · хранилище: <b>${S.store === 'postgres' ? 'Postgres' : 'файл (временное!)'}</b></p>
+      ${S.store !== 'postgres' ? '<div class="warn">DATABASE_URL не задан — настройки сохранятся только до перезапуска сервера. Подключите Render Postgres.</div>' : ''}
+      <button class="btn l" id="resync">↻ Синхронизировать сейчас</button></div>
+    <div class="card"><h3>Компания</h3><label class="f"><span>Название (подпись на табло)</span>${inp('settings.company')}</label>
+      <label class="f" style="max-width:260px"><span>Опрос Bitrix24, сек (мин. 15)</span>${inp('settings.syncSec', '30', 'number')}</label></div>
+    <div class="card"><h3>Что считается продажей</h3><p class="hint">Сделка попадает в рейтинг, когда она в одной из отмеченных стадий. День продажи — по выбранному полю-дате.</p>
+      <label class="f" style="max-width:420px"><span>Поле даты продажи</span><select class="in" data-k="settings.dateField">
+        ${(M.dateFields || [{ id: s.dateField, name: s.dateField }]).map(f => `<option value="${esc(f.id)}" ${f.id === s.dateField ? 'selected' : ''}>${esc(f.name)} (${esc(f.id)})</option>`).join('')}
+        ${M.dateFields && !M.dateFields.some(f => f.id === s.dateField) ? `<option selected value="${esc(s.dateField)}">${esc(s.dateField)}</option>` : ''}</select></label>
+      <div class="stg">${Object.entries(cats).map(([c, list]) => `<h4>${esc(c)}</h4>` + list.map(st => `<label class="ck"><input type="checkbox" data-stage="${esc(st.id)}" ${s.stages.includes(st.id) ? 'checked' : ''}> ${esc(st.name)} <span style="color:var(--muted);font-size:11px">${esc(st.id)}</span></label>`).join('')).join('') || '<p class="hint">Не удалось загрузить стадии из Bitrix24.</p>'}</div>
+      ${s.stages.filter(x => !known.has(x)).length && M.stages ? `<p class="hint">Неизвестные стадии в настройках: ${s.stages.filter(x => !known.has(x)).map(esc).join(', ')}</p>` : ''}</div>
+    <div class="card"><h3>Рабочие дни</h3><p class="hint">Для дневного плана: план периода ÷ рабочие дни. В выходной дневной план = 0.</p>
+      <div class="chips">${DAYS.map((d, j) => `<button class="chip ${s.workDays.includes(j + 1) ? 'on' : ''}" data-wd="${j + 1}">${d}</button>`).join('')}</div>
+      <label class="f" style="margin-top:14px"><span>Праздники (даты через запятую, ГГГГ-ММ-ДД)</span><textarea class="in" rows="2" id="hol">${esc((s.holidays || []).join(', '))}</textarea></label></div>`;
+  document.querySelectorAll('[data-stage]').forEach(el => el.onchange = () => { const x = new Set(s.stages); el.checked ? x.add(el.dataset.stage) : x.delete(el.dataset.stage); s.stages = [...x]; setDirty(); });
+  document.querySelectorAll('[data-wd]').forEach(el => el.onclick = () => { const v = +el.dataset.wd; s.workDays = s.workDays.includes(v) ? s.workDays.filter(x => x !== v) : [...s.workDays, v].sort(); setDirty(); route(); });
+  $('#hol').oninput = e => { s.holidays = e.target.value.split(/[\s,;]+/).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x)); setDirty(); };
+  $('#resync').onclick = async () => { $('#resync').disabled = true; const r = await api('/api/admin/resync', { method: 'POST' }); await loadState().catch(() => {}); toast(r.ok ? 'Синхронизировано' : 'Ошибка: ' + r.error); route(); };
+};
+
+/* ===== роутер ===== */
+function route() {
+  if (!S) return;
+  document.body.classList.remove('menu');
+  const [, r = '', a, b] = location.hash.split('/');
+  const name = r || 'home';
+  document.querySelectorAll('aside a[data-r]').forEach(x => x.classList.toggle('on', x.dataset.r === name || (name === 'board' && x.dataset.r === 'boards')));
+  (pages[name] || pages.home)(a, b);
+}
+addEventListener('hashchange', route);
+loadState().then(route).catch(e => { $('#main').innerHTML = `<div class="warn">Ошибка загрузки: ${esc(e.message)}</div>`; });
+</script>
+</body>
+</html>

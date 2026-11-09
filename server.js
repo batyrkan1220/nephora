@@ -1,68 +1,228 @@
-// Nephora Leaderboard — Node-сервер без зависимостей.
-// Отдаёт index.html и проксирует ТОЛЬКО чтение нужных методов Bitrix24.
-// ENV: BITRIX_WEBHOOK (обязательно), DASH_PASSWORD (пароль входа, по желанию).
-const http = require('http'), fs = require('fs'), path = require('path');
+// Nephora Leaderboard — сервер.
+// • Раз в N секунд забирает сделки из Bitrix24 (вебхук только на сервере)
+// • Отдаёт ТВ-табло по публичной ссылке /b/<ключ> и кабинет руководителя /admin
+// • Настройки (доски, планы, бонусы, фото) хранятся в Postgres (DATABASE_URL)
+// ENV: BITRIX_WEBHOOK, DASH_PASSWORD, DATABASE_URL, PORT
+const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto');
+const store = require('./lib/store');
+const bx = require('./lib/bitrix');
+const C = require('./lib/calc');
+
 const PORT = process.env.PORT || 3000;
-const HOOK = (process.env.BITRIX_WEBHOOK || '').replace(/\/?$/, '/');
 const PASS = process.env.DASH_PASSWORD || '';
-const ALLOWED = new Set(['department.get', 'user.get', 'crm.stagehistory.list', 'crm.deal.list']);
-const html = () => fs.readFileSync(path.join(__dirname, 'index.html'));
-
-const crypto = require('crypto');
 const TOKEN = crypto.createHash('sha256').update('lb:' + PASS).digest('hex').slice(0, 32);
-function authed(req) {
-  if (!PASS) return true;
-  return (req.headers.cookie || '').split(/;\s*/).includes('lb=' + TOKEN);
-}
-const loginPage = (err) => `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вход · Лидерборд</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f1f0fb;font-family:system-ui,sans-serif;color:#1b1830}
-form{background:#fff;padding:28px;border-radius:20px;width:min(340px,90vw);display:flex;flex-direction:column;gap:12px}
-h1{margin:0 0 4px;font-size:20px}input{font:inherit;padding:12px;border:1px solid #e7e5f3;border-radius:10px}
-button{font:inherit;font-weight:700;padding:12px;border:0;border-radius:10px;background:#1b1830;color:#fff;cursor:pointer}.e{color:#b42318;font-size:14px}</style>
-<form method="post" action="/login"><h1>Лидерборд</h1>${err ? '<div class="e">Неверный пароль</div>' : ''}
-<input type="password" name="password" placeholder="Пароль" autofocus required><button>Войти</button></form></html>`;
-function batchAllowed(body) {
-  const cmds = [...new URLSearchParams(body)].filter(([k]) => /^cmd\[/.test(k)).map(([, v]) => v.split('?')[0]);
-  return cmds.length > 0 && cmds.every(m => ALLOWED.has(m));
+const PUB = path.join(__dirname, 'public');
+
+let cfg = null;
+const cache = { deals: [], users: [], userMap: {}, deps: [], range: null, syncedAt: 0, error: '', meta: null };
+let events = [], seq = 0, seen = null, syncing = null, timer = null;
+
+/* ===== синхронизация с Bitrix24 ===== */
+function wantedRange() {
+  const today = C.todayKey(cfg.settings.tz);
+  let from = C.weekStart(today) < C.monthRange(today).from ? C.weekStart(today) : C.monthRange(today).from, to = today;
+  for (const b of cfg.boards) {
+    if (!b.active) continue;
+    const p = C.periodOf(b, today);
+    if (p.from < from) from = p.from;
+    if (p.to > to) to = p.to;
+  }
+  return { from, to, today };
 }
 
-http.createServer((req, res) => {
-  if (req.url === '/healthz') { res.writeHead(200); return res.end('ok'); }
-  if (req.url === '/login' && req.method === 'POST') {
-    let b = ''; req.on('data', c => { b += c; if (b.length > 1e4) req.destroy(); });
-    req.on('end', () => {
-      const ok = PASS && new URLSearchParams(b).get('password') === PASS;
-      if (!ok) { res.writeHead(401, { 'Content-Type': 'text/html; charset=utf-8' }); return res.end(loginPage(true)); }
-      res.writeHead(302, { 'Set-Cookie': `lb=${TOKEN}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000`, Location: '/' });
-      res.end();
-    });
-    return;
+async function sync() {
+  if (syncing) return syncing;
+  syncing = (async () => {
+    const s = cfg.settings, { from, to } = wantedRange();
+    try {
+      const [deps, users, deals] = await Promise.all([
+        bx.departments(), bx.users(), bx.deals(from, C.addDays(to, 1), s.stages, s.dateField),
+      ]);
+      const userMap = Object.fromEntries(users.map(u => [u.id, u]));
+      const missing = [...new Set(deals.map(d => d.uid))].filter(id => !userMap[id]);
+      if (missing.length) (await bx.users(missing)).forEach(u => { userMap[u.id] = u; users.push(u); });
+      // новые продажи → события для попапа
+      const ids = new Set(deals.map(d => d.id));
+      if (seen) {
+        const now = Date.now();
+        for (const d of deals) if (!seen.has(d.id)) events.push({ seq: ++seq, at: now, ...d });
+        events = events.filter(e => now - e.at < 15 * 60e3).slice(-200);
+      }
+      seen = ids;
+      Object.assign(cache, { deals, users, userMap, deps, range: { from, to }, syncedAt: Date.now(), error: '' });
+    } catch (e) {
+      cache.error = String(e.message || e);
+      console.error('sync:', cache.error);
+    } finally { syncing = null; }
+  })();
+  return syncing;
+}
+function loop() {
+  clearTimeout(timer);
+  timer = setTimeout(async () => { await sync(); loop(); }, Math.max(15, +cfg.settings.syncSec || 30) * 1000);
+}
+
+function photos() {
+  const out = {};
+  for (const k of store.keys('photo:')) out[k.slice(6)] = (store.get(k) || {}).ts || 1;
+  return out;
+}
+function ctx(deals) {
+  return {
+    deals: deals || cache.deals, users: cache.users, userMap: cache.userMap, deps: cache.deps,
+    managers: cfg.managers, settings: cfg.settings, today: C.todayKey(cfg.settings.tz), photos: photos(),
+  };
+}
+async function dealsFor(from, to) {
+  const r = cache.range;
+  if (r && from >= r.from && to <= r.to) return cache.deals;
+  return bx.deals(from, C.addDays(to, 1), cfg.settings.stages, cfg.settings.dateField);
+}
+
+/* ===== http helpers ===== */
+const send = (res, code, body, type = 'application/json; charset=utf-8', extra = {}) => {
+  res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store', ...extra });
+  res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
+};
+const file = (res, name) => send(res, 200, fs.readFileSync(path.join(PUB, name)), 'text/html; charset=utf-8');
+function readBody(req, limit = 4e6) {
+  return new Promise((ok, fail) => {
+    let b = ''; req.on('data', c => { b += c; if (b.length > limit) { fail(new Error('too large')); req.destroy(); } });
+    req.on('end', () => ok(b)); req.on('error', fail);
+  });
+}
+const authed = req => !PASS || (req.headers.cookie || '').split(/;\s*/).includes('lb=' + TOKEN);
+const loginPage = err => `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вход · Nephora Leaderboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(900px 600px at 0 0,#ffe1ef,transparent 60%),radial-gradient(900px 600px at 100% 100%,#dff3ff,transparent 60%),#fff8f0;font-family:Poppins,system-ui,sans-serif;color:#1f1640}
+form{background:#fff;padding:32px;border-radius:24px;width:min(360px,90vw);display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 60px -30px rgba(123,92,255,.5)}
+h1{margin:0 0 6px;font-size:22px}h1 b{background:linear-gradient(90deg,#ff3d8b,#a24bff,#22b8f0);-webkit-background-clip:text;color:transparent}
+input{font:inherit;padding:13px 14px;border:1.5px solid #ece4ff;border-radius:12px;outline:none}input:focus{border-color:#a24bff}
+button{font:inherit;font-weight:700;padding:13px;border:0;border-radius:12px;background:linear-gradient(90deg,#ff3d8b,#a24bff);color:#fff;cursor:pointer}.e{color:#be123c;font-size:14px}</style>
+<form method="post" action="/login"><h1>Nephora <b>Leaderboard</b></h1>${err ? '<div class="e">Неверный пароль</div>' : ''}
+<input type="password" name="password" placeholder="Пароль" autofocus required><button>Войти</button></form></html>`;
+
+function csv(rows) {
+  return '﻿' + rows.map(r => r.map(v => {
+    const s = v == null ? '' : String(v);
+    return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(';')).join('\r\n');
+}
+
+/* ===== маршруты ===== */
+async function handle(req, res) {
+  const url = new URL(req.url, 'http://x'), p = url.pathname;
+
+  if (p === '/healthz') return send(res, 200, 'ok', 'text/plain');
+
+  // --- публичное: табло по ключу, фото ---
+  let m;
+  if ((m = p.match(/^\/b\/([\w-]+)\/?$/))) return file(res, 'board.html');
+  if ((m = p.match(/^\/api\/board\/([\w-]+)$/))) {
+    const b = cfg.boards.find(x => x.key === m[1]);
+    if (!b) return send(res, 404, { error: 'Лидерборд не найден' });
+    if (!b.active) return send(res, 200, { paused: true, name: b.name });
+    if (!cache.syncedAt) await sync();
+    const data = C.computeBoard(b, ctx());
+    const hasSince = url.searchParams.has('since'), since = +url.searchParams.get('since') || 0;
+    const mem = new Set(data.members), { from, to } = data.period;
+    const ev = hasSince ? events.filter(e => e.seq > since && (e.test || (mem.has(e.uid) && e.dk >= from && e.dk <= to)))
+      .map(e => { const r = data.rows.find(x => x.uid === e.uid) || { name: e.name || 'Менеджер', photo: '' };
+        return { name: r.name, photo: r.photo, place: r.place, total: r.sum, seq: e.seq, sum: e.sum, title: e.title }; }) : [];
+    return send(res, 200, { ...data, members: undefined, events: ev, seq, syncedAt: cache.syncedAt, error: cache.error, company: cfg.settings.company });
+  }
+  if ((m = p.match(/^\/photo\/(\w+)$/))) {
+    const ph = store.get('photo:' + m[1]);
+    if (!ph) return send(res, 404, 'no photo', 'text/plain');
+    const [, type, b64] = String(ph.data).match(/^data:([^;]+);base64,(.*)$/) || [];
+    if (!b64) return send(res, 404, 'bad photo', 'text/plain');
+    res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'public, max-age=31536000, immutable' });
+    return res.end(Buffer.from(b64, 'base64'));
+  }
+
+  // --- вход ---
+  if (p === '/login' && req.method === 'POST') {
+    const pw = new URLSearchParams(await readBody(req, 1e4)).get('password');
+    if (!PASS || pw !== PASS) return send(res, 401, loginPage(true), 'text/html; charset=utf-8');
+    res.writeHead(302, { 'Set-Cookie': `lb=${TOKEN}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000`, Location: '/admin' });
+    return res.end();
+  }
+  if (p === '/logout') {
+    res.writeHead(302, { 'Set-Cookie': 'lb=; Path=/; Max-Age=0', Location: '/admin' }); return res.end();
   }
   if (!authed(req)) {
-    if (req.url.startsWith('/api/')) { res.writeHead(401, { 'Content-Type': 'application/json' }); return res.end('{"error":"unauthorized"}'); }
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); return res.end(loginPage(false));
+    if (p.startsWith('/api/')) return send(res, 401, { error: 'unauthorized' });
+    return send(res, 200, loginPage(false), 'text/html; charset=utf-8');
   }
 
-  const m = req.url.match(/^\/api\/rest\/([a-z.]+)\.json$/);
-  if (m) {
-    const method = m[1];
-    let body = '';
-    req.on('data', c => { body += c; if (body.length > 1e6) req.destroy(); });
-    req.on('end', async () => {
-      const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(obj)); };
-      if (!/^https?:\/\//.test(HOOK)) return send(500, { error: 'BITRIX_WEBHOOK is not set' });
-      if (!(ALLOWED.has(method) || (method === 'batch' && batchAllowed(body)))) return send(403, { error: 'method not allowed' });
-      try {
-        const r = await fetch(HOOK + method + '.json', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
-        res.writeHead(r.status, { 'Content-Type': 'application/json' });
-        res.end(await r.text());
-      } catch (e) { send(502, { error: 'bitrix unreachable', error_description: String(e.message || e) }); }
+  // --- кабинет ---
+  if (p === '/' || p === '/index.html') { res.writeHead(302, { Location: '/admin' }); return res.end(); }
+  if (p === '/admin' || p.startsWith('/admin/')) return file(res, 'admin.html');
+
+  if (p === '/api/admin/state') {
+    if (!cache.syncedAt) await sync();
+    if (!cache.meta && bx.configured()) cache.meta = await bx.meta().catch(e => ({ error: String(e.message) }));
+    const used = new Set([...Object.keys(cfg.managers), ...cache.deals.map(d => d.uid)]);
+    const users = cache.users.filter(u => u.active || used.has(u.id))
+      .map(u => ({ ...u, photoUrl: store.get('photo:' + u.id) ? `/photo/${u.id}?v=${store.get('photo:' + u.id).ts}` : u.photo }));
+    return send(res, 200, {
+      cfg, users, deps: cache.deps, meta: cache.meta || {}, store: store.kind(), bitrix: bx.configured(),
+      syncedAt: cache.syncedAt, error: cache.error, today: C.todayKey(cfg.settings.tz),
+      boards: cfg.boards.map(b => ({ id: b.id, members: C.computeBoard(b, ctx()).members })),
+      dealUids: [...new Set(cache.deals.map(d => d.uid))],
     });
-    return;
   }
-  if (req.url === '/' || req.url.startsWith('/?') || req.url === '/index.html') {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
-    return res.end(html());
+  if (p === '/api/admin/config' && req.method === 'PUT') {
+    const body = JSON.parse(await readBody(req));
+    const prevStages = JSON.stringify([cfg.settings.stages, cfg.settings.dateField]);
+    cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards });
+    await store.set('config', cfg);
+    if (JSON.stringify([cfg.settings.stages, cfg.settings.dateField]) !== prevStages) seen = null;
+    sync().then(loop);
+    return send(res, 200, { ok: true, cfg });
   }
-  res.writeHead(404); res.end('Not found');
-}).listen(PORT, () => console.log('Leaderboard on :' + PORT));
+  if ((m = p.match(/^\/api\/admin\/photo\/(\w+)$/))) {
+    if (req.method === 'DELETE') { await store.del('photo:' + m[1]); return send(res, 200, { ok: true }); }
+    const { data } = JSON.parse(await readBody(req));
+    if (!/^data:image\/(png|jpeg|webp|gif);base64,/.test(data || '')) return send(res, 400, { error: 'Нужна картинка' });
+    await store.set('photo:' + m[1], { data, ts: Date.now() });
+    return send(res, 200, { ok: true, url: `/photo/${m[1]}?v=${Date.now()}` });
+  }
+  if (p === '/api/admin/resync' && req.method === 'POST') {
+    cache.meta = null; await sync(); return send(res, 200, { ok: !cache.error, error: cache.error, syncedAt: cache.syncedAt });
+  }
+  if ((m = p.match(/^\/api\/admin\/board\/(\w+)\/test-sale$/)) && req.method === 'POST') {
+    const b = cfg.boards.find(x => x.id === m[1]); if (!b) return send(res, 404, { error: 'not found' });
+    const data = C.computeBoard(b, ctx()); const r = data.rows[0];
+    events.push({ seq: ++seq, at: Date.now(), test: true, id: 'test', uid: r ? r.uid : '0', name: r ? r.name : 'Тестовый менеджер', sum: 150000, title: 'Тестовая продажа', dk: data.period.today });
+    return send(res, 200, { ok: true });
+  }
+  if (p === '/api/admin/report') {
+    const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
+    const from = q.get('from') || C.monthRange(today).from, to = q.get('to') || today;
+    const deals = await dealsFor(from, to);
+    const r = C.report(cfg, ctx(deals), { from, to, boardId: q.get('board') || '', uid: q.get('uid') || '' });
+    if (!r) return send(res, 404, { error: 'not found' });
+    if (q.get('format') === 'csv') {
+      const name = `nephora_${q.get('kind') === 'deals' ? 'sales' : 'report'}_${from}_${to}.csv`;
+      const body = q.get('kind') === 'deals'
+        ? csv([['ID сделки', 'Дата', 'Менеджер', 'Сделка', 'Сумма'], ...r.deals.map(d => [d.id, d.dk, d.name, d.title, Math.round(d.sum)])])
+        : csv([['Менеджер', 'Отдел', 'Продаж', 'Выручка', 'Ср. чек', '% от продаж', 'Бонусы', 'Зарплата'],
+          ...r.rows.map(x => [x.name, x.dep, x.cnt, Math.round(x.sum), Math.round(x.avg), Math.round(x.comm), Math.round(x.bonus), Math.round(x.salary)]),
+          ['Итого', '', r.totals.cnt, Math.round(r.totals.sum), Math.round(r.totals.avg), Math.round(r.totals.comm), Math.round(r.totals.bonus), Math.round(r.totals.salary)]]);
+      return send(res, 200, body, 'text/csv; charset=utf-8', { 'Content-Disposition': `attachment; filename="${name}"` });
+    }
+    return send(res, 200, r);
+  }
+  send(res, 404, 'Not found', 'text/plain');
+}
+
+(async () => {
+  await store.init();
+  cfg = C.normalize(store.get('config'));
+  if (!store.get('config')) await store.set('config', cfg);
+  http.createServer((req, res) => handle(req, res).catch(e => {
+    console.error(e); if (!res.headersSent) send(res, 500, { error: String(e.message || e) });
+  })).listen(PORT, () => console.log('Leaderboard on :' + PORT));
+  sync().then(loop);
+})();
