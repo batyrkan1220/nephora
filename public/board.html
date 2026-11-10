@@ -39,6 +39,15 @@ html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;le
 .stat.kb .pb .pc,.stat.kp .pb .pc{color:#fff}
 .stat.kb .pb .ck,.stat.kp .pb .ck{background:#fff;color:var(--green)}
 .clock{align-self:center;font-weight:500;font-size:1.3em;background:var(--panel);color:var(--blue);border-radius:1em;padding:.6em 1em}
+/* сағат пен карталар тұрақты енде — секунд сайын шапка жылжымайды */
+.clock{flex:none;width:6.2em;text-align:center;padding:.6em 0;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.clock span{display:inline-block;width:.62em;text-align:center}
+.hd .stat{flex:none}
+.hd .stat.plan{width:17.5em;min-width:0}
+.hd .stat.kw{width:9em;min-width:0}
+.hd .stat:not(.plan):not(.kw){width:13em}
+.stat b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ===== прогресс-бар ===== */
 .pb{display:flex;align-items:center;gap:.6em}
@@ -248,10 +257,12 @@ html.pt .ttl{flex-basis:100%}
 html.pt .ttl h1{font-size:2.8em;white-space:normal}
 html.pt .stat{flex:1;min-width:0}
 html.pt .stat.plan{min-width:0}
+html.pt .hd .stat,html.pt .hd .stat.plan,html.pt .hd .stat.kw{flex:1 1 0;width:auto}
 html.pt .clock{display:none}
 html.pt .tbl{padding:1em}
 /* ===== телефон ===== */
 @media (max-width:600px){
+  .hd .stat,.hd .stat.plan,.hd .stat.kw{flex:1 1 40%;width:auto}
   .cols3{grid-template-columns:1fr;gap:12px}.lst{overflow:visible;flex:none}.col{padding:12px}
   html,body{overflow:auto;height:auto}
   #app{position:static;margin:10px;padding:18px 14px 20px;gap:14px;font-size:13px;border-radius:26px}
@@ -311,7 +322,7 @@ function setRotation() {
   const v = D && D.board.screen.orientation === 'vertical' && innerWidth > innerHeight;
   document.documentElement.classList.toggle('rot', !!v);
 }
-function tick() { const c = $('#clock'); if (c) c.textContent = new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+function tick() { const c = $('#clock'); if (c) c.innerHTML = new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit', second: '2-digit' }).split('').map(ch => /\d/.test(ch) ? `<span>${ch}</span>` : ch).join(''); }
 setInterval(tick, 1000);
 
 function render() {
