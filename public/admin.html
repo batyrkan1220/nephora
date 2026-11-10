@@ -465,7 +465,7 @@ pages.home = async () => {
   const kc = (cls, ico, label, val, side, badge) => `<div class="kc2 ${cls}"><div class="t"><div class="ik">${ico}</div>${badge}</div><div class="lb">${label}</div><div class="vl"><b class="num">${val}</b><span>${side}</span></div></div>`;
   const I = p => SV(p);
   // группированные столбцы: заказы vs выкуп по месяцам
-  const M = R.months || [], mxm = Math.max(1, ...M.map(m => m.orders)), step = niceStep(mxm), top = Math.ceil(mxm / step) * step || 1;
+  const M0 = R.months || [], fi = M0.findIndex(m => m.cnt > 0), M = fi < 0 ? M0 : M0.slice(Math.min(fi, Math.max(0, M0.length - 3))), mxm = Math.max(1, ...M.map(m => m.orders)), step = niceStep(mxm), top = Math.ceil(mxm / step) * step || 1;
   const mon = m => new Date(m + '-01T00:00:00Z').toLocaleString('ru-RU', { month: 'short', timeZone: 'UTC' }).replace('.', '');
   const bars = `<div class="gb"><div class="ya">${[0, 1, 2, 3, 4].map(k => `<span>${shortK(top / 4 * k)}</span>`).join('')}</div>
     ${[1, 2, 3, 4].map(k => `<div class="gl" style="bottom:${k * 25}%"></div>`).join('')}
@@ -500,7 +500,7 @@ pages.home = async () => {
         ${kc('', I('<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>'), 'Прогноз на конец месяца', short2(T.forecast), T.plan ? `план ${short2(T.plan)}<br>осталось ${P.daysLeft} раб. дн.` : `осталось ${P.daysLeft} раб. дн.`, T.plan ? `<span class="bdg ${fPct >= 100 ? 'up' : 'dn'}">${Math.round(fPct)}% плана</span>` : '')}
         ${kc('', ICO.cart, 'Продажи за месяц', T.cnt, `ср. чек ${money(T.avg)}${own && T.salary != null ? '<br>к выплате ' + short2(T.salary) : ''}`, bd(ch(T.cnt, K.prevCnt)))}
       </div>
-      <div class="card" style="margin:0"><div class="chd"><div><h3>Заказы и выкуп</h3><p>по дате заказа, последние 7 месяцев</p></div><a href="#/sales/funnel">Воронка →</a></div>
+      <div class="card" style="margin:0"><div class="chd"><div><h3>Заказы и выкуп</h3><p>по дате заказа, по месяцам · наведите на столбец</p></div><a href="#/sales/funnel">Воронка →</a></div>
         <div class="lgd"><span><i style="background:#DADCE6"></i>Заказы</span><span><i style="background:var(--blue)"></i>Выкуп</span></div>${bars}</div>
     </div><div>
       <div class="card" style="margin:0"><div class="chd"><div><h3>Секторы</h3><p>выполнение плана за ${monName}</p></div><a href="#/team/eff">Команда →</a></div>
@@ -523,7 +523,7 @@ pages.home = async () => {
 const niceStep = mx => { const r = mx / 4, p = Math.pow(10, Math.floor(Math.log10(r || 1))); return [1, 2, 2.5, 5, 10].map(k => k * p).find(v => v >= r) || r; };
 const shortK = n => n >= 1e6 ? (Math.round(n / 1e5) / 10).toString().replace('.', ',') + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(Math.round(n));
 const SRCN = { CALL: 'Звонок', WEB: 'Сайт', EMAIL: 'E-mail', ADVERTISING: 'Реклама', PARTNER: 'Партнёр', RECOMMENDATION: 'Рекомендация', REPEAT_SALE: 'Повторная продажа', OTHER: 'Другое', STORE: 'Магазин', WEBFORM: 'CRM-форма', CALLBACK: 'Обратный звонок', TRADE_SHOW: 'Выставка', 'не указан': 'Не указан' };
-const srcName = k => SRCN[k] || (/^\d+\|/.test(k) ? 'Открытая линия' : k);
+const WZ = {}; const srcName = k => SRCN[k] || (/^WZ/.test(k) ? 'WhatsApp ' + (WZ[k] || (WZ[k] = Object.keys(WZ).length + 1)) : /^\d+\|/.test(k) ? 'Открытая линия' : k);
 const short = n => { n = Math.round(n || 0); return n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M' : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k' : String(n); };
 
 pages.sales = async () => {
