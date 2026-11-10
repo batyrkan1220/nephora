@@ -91,7 +91,9 @@ html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;le
 .mg .cr{display:none}
 .big{font-weight:500;font-size:1.15em}
 .cnt{text-align:center;font-weight:500;font-size:1.15em}
-.pct small{display:block;color:var(--muted);font-size:.78em}
+.pct small{display:block;color:var(--muted);font-size:.78em;white-space:nowrap}
+.pct small em{font-style:normal;color:var(--blue)}
+.el{display:inline-block;background:linear-gradient(135deg,#ffe680,#fcd94a);color:#7a5a00;font-weight:600;border-radius:99px;padding:0 .55em;margin-right:.45em;font-size:.95em}
 .more{height:var(--rh);flex:none;border:1.5px dashed #d9e0ef;border-radius:1.2em;display:flex;align-items:center;gap:.8em;padding:0 1.2em;color:var(--muted2);font-size:.9em}
 .more .avs{display:flex;padding-left:.3em}.more .avs .av{width:3.2em;height:3.2em;font-size:.65em;margin-left:-.7em;box-shadow:0 0 0 2px var(--panel)}
 .more .rng{margin-left:auto;font-size:.85em;color:var(--muted)}
@@ -206,7 +208,7 @@ function render() {
   if (cols.today && !PH && !PT) C.push(['minmax(0,1.6fr)', 'Сегодня', '']);
   if (cols.sales) C.push(['minmax(0,1.9fr)', 'Продажи', '']);
   if (cols.count) C.push(['5em', 'Кол-во', 'cnt']);
-  if (cols.pct && !PH && !PT) C.push(['minmax(0,1fr)', '% от продаж', 'r']);
+  if (cols.pct && !PH && !PT) C.push(['minmax(0,1.5fr)', '% от продаж', 'r']);
   if (cols.salary && !PH) C.push(['minmax(0,1.1fr)', 'Зарплата', 'r']);
   const tmpl = C.map(c => c[0]).join(' ');
 
@@ -224,11 +226,11 @@ function render() {
     const lose = sc.losers && R.length > 6 && r.place > R.length - 3 ? 'lose' : '';
     const up = prev[r.uid] !== undefined && prev[r.uid] < r.sum ? 'up' : '';
     let h = `<div class="tr row ${t} ${lose} ${up}"><span class="place num">${r.place}</span>
-      <div class="mg">${t ? CROWN(CC[r.place - 1], 'cr') : ''}${av(r)}<div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${esc(r.dep)}</div></div></div>`;
+      <div class="mg">${t ? CROWN(CC[r.place - 1], 'cr') : ''}${av(r)}<div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${esc(r.dep)}</div></div></div>`;
     if (cols.today && !PH && !PT) h += `<div>${bar(r.daySum, r.dayPlan, `<div class="sub num"><b>${short(r.daySum)}</b>${r.dayPlan ? ' / ' + short(r.dayPlan) + ' ₸' : ' ₸'}</div>`)}</div>`;
     if (cols.sales) h += `<div>${bar(r.sum, r.plan, `<div class="sub num"><b>${short(r.sum)}</b>${r.plan ? ' / ' + short(r.plan) + ' ₸' : ' ₸'}</div>`)}</div>`;
     if (cols.count) h += `<span class="cnt num">${r.cnt}</span>`;
-    if (cols.pct && !PH && !PT) h += `<span class="r pct num">${r.comm ? money(r.comm) : '—'}<small>${r.comm ? (Math.round(r.commPct * 10) / 10) + '%' : ''}</small></span>`;
+    if (cols.pct && !PH && !PT) h += `<span class="r pct num">${r.comm ? money(r.comm) : '—'}<small>${r.commPct ? (Math.round(r.commPct * 10) / 10) + '%' : ''}${r.next ? `<em> · ${r.next.pct > r.commPct ? 'до ' + r.next.pct + '%' : 'до премии ' + short(r.next.premium)}: ещё ${short(r.next.left)}</em>` : ''}</small></span>`;
     if (cols.salary && !PH) h += `<span class="r big num">${money(r.salary)}</span>`;
     return h + '</div>';
   };

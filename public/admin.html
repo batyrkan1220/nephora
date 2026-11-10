@@ -103,6 +103,7 @@ tfoot td{font-weight:600;border-top:2px solid var(--line)}
 .th b{display:block;font-weight:500}.th small{color:var(--muted);font-size:12.5px}
 .tier{display:grid;grid-template-columns:1fr 1fr 90px 38px;gap:8px;margin-bottom:8px;align-items:center}
 .tier.b{grid-template-columns:1fr 1fr 38px}
+.tier.g4{grid-template-columns:1.2fr 1.2fr 70px 1fr 38px}
 .x{border:0;background:#fff1f2;color:var(--red);width:36px;height:36px;border-radius:11px;cursor:pointer;font-size:16px}
 .bonus{border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;background:var(--panel)}
 .link{display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px 8px 8px 16px;font-family:ui-monospace,monospace;font-size:13px;word-break:break-all}
@@ -203,8 +204,10 @@ tfoot td{font-weight:600;border-top:2px solid var(--line)}
     <a href="#/" data-r="home"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg></span>Главная</a>
     <a href="#/boards" data-r="boards"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 12l3-3 3 2 4-4"/></svg></span>Лидерборды</a>
     <a href="#/sales" data-r="sales"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 15v-3M12 15V9M15 15v-5"/></svg></span>Продажи</a>
+    <a href="#/payouts" data-r="payouts"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x='3' y='6' width='18' height='13' rx='3'/><path d='M3 10h18M7 15h3'/></svg></span>Выплаты</a>
     <div class="navl">Управление</div>
     <a href="#/managers" data-r="managers"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.2c2.6.3 4.5 2.6 4.5 5.3"/></svg></span>Менеджеры</a>
+    <a href="#/penalties" data-r="penalties"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx='12' cy='12' r='8.5'/><path d='M12 7.5v5l3 2'/></svg></span>Штрафы</a>
     <a href="#/settings" data-r="settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5V2.5h6v1M9 10h6M9 14h4"/></svg></span>Настройки</a>
     <div class="sp"></div>
     <a href="/logout" class="out"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg></span>Выйти</a>
@@ -230,6 +233,13 @@ const api = async (url, opt = {}) => {
 };
 
 let S = null, cfg = null, saved = '', dirty = false;
+const PRESET = {
+  commissionMode: 'total', eliteFrom: 800000, base: { amount: 80000, minSum: 1000000 },
+  commission: [{ from: 0, to: 500000, pct: 10, premium: 0 }, { from: 500000, to: 800000, pct: 12, premium: 0 }, { from: 800000, to: 1500000, pct: 14, premium: 10000 },
+    { from: 1500000, to: 1800000, pct: 15, premium: 20000 }, { from: 1800000, to: 2500000, pct: 15, premium: 30000 }, { from: 2500000, to: '', pct: 15, premium: 40000 }],
+  bonuses: [{ id: 'daily', name: 'Ежедневная премия', period: 'day', metric: 'sum', tiers: [{ min: 200000, amount: 2000 }, { min: 300000, amount: 3000 }, { min: 400000, amount: 4000 },
+    { min: 500000, amount: 5000 }, { min: 600000, amount: 7000 }, { min: 700000, amount: 9000 }, { min: 800000, amount: 10000 }] }],
+};
 const users = () => S.users;
 const uName = id => { const m = cfg.managers[id] || {}; const u = S.users.find(x => x.id === id); return m.name || (u ? u.name : 'ID ' + id); };
 const uPhoto = id => { const u = S.users.find(x => x.id === id); return u ? u.photoUrl : ''; };
@@ -371,17 +381,17 @@ pages.home = async () => {
       <div class="perf"><div><h2>Эффективность</h2><p>${T.todayCnt} продаж сегодня на ${money(T.todaySum)} · ${T.managers} менеджеров</p>
         <div class="lg">${R.rows.slice(0, 3).map((r, i) => `<i style="background:${sw[i]}"></i><span>${esc(r.name)}</span><b class="num">${(shareTop[i] * 100).toFixed(2)}%</b>`).join('')}
           <i style="background:#e3e8f3"></i><span>Остальные</span><b class="num">${T.sum ? ((1 - shareTop.reduce((a, b) => a + b, 0)) * 100).toFixed(2) : '0.00'}%</b>
-          <i style="background:#12b76a"></i><span>% от продаж + бонусы</span><b class="num">${money(T.comm + T.bonus)}</b></div></div>
+          <i style="background:#12b76a"></i><span>Зарплата к выплате</span><b class="num">${money(T.salary)}</b></div></div>
         ${donut(shareTop.map((v, i) => ({ v, c: colors[i], w: i === 0 ? 20 : 16 })), center, planTot ? 'ПЛАН' : 'ЛИДЕР')}</div>
       <div class="geo"><div class="gh"><div><h2>Динамика продаж</h2><p>${fd(R.from)} — ${fd(R.to)} · наведите на столбец</p></div><a class="btn l s" id="csv2">${ICO.doc.replace('<svg', '<svg width="18"')} CSV отчёт</a></div>
         <div class="card" style="padding:18px 20px"><div class="chart">${R.days.map(d => `<div class="${d.sum ? '' : 'z'}" style="height:${(d.sum / mx * 100).toFixed(1)}%" title="${fd(d.dk)}: ${money(d.sum)} · ${d.cnt} прод."></div>`).join('')}</div>
         <div class="cx">${R.days.map((d, i) => `<span>${R.days.length <= 31 || i % Math.ceil(R.days.length / 31) === 0 ? d.dk.slice(8, 10) : ''}</span>`).join('')}</div></div></div>
     </div></div>
       <div class="card" style="margin-top:40px"><h3>По менеджерам</h3><div class="tw"><table>
-        <thead><tr><th>Менеджер</th><th class="r">Продаж</th><th class="r">Выручка</th><th class="r">Ср. чек</th><th class="r">% от продаж</th><th class="r">Бонусы</th><th class="r">Зарплата</th></tr></thead>
+        <thead><tr><th>Менеджер</th><th class="r">Продаж</th><th class="r">Выручка</th><th class="r">Ср. чек</th><th class="r">% сетки</th><th class="r">Премия + оклад</th><th class="r">Бонусы</th><th class="r">Штрафы</th><th class="r">Зарплата</th></tr></thead>
         <tbody>${R.rows.map(r => `<tr><td><div class="who">${av(r.name, r.photo)}<div>${esc(r.name)}<small>${esc(r.dep || r.board)}</small></div></div></td>
-          <td class="r num">${r.cnt}</td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${money(r.avg)}</td><td class="r num">${r.comm ? money(r.comm) : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td></tr>`).join('') || '<tr><td colspan="7" class="empty">Продаж за период нет</td></tr>'}</tbody>
-        ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${T.cnt}</td><td class="r num">${money(T.sum)}</td><td class="r num">${money(T.avg)}</td><td class="r num">${money(T.comm)}</td><td class="r num">+${money(T.bonus)}</td><td class="r num">${money(T.salary)}</td></tr></tfoot>` : ''}
+          <td class="r num">${r.cnt}</td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${money(r.avg)}</td><td class="r num">${r.comm ? money(r.comm) + `<small style="display:block;color:var(--muted)">${+r.commPct.toFixed(1)}%${r.elite ? ' · ★ Элит' : ''}</small>` : '—'}</td><td class="r num">${r.premium + r.base ? money(r.premium + r.base) : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td><td class="r num" style="color:var(--red)">${r.pen ? '−' + money(r.pen) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td></tr>`).join('') || '<tr><td colspan="9" class="empty">Продаж за период нет</td></tr>'}</tbody>
+        ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${T.cnt}</td><td class="r num">${money(T.sum)}</td><td class="r num">${money(T.avg)}</td><td class="r num">${money(T.comm)}</td><td class="r num">${money(T.premium + T.base)}</td><td class="r num">${money(T.bonus)}</td><td class="r num">${T.pen ? '−' + money(T.pen) : '—'}</td><td class="r num">${money(T.salary)}</td></tr></tfoot>` : ''}
       </table></div></div>`;
   bindFilters();
   const csv = '/api/admin/report?' + qs({ format: 'csv' }); $('#csv').href = csv; $('#csv2').href = csv;
@@ -445,10 +455,15 @@ pages.board = (id, tab = 'main') => {
         <div class="row2"><label class="f"><span>План отдела (₸)</span>${inp(K + '.plan', '0', 'number')}</label>
         <label class="f"><span>Личный план по умолчанию (₸)</span>${inp(K + '.defaultPlan', '0', 'number')}</label></div>
         <p class="hint" style="margin:0">Личный план каждого менеджера — во вкладке «Участники».</p></div>
-      <div class="card"><h3>Комиссия</h3><p class="hint">Процент от суммы каждой сделки. Другая сумма сделки — другой процент. Пустое «До» = без верхней границы.</p>
-        ${b.commission.length ? `<div class="tier" style="color:var(--muted);font-size:11.5px;font-weight:600"><span>ОТ (₸)</span><span>ДО (₸)</span><span>% КОМ.</span><span></span></div>` : ''}
-        ${b.commission.map((t, j) => `<div class="tier">${inp(`${K}.commission.${j}.from`, '0', 'number', 'sm')}${inp(`${K}.commission.${j}.to`, '∞', 'number', 'sm')}${inp(`${K}.commission.${j}.pct`, '%', 'number', 'sm')}<button class="x" data-del="${K}.commission.${j}">×</button></div>`).join('')}
-        <button class="btn l s" data-add="${K}.commission">+ Добавить ступень</button></div>
+      <div class="card"><h3>Сетка заработной платы</h3><p class="hint">Процент зависит от кассы менеджера. Пустое «До» = без верхней границы. «Премия уровня» — фиксированная доплата за ступень (элит).</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"><button class="btn g s" id="preset">★ Заполнить по «Условиям менеджера отдела продаж»</button></div>
+        <div class="chips" style="margin-bottom:14px">${[['total', '% от всей кассы за период'], ['deal', '% от каждой сделки']].map(([v, n]) => `<button class="chip ${(b.commissionMode || 'total') === v ? 'on' : ''}" data-set="${K}.commissionMode" data-v="${v}">${n}</button>`).join('')}</div>
+        ${b.commission.length ? `<div class="tier g4" style="color:var(--muted);font-size:12px"><span>КАССА ОТ (₸)</span><span>ДО (₸)</span><span>%</span><span>ПРЕМИЯ (₸)</span><span></span></div>` : ''}
+        ${b.commission.map((t, j) => `<div class="tier g4">${inp(`${K}.commission.${j}.from`, '0', 'number', 'sm')}${inp(`${K}.commission.${j}.to`, '∞', 'number', 'sm')}${inp(`${K}.commission.${j}.pct`, '%', 'number', 'sm')}${inp(`${K}.commission.${j}.premium`, '0', 'number', 'sm')}<button class="x" data-del="${K}.commission.${j}">×</button></div>`).join('')}
+        <button class="btn l s" data-add="${K}.commission">+ Добавить ступень</button>
+        <label class="f" style="max-width:320px;margin-top:16px"><span>«Элит менеджер» — с кассы (₸), 0 = не показывать</span>${inp(K + '.eliteFrom', '0', 'number')}</label></div>
+      <div class="card"><h3>Фиксированный оклад</h3><p class="hint">Выплачивается, если касса за период не меньше порога, и только тем, кто работает на постоянном графике (отметка в «Менеджерах»).</p>
+        <div class="row2"><label class="f"><span>Оклад (₸)</span>${inp(K + '.base.amount', '0', 'number')}</label><label class="f"><span>Касса за период от (₸)</span>${inp(K + '.base.minSum', '0', 'number')}</label></div></div>
       <div class="card"><h3>Бонусы</h3><p class="hint">Доплата, если менеджер набрал порог за день, неделю или весь период. Берётся самая высокая достигнутая ступень. Считается отдельно от комиссии.</p>
         ${b.bonuses.map((x, j) => { const BK = `${K}.bonuses.${j}`; return `<div class="bonus"><div class="row2">
           <label class="f"><span>Название</span>${inp(BK + '.name', 'Бонус недели')}</label>
@@ -470,7 +485,7 @@ pages.board = (id, tab = 'main') => {
         <div class="chips">${[['horizontal', 'Горизонтальный'], ['vertical', 'Вертикальный']].map(([v, n]) => `<button class="chip ${b.screen.orientation === v ? 'on' : ''}" data-set="${K}.screen.orientation" data-v="${v}">${n}</button>`).join('')}</div>
         <p class="hint" style="margin-top:10px">Вертикальный — для телевизора, повёрнутого на 90°: картинка разворачивается сама. На телефоне поворота нет.</p></div>
       <div class="card"><h3>Колонки таблицы</h3>
-        ${[['today', 'Сегодня', 'Продажи за сегодня и полоса к дневному плану'], ['sales', 'Продажи', 'Сумма за период и полоса к личному плану'], ['count', 'Количество', 'Сколько продаж за период'], ['pct', '% от продаж', 'Комиссия по настройкам «Комиссии»'], ['salary', 'Зарплата (итого)', 'Комиссия плюс все бонусы за период']]
+        ${[['today', 'Сегодня', 'Продажи за сегодня и полоса к дневному плану'], ['sales', 'Продажи', 'Сумма за период и полоса к личному плану'], ['count', 'Количество', 'Сколько продаж за период'], ['pct', '% от продаж', 'Процент по сетке и сколько осталось до следующей ступени'], ['salary', 'Зарплата (итого)', 'Процент + премия уровня + оклад + бонусы − штрафы']]
           .map(([k, n, d]) => `<label class="ck">${sw(`${K}.screen.cols.${k}`)} <span><b>${n}</b> <span style="color:var(--muted)">— ${d}</span></span></label>`).join('')}
         <label class="ck">${sw(K + '.screen.losers')} <span><b>Подсветить последних трёх</b> <span style="color:var(--muted)">— красным, если в рейтинге больше 6 человек</span></span></label></div>
       <div class="card"><h3>Продажа на экране</h3>
@@ -499,7 +514,7 @@ pages.board = (id, tab = 'main') => {
   $('#main').innerHTML = h;
 
   // действия
-  document.querySelectorAll('[data-add]').forEach(el => el.onclick = () => { const arr = getP(cfg, el.dataset.add); arr.push(el.dataset.add.endsWith('commission') ? { from: '', to: '', pct: '' } : { min: '', amount: '' }); setDirty(); route(); });
+  document.querySelectorAll('[data-add]').forEach(el => el.onclick = () => { const arr = getP(cfg, el.dataset.add); arr.push(el.dataset.add.endsWith('commission') ? { from: '', to: '', pct: '', premium: '' } : { min: '', amount: '' }); setDirty(); route(); });
   document.querySelectorAll('[data-addbonus]').forEach(el => el.onclick = () => { getP(cfg, el.dataset.addbonus).push({ id: uid(), name: 'Бонус недели', period: 'week', metric: 'sum', tiers: [{ min: '', amount: '' }] }); setDirty(); route(); });
   document.querySelectorAll('[data-del]').forEach(el => el.onclick = () => { const p = el.dataset.del.split('.'); const j = +p.pop(); getP(cfg, p.join('.')).splice(j, 1); setDirty(); route(); });
   document.querySelectorAll('[data-set]').forEach(el => el.onclick = () => { setP(cfg, el.dataset.set, el.dataset.v); setDirty(); route(); });
@@ -512,6 +527,12 @@ pages.board = (id, tab = 'main') => {
   on('#copy', () => { navigator.clipboard.writeText(location.origin + '/b/' + b.key); toast('Ссылка скопирована'); });
   on('#rekey', () => { if (confirm('Старая ссылка перестанет работать на всех телевизорах. Сменить?')) { b.key = ''; setDirty(); toast('Нажмите «Сохранить» — появится новая ссылка'); route(); } });
   on('#test', async () => { if (dirty) return toast('Сначала сохраните изменения'); await api(`/api/admin/board/${b.id}/test-sale`, { method: 'POST' }); toast('Тестовая продажа появится на табло в течение 5 секунд'); });
+  on('#preset', () => {
+    if ((b.commission.length || b.bonuses.length) && !confirm('Заменить сетку, оклад и бонусы этой доски условиями отдела продаж?')) return;
+    Object.assign(b, JSON.parse(JSON.stringify(PRESET)));
+    if (cfg.settings.workDays.includes(1)) cfg.settings.workDays = [2, 3, 4, 5, 6, 7]; // график 6/1, понедельник выходной
+    setDirty(); route(); toast('Условия подставлены — нажмите «Сохранить»');
+  });
   on('#delBoard', () => { if (confirm(`Удалить лидерборд «${b.name}»? Ссылка ТВ перестанет работать.`)) { cfg.boards.splice(i, 1); setDirty(); location.hash = '#/boards'; } });
 };
 
@@ -524,14 +545,16 @@ pages.managers = () => {
   $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Менеджеры <span class="pill">${list.length}</span></h1>
     <input class="in" id="q" placeholder="Поиск…" style="max-width:260px" value="${esc(pages.managers.q || '')}">
     <div class="sub">Сотрудники приходят из Bitrix24. Здесь можно заменить фото, имя на табло, подпись (категорию) и скрыть человека со всех досок.</div></div>
-    <div class="card"><div class="tw"><table><thead><tr><th>Фото</th><th>Сотрудник Bitrix24</th><th>Имя на табло</th><th>Подпись / категория</th><th>Лидерборды</th><th>Скрыть</th></tr></thead><tbody>
+    <div class="card"><div class="tw"><table><thead><tr><th>Фото</th><th>Сотрудник Bitrix24</th><th>Имя на табло</th><th>Подпись / категория</th><th>Лидерборды</th><th title="Оклад платится только постоянному графику">Пост. график</th><th>Скрыть</th></tr></thead><tbody>
     ${list.map(u => { const K = `managers.${u.id}`; return `<tr>
       <td>${av(uName(u.id), u.photoUrl, 'big" data-ph="' + u.id)}${S.users.find(x => x.id === u.id).photoUrl && String(u.photoUrl).startsWith('/photo') ? `<div><a href="javascript:void 0" data-rmph="${u.id}" style="font-size:11px;color:var(--red)">сбросить</a></div>` : ''}</td>
       <td><b>${esc(u.name)}</b><div style="color:var(--muted);font-size:12px">${esc(u.position)}${S.dealUids.includes(u.id) ? ' · есть продажи' : ''}</div></td>
       <td>${inp(K + '.name', u.name, 'text', 'sm')}</td><td>${inp(K + '.category', 'напр. Премиум', 'text', 'sm')}</td>
       <td>${inBoards(u.id).map(n => `<span class="pill">${esc(n)}</span>`).join(' ') || '<span style="color:var(--muted)">—</span>'}</td>
+      <td><span class="sw"><input type="checkbox" data-perm="${u.id}" ${(cfg.managers[u.id] || {}).temp ? '' : 'checked'}><i></i></span></td>
       <td>${sw(K + '.hidden')}</td></tr>`; }).join('')}
     </tbody></table></div></div>`;
+  document.querySelectorAll('[data-perm]').forEach(el => el.onchange = () => { const m = cfg.managers[el.dataset.perm] = cfg.managers[el.dataset.perm] || {}; if (el.checked) delete m.temp; else m.temp = true; setDirty(); });
   $('#q').oninput = e => { pages.managers.q = e.target.value; clearTimeout(pages.managers.t); pages.managers.t = setTimeout(() => { route(); const el = $('#q'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }, 250); };
   document.querySelectorAll('[data-ph]').forEach(el => el.onclick = () => { const f = $('#file'); f.value = ''; f.onchange = () => upload(el.dataset.ph, f.files[0]); f.click(); });
   document.querySelectorAll('[data-rmph]').forEach(el => el.onclick = async () => { await api('/api/admin/photo/' + el.dataset.rmph, { method: 'DELETE' }); await refreshUsers(); toast('Фото сброшено'); });
@@ -570,6 +593,8 @@ pages.settings = () => {
         ${M.dateFields && !M.dateFields.some(f => f.id === s.dateField) ? `<option selected value="${esc(s.dateField)}">${esc(s.dateField)}</option>` : ''}</select></label>
       <div class="stg">${Object.entries(cats).map(([c, list]) => `<h4>${esc(c)}</h4>` + list.map(st => `<label class="ck"><input type="checkbox" data-stage="${esc(st.id)}" ${s.stages.includes(st.id) ? 'checked' : ''}> ${esc(st.name)} <span style="color:var(--muted);font-size:11px">${esc(st.id)}</span></label>`).join('')).join('') || '<p class="hint">Не удалось загрузить стадии из Bitrix24.</p>'}</div>
       ${s.stages.filter(x => !known.has(x)).length && M.stages ? `<p class="hint">Неизвестные стадии в настройках: ${s.stages.filter(x => !known.has(x)).map(esc).join(', ')}</p>` : ''}</div>
+    <div class="card"><h3>Штрафы по умолчанию</h3><p class="hint">Подставляются при добавлении штрафа в разделе «Штрафы».</p>
+      <div class="row2"><label class="f"><span>Опоздание (₸)</span>${inp('settings.penalty.late', '3000', 'number')}</label><label class="f"><span>Пропуск дня без предупреждения (₸)</span>${inp('settings.penalty.absent', '10000', 'number')}</label></div></div>
     <div class="card"><h3>Рабочие дни</h3><p class="hint">Для дневного плана: план периода ÷ рабочие дни. В выходной дневной план = 0.</p>
       <div class="chips">${DAYS.map((d, j) => `<button class="chip ${s.workDays.includes(j + 1) ? 'on' : ''}" data-wd="${j + 1}">${d}</button>`).join('')}</div>
       <label class="f" style="margin-top:14px"><span>Праздники (даты через запятую, ГГГГ-ММ-ДД)</span><textarea class="in" rows="2" id="hol">${esc((s.holidays || []).join(', '))}</textarea></label></div>`;
@@ -577,6 +602,76 @@ pages.settings = () => {
   document.querySelectorAll('[data-wd]').forEach(el => el.onclick = () => { const v = +el.dataset.wd; s.workDays = s.workDays.includes(v) ? s.workDays.filter(x => x !== v) : [...s.workDays, v].sort(); setDirty(); route(); });
   $('#hol').oninput = e => { s.holidays = e.target.value.split(/[\s,;]+/).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x)); setDirty(); };
   $('#resync').onclick = async () => { $('#resync').disabled = true; const r = await api('/api/admin/resync', { method: 'POST' }); await loadState().catch(() => {}); toast(r.ok ? 'Синхронизировано' : 'Ошибка: ' + r.error); route(); };
+};
+
+
+/* ===== выплаты по неделям ===== */
+const PO = { month: '', board: '' };
+pages.payouts = async () => {
+  if (!PO.month) PO.month = S.today.slice(0, 7);
+  if (!PO.board || !cfg.boards.some(b => b.id === PO.board)) PO.board = (cfg.boards[0] || {}).id || '';
+  const months = []; { const d = new Date(S.today.slice(0, 7) + '-01T00:00:00Z'); for (let i = 0; i < 12; i++) { months.push(d.toISOString().slice(0, 7)); d.setUTCMonth(d.getUTCMonth() - 1); } }
+  const MN = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+  const mName = m => MN[+m.slice(5) - 1] + ' ' + m.slice(0, 4);
+  const q = `month=${PO.month}&board=${PO.board}`;
+  const head = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Выплаты</h1><a class="btn l" href="/api/admin/payouts?${q}&format=csv">⬇ CSV</a>
+    <div class="sub">Зарплата выплачивается еженедельно. Выплата недели = начислено на конец недели минус уже выплачено, поэтому переход на следующую ступень сетки доплачивается автоматически.</div></div>
+    <div class="card"><div class="row2"><label class="f"><span>Месяц</span><select class="in" id="poM">${months.map(m => `<option value="${m}" ${m === PO.month ? 'selected' : ''}>${mName(m)}</option>`).join('')}</select></label>
+      <label class="f"><span>Лидерборд (его условия)</span><select class="in" id="poB">${cfg.boards.map(b => `<option value="${b.id}" ${b.id === PO.board ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select></label></div></div>`;
+  $('#main').innerHTML = head + '<div class="empty">Считаем…</div>';
+  const bind = () => { $('#poM').onchange = e => { PO.month = e.target.value; route(); }; $('#poB').onchange = e => { PO.board = e.target.value; route(); }; };
+  bind();
+  let R; try { R = await api('/api/admin/payouts?' + q); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  const wl = w => `${w.from.slice(8)}.${w.from.slice(5, 7)}–${w.to.slice(8)}.${w.to.slice(5, 7)}`;
+  const tot = k => R.rows.reduce((a, r) => a + (+r[k] || 0), 0);
+  $('#main').innerHTML = head + `<div class="card"><div class="tw"><table>
+    <thead><tr><th>Менеджер</th><th class="r">Касса</th><th class="r">% сетки</th><th class="r">Процент</th><th class="r">Премия</th><th class="r">Оклад</th><th class="r">Бонусы</th><th class="r">Штрафы</th><th class="r">Итого</th>${R.weeks.map(w => `<th class="r">Неделя<br>${wl(w)}</th>`).join('')}</tr></thead>
+    <tbody>${R.rows.map(r => `<tr><td><div class="who">${av(r.name, r.photo)}<div>${esc(r.name)}<small>${r.elite ? '★ Элит' : esc(r.dep)}</small></div></div></td>
+      <td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${r.commPct ? +r.commPct.toFixed(1) + '%' : '—'}</td><td class="r num">${money(r.comm)}</td><td class="r num">${r.premium ? money(r.premium) : '—'}</td>
+      <td class="r num">${r.base ? money(r.base) : (cfg.managers[r.uid] || {}).temp ? '<span style="color:var(--muted)">не пост.</span>' : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td>
+      <td class="r num" style="color:var(--red)">${r.pen ? '−' + money(r.pen) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td>
+      ${r.weeks.map(w => `<td class="r num" title="Касса недели ${money(w.sum)}">${w.pay ? money(w.pay) : '—'}<small style="display:block;color:var(--muted)">${w.sum ? short(w.sum) : ''}</small></td>`).join('')}</tr>`).join('') || '<tr><td colspan="20" class="empty">Нет участников</td></tr>'}</tbody>
+    ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${money(tot('sum'))}</td><td></td><td class="r num">${money(tot('comm'))}</td><td class="r num">${money(tot('premium'))}</td><td class="r num">${money(tot('base'))}</td><td class="r num">${money(tot('bonus'))}</td><td class="r num">${tot('pen') ? '−' + money(tot('pen')) : '—'}</td><td class="r num">${money(tot('salary'))}</td>
+      ${R.weeks.map((w, i) => `<td class="r num">${money(R.rows.reduce((a, r) => a + r.weeks[i].pay, 0))}</td>`).join('')}</tr></tfoot>` : ''}
+    </table></div><p class="hint" style="margin:12px 0 0">Под суммой выплаты — касса менеджера за эту неделю. Ежедневная премия начисляется за день и выплачивается на следующий день; здесь она входит в неделю, в которой заработана.</p></div>`;
+  bind();
+};
+
+/* ===== штрафы ===== */
+const PN = { month: '' };
+pages.penalties = () => {
+  if (!PN.month) PN.month = S.today.slice(0, 7);
+  const K = { late: 'Опоздание', absent: 'Пропуск без предупреждения', other: 'Другое' };
+  const amt = k => k === 'late' ? +cfg.settings.penalty.late || 0 : k === 'absent' ? +cfg.settings.penalty.absent || 0 : '';
+  const people = [...new Set([...S.boards.flatMap(b => b.members), ...S.dealUids])].filter(id => !(cfg.managers[id] || {}).hidden).sort((a, b) => uName(a).localeCompare(uName(b), 'ru'));
+  const list = cfg.penalties.filter(p => p.date.startsWith(PN.month)).sort((a, b) => b.date.localeCompare(a.date));
+  const by = {}; list.forEach(p => { by[p.uid] = (by[p.uid] || 0) + (+p.amount || 0); });
+  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Штрафы</h1>
+    <div class="sub">Опоздание (10:00–13:00) и пропуск дня без предупреждения. Штрафы вычитаются из зарплаты за период и из выплаты недели.</div></div>
+    <div class="card"><h3>Добавить штраф</h3>
+      <div class="row2">
+        <label class="f"><span>Менеджер</span><select class="in" id="pU"><option value="">Выберите…</option>${people.map(id => `<option value="${id}">${esc(uName(id))}</option>`).join('')}</select></label>
+        <label class="f"><span>Дата</span><input class="in" type="date" id="pD" value="${S.today}"></label>
+        <label class="f"><span>Причина</span><select class="in" id="pK">${Object.entries(K).map(([k, n]) => `<option value="${k}">${n}${amt(k) ? ' — ' + money(amt(k)) : ''}</option>`).join('')}</select></label>
+        <label class="f"><span>Сумма (₸)</span><input class="in" type="number" id="pA" value="${amt('late')}"></label>
+      </div>
+      <label class="f"><span>Комментарий</span><input class="in" id="pN" placeholder="необязательно"></label>
+      <button class="btn" id="pAdd">+ Добавить</button></div>
+    <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><h3 style="flex:1">За месяц</h3><input class="in" type="month" id="pM" value="${PN.month}" style="max-width:200px"></div>
+      ${Object.keys(by).length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${Object.entries(by).map(([id, v]) => `<span class="pill er">${esc(uName(id))}: −${money(v)}</span>`).join('')}</div>` : ''}
+      <div class="tw"><table><thead><tr><th>Дата</th><th>Менеджер</th><th>Причина</th><th>Комментарий</th><th class="r">Сумма</th><th></th></tr></thead><tbody>
+      ${list.map(p => `<tr><td class="num">${fd(p.date)}</td><td><div class="who">${av(uName(p.uid), uPhoto(p.uid))}${esc(uName(p.uid))}</div></td><td>${K[p.kind] || esc(p.kind)}</td><td style="color:var(--muted)">${esc(p.note || '')}</td>
+        <td class="r num" style="color:var(--red)"><b>−${money(p.amount)}</b></td><td class="r"><button class="x" data-rmp="${p.id}">×</button></td></tr>`).join('') || '<tr><td colspan="6" class="empty">Штрафов нет</td></tr>'}
+      </tbody></table></div></div>`;
+  $('#pK').onchange = e => { const v = amt(e.target.value); if (v !== '') $('#pA').value = v; };
+  $('#pM').onchange = e => { PN.month = e.target.value || S.today.slice(0, 7); route(); };
+  $('#pAdd').onclick = () => {
+    const uid = $('#pU').value, date = $('#pD').value, amount = +$('#pA').value;
+    if (!uid || !date || !amount) return toast('Укажите менеджера, дату и сумму');
+    cfg.penalties.push({ id: Math.random().toString(16).slice(2, 10), uid, date, kind: $('#pK').value, amount, note: $('#pN').value.trim() });
+    PN.month = date.slice(0, 7); setDirty(); route(); toast('Добавлено — нажмите «Сохранить»');
+  };
+  document.querySelectorAll('[data-rmp]').forEach(el => el.onclick = () => { cfg.penalties = cfg.penalties.filter(p => p.id !== el.dataset.rmp); setDirty(); route(); });
 };
 
 /* ===== роутер ===== */

@@ -74,6 +74,8 @@ async function ensureSectorBoards(force) {
     const b = C.defaultBoard(sec.name);
     b.departments = [sec.id];
     b.commission = JSON.parse(JSON.stringify(base.commission || []));
+    b.commissionMode = base.commissionMode || 'total'; b.eliteFrom = base.eliteFrom || 0;
+    b.base = JSON.parse(JSON.stringify(base.base || b.base));
     b.bonuses = JSON.parse(JSON.stringify(base.bonuses || []));
     b.screen = JSON.parse(JSON.stringify(base.screen || b.screen));
     b.defaultPlan = base.defaultPlan || 0;
@@ -98,7 +100,7 @@ function photos() {
 function ctx(deals) {
   return {
     deals: deals || cache.deals, users: cache.users, userMap: cache.userMap, deps: cache.deps,
-    managers: cfg.managers, settings: cfg.settings, today: C.todayKey(cfg.settings.tz), photos: photos(),
+    managers: cfg.managers, settings: cfg.settings, today: C.todayKey(cfg.settings.tz), photos: photos(), penalties: cfg.penalties,
   };
 }
 async function dealsFor(from, to) {
@@ -203,7 +205,7 @@ async function handle(req, res) {
   if (p === '/api/admin/config' && req.method === 'PUT') {
     const body = JSON.parse(await readBody(req));
     const prevStages = JSON.stringify([cfg.settings.stages, cfg.settings.dateField]);
-    cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, sectorBoards: cfg.sectorBoards || [] });
+    cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, penalties: body.penalties || [], sectorBoards: cfg.sectorBoards || [], presetV: cfg.presetV });
     await store.set('config', cfg);
     if (JSON.stringify([cfg.settings.stages, cfg.settings.dateField]) !== prevStages) seen = null;
     sync().then(loop);
@@ -230,6 +232,21 @@ async function handle(req, res) {
     events.push({ seq: ++seq, at: Date.now(), test: true, id: 'test', uid: r ? r.uid : '0', name: r ? r.name : 'Тестовый менеджер', sum: 150000, title: 'Тестовая продажа', dk: data.period.today });
     return send(res, 200, { ok: true });
   }
+  if (p === '/api/admin/payouts') {
+    const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
+    const month = /^\d{4}-\d{2}$/.test(q.get('month') || '') ? q.get('month') : today.slice(0, 7);
+    const mr = C.monthRange(month + '-01');
+    const deals = await dealsFor(mr.from, mr.to);
+    const r = C.payouts(cfg, ctx(deals), { month, boardId: q.get('board') || '' });
+    if (!r) return send(res, 404, { error: 'not found' });
+    if (q.get('format') === 'csv') {
+      const hd = ['Менеджер', 'Касса', '% сетки', 'Процент', 'Премия уровня', 'Оклад', 'Бонусы', 'Штрафы', 'Итого',
+        ...r.weeks.map(w => `Выплата ${w.from.slice(8)}.${w.from.slice(5, 7)}–${w.to.slice(8)}.${w.to.slice(5, 7)}`)];
+      const body = csv([hd, ...r.rows.map(x => [x.name, Math.round(x.sum), x.commPct, Math.round(x.comm), x.premium, x.base, x.bonus, x.pen, Math.round(x.salary), ...x.weeks.map(w => Math.round(w.pay))])]);
+      return send(res, 200, body, 'text/csv; charset=utf-8', { 'Content-Disposition': `attachment; filename="nephora_payouts_${month}.csv"` });
+    }
+    return send(res, 200, r);
+  }
   if (p === '/api/admin/report') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
     const from = q.get('from') || C.monthRange(today).from, to = q.get('to') || today;
@@ -240,9 +257,9 @@ async function handle(req, res) {
       const name = `nephora_${q.get('kind') === 'deals' ? 'sales' : 'report'}_${from}_${to}.csv`;
       const body = q.get('kind') === 'deals'
         ? csv([['ID сделки', 'Дата', 'Менеджер', 'Сделка', 'Сумма'], ...r.deals.map(d => [d.id, d.dk, d.name, d.title, Math.round(d.sum)])])
-        : csv([['Менеджер', 'Отдел', 'Продаж', 'Выручка', 'Ср. чек', '% от продаж', 'Бонусы', 'Зарплата'],
-          ...r.rows.map(x => [x.name, x.dep, x.cnt, Math.round(x.sum), Math.round(x.avg), Math.round(x.comm), Math.round(x.bonus), Math.round(x.salary)]),
-          ['Итого', '', r.totals.cnt, Math.round(r.totals.sum), Math.round(r.totals.avg), Math.round(r.totals.comm), Math.round(r.totals.bonus), Math.round(r.totals.salary)]]);
+        : csv([['Менеджер', 'Отдел', 'Продаж', 'Выручка', 'Ср. чек', '% сетки', 'Процент', 'Премия уровня', 'Оклад', 'Бонусы', 'Штрафы', 'Зарплата'],
+          ...r.rows.map(x => [x.name, x.dep, x.cnt, Math.round(x.sum), Math.round(x.avg), x.commPct, Math.round(x.comm), x.premium, x.base, Math.round(x.bonus), x.pen, Math.round(x.salary)]),
+          ['Итого', '', r.totals.cnt, Math.round(r.totals.sum), Math.round(r.totals.avg), '', Math.round(r.totals.comm), r.totals.premium, r.totals.base, Math.round(r.totals.bonus), r.totals.pen, Math.round(r.totals.salary)]]);
       return send(res, 200, body, 'text/csv; charset=utf-8', { 'Content-Disposition': `attachment; filename="${name}"` });
     }
     return send(res, 200, r);
@@ -253,7 +270,16 @@ async function handle(req, res) {
 (async () => {
   await store.init();
   cfg = C.normalize(store.get('config'));
-  if (!store.get('config')) await store.set('config', cfg);
+  // v1: условия отдела продаж (сетка, элит, оклад, ежедневная премия, график 6/1 с выходным в понедельник)
+  if (cfg.presetV !== 1) {
+    for (const b of cfg.boards) {
+      if ((b.commission || []).length || (b.bonuses || []).length) continue;
+      Object.assign(b, JSON.parse(JSON.stringify(C.SALES_PRESET)));
+    }
+    if (JSON.stringify(cfg.settings.workDays) === JSON.stringify([1, 2, 3, 4, 5, 6])) cfg.settings.workDays = [2, 3, 4, 5, 6, 7];
+    cfg.presetV = 1;
+  }
+  await store.set('config', cfg);
   http.createServer((req, res) => handle(req, res).catch(e => {
     console.error(e); if (!res.headersSent) send(res, 500, { error: String(e.message || e) });
   })).listen(PORT, () => console.log('Leaderboard on :' + PORT));
