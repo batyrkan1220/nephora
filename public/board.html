@@ -419,12 +419,12 @@ let D = null, seq = 0, prev = {};
 // кнопка «Тест продажа»: попап только на этом экране, данные не меняются
 document.addEventListener('click', e => {
   if (!e.target.closest('#testSale') || !D) return;
-  if (D.board.screen.sound && !soundOk) { soundOk = true; try { audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch {} const sn = $('.snd'); if (sn) sn.remove(); }
+  if (D.board.screen.sound && !soundOk) { soundOk = true; try { audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); loadSale(); } catch {} const sn = $('.snd'); if (sn) sn.remove(); }
   const pool = D.rows.slice(0, 10), r = pool[Math.floor(Math.random() * pool.length)] || { name: 'Тестовый менеджер', photo: '' };
   const sum = (10 + Math.floor(Math.random() * 90)) * 5000;
   popup({ name: r.name, photo: r.photo, place: r.place, total: (r.sum || 0) + sum, sum, title: 'Тестовая продажа' });
 });
-let audio = null, soundOk = sessionStorage.getItem('lb-sound') === '1';
+let audio = null, soundOk = false; // браузер разрешает звук только после клика на этой странице
 
 function setRotation() {
   const v = D && D.board.screen.orientation === 'vertical' && innerWidth > innerHeight;
@@ -534,25 +534,40 @@ function render() {
 const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 10 || h >= 20) ? b : c; };
 
 /* ===== звук и попап ===== */
-function chime() {
+/* звук продажи: public/sale.mp3 («Cha-Ching»), через Web Audio — после одного клика на экране */
+let saleBuf = null, saleLoading = null;
+function loadSale() {
+  if (saleBuf || saleLoading || !audio) return saleLoading;
+  saleLoading = fetch('/sale.mp3').then(r => r.arrayBuffer()).then(ab => new Promise((ok, no) => audio.decodeAudioData(ab, ok, no)))
+    .then(b => { saleBuf = b; return b; }).catch(e => { console.warn('sale.mp3', e); saleLoading = null; });
+  return saleLoading;
+}
+function synthChime() {
+  const t0 = audio.currentTime;
+  [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = 'triangle'; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t0 + i * .11); g.gain.linearRampToValueAtTime(.25, t0 + i * .11 + .02); g.gain.exponentialRampToValueAtTime(.001, t0 + i * .11 + .6);
+    o.connect(g).connect(audio.destination); o.start(t0 + i * .11); o.stop(t0 + i * .11 + .7);
+  });
+}
+async function chime() {
   if (!soundOk || !D.board.screen.sound) return;
   try {
     audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-    const t0 = audio.currentTime;
-    [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
-      const o = audio.createOscillator(), g = audio.createGain();
-      o.type = 'triangle'; o.frequency.value = f;
-      g.gain.setValueAtTime(0, t0 + i * .11); g.gain.linearRampToValueAtTime(.25, t0 + i * .11 + .02); g.gain.exponentialRampToValueAtTime(.001, t0 + i * .11 + .6);
-      o.connect(g).connect(audio.destination); o.start(t0 + i * .11); o.stop(t0 + i * .11 + .7);
-    });
-  } catch {}
+    if (audio.state === 'suspended') await audio.resume();
+    const buf = saleBuf || await loadSale();
+    if (!buf) return synthChime();
+    const src = audio.createBufferSource(), g = audio.createGain();
+    src.buffer = buf; g.gain.value = 1; src.connect(g).connect(audio.destination); src.start();
+  } catch (e) { console.warn(e); }
 }
 function askSound() {
   if (soundOk || !D.board.screen.sound || !D.board.screen.popup || $('.snd')) return;
   const el = document.createElement('div'); el.className = 'snd';
   el.innerHTML = `<b>Включить звук?</b><p>Браузер не играет звук сам. Нажмите «Разрешить», чтобы слышать звук новой продажи.</p><button class="yes">Разрешить</button><button class="no">Без звука</button>`;
   document.body.appendChild(el);
-  el.querySelector('.yes').onclick = () => { soundOk = true; sessionStorage.setItem('lb-sound', '1'); audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); el.remove(); };
+  el.querySelector('.yes').onclick = () => { soundOk = true; sessionStorage.setItem('lb-sound', '1'); audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); loadSale(); el.remove(); };
   el.querySelector('.no').onclick = () => el.remove();
   setTimeout(() => el.remove(), 20000); // на ТВ без мыши окно не должно висеть
 }

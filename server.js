@@ -131,6 +131,10 @@ async function handle(req, res) {
         return { name: r.name, photo: r.photo, place: r.place, total: r.sum, seq: e.seq, sum: e.sum, title: e.title }; }) : [];
     return send(res, 200, { ...data, members: undefined, _all: undefined, events: ev, seq, syncedAt: cache.syncedAt, error: cache.error, company: cfg.settings.company });
   }
+  if (p === '/sale.mp3') {
+    res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400' });
+    return res.end(fs.readFileSync(path.join(PUB, 'sale.mp3')));
+  }
   if ((m = p.match(/^\/photo\/(\w+)$/))) {
     const ph = store.get('photo:' + m[1]);
     if (!ph) return send(res, 404, 'no photo', 'text/plain');
