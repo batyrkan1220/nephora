@@ -17,3 +17,5 @@ services:
       # основная база — Supabase (Settings → Database → Connection string → Session pooler)
       - key: SUPABASE_DB_URL
         sync: false
+      - key: WAZZUP_API_KEY
+        sync: false

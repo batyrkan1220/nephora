@@ -525,7 +525,7 @@ pages.home = async () => {
 const niceStep = mx => { const r = mx / 4, p = Math.pow(10, Math.floor(Math.log10(r || 1))); return [1, 2, 2.5, 5, 10].map(k => k * p).find(v => v >= r) || r; };
 const shortK = n => n >= 1e6 ? (Math.round(n / 1e5) / 10).toString().replace('.', ',') + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(Math.round(n));
 const SRCN = { CALL: 'Звонок', WEB: 'Сайт', EMAIL: 'E-mail', ADVERTISING: 'Реклама', PARTNER: 'Партнёр', RECOMMENDATION: 'Рекомендация', REPEAT_SALE: 'Повторная продажа', OTHER: 'Другое', STORE: 'Магазин', WEBFORM: 'CRM-форма', CALLBACK: 'Обратный звонок', TRADE_SHOW: 'Выставка', 'не указан': 'Не указан' };
-const WZ = {}; const srcName = k => SRCN[k] || (/^WZ/.test(k) ? 'WhatsApp ' + (WZ[k] || (WZ[k] = Object.keys(WZ).length + 1)) : /^\d+\|/.test(k) ? 'Открытая линия' : k);
+const WZ = {}; const srcName = k => SRCN[k] || (/^WZ/.test(k) && (S.wzCh || {})[k.slice(2)]) || (/^WZ/.test(k) ? 'WhatsApp ' + (WZ[k] || (WZ[k] = Object.keys(WZ).length + 1)) : /^\d+\|/.test(k) ? 'Открытая линия' : k);
 const short = n => { n = Math.round(n || 0); return n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M' : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k' : String(n); };
 
 pages.sales = async () => {
@@ -698,6 +698,10 @@ pages.settings = () => {
         return Object.entries(cats).map(([c, list]) => `<h4>${esc(c)}</h4>` + list.map(x => `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;break-inside:avoid"><select class="in sm" data-vk="${esc(x.id)}" style="width:120px;flex:none">
           <option value="">в работе</option><option value="won" ${v.won.includes(x.id) ? 'selected' : ''}>✅ выкуп</option><option value="lost" ${v.lost.includes(x.id) ? 'selected' : ''}>❌ отказ</option></select>
           <span style="flex:1">${esc(x.name)}</span><small class="num" data-vkc="${esc(x.id)}" style="color:var(--muted)"></small></div>`).join('')).join(''); })()}</div></div>
+    <div class="card" id="wzCard"><h3>Wazzup (WhatsApp)</h3><p class="hint">Сообщения клиентов из Wazzup: скорость первого ответа в WhatsApp, касания по сделкам, названия каналов вместо кодов. Ключ: Wazzup → Настройки → <b>Интеграции с CRM → API → Добавить</b>, скопируйте API-ключ. Ваша интеграция Wazzup ↔ Bitrix24 продолжит работать как прежде.</p>
+      <div id="wzSt" class="hint">Загрузка…</div>
+      <div class="row2"><label class="f"><span>API-ключ Wazzup</span><input class="in" type="password" id="wzKey" placeholder="оставьте пустым, чтобы переподключить с текущим ключом" autocomplete="off"></label></div>
+      <button class="btn" id="wzGo">Подключить</button></div>
     <div class="card" id="caiCard"><h3>AI-разбор звонков</h3><p class="hint">После разговора запись расшифровывается (казахский и русский) и Claude оценивает менеджера по критериям ниже. Нужен ключ сервиса расшифровки: <b>ElevenLabs</b> (рекомендуем, Scribe v2, ≈$0,22 за час записи) или <b>OpenAI</b>.</p>
       <div id="caiSt" class="hint">Загрузка…</div>
       <label class="ck" style="display:flex;gap:10px;align-items:center;margin:10px 0">${sw('settings.callai.on')} Автоматически разбирать новые звонки с записью</label>
@@ -745,6 +749,13 @@ pages.settings = () => {
     document.querySelectorAll('[data-addst]').forEach(b => b.onclick = () => { if (!s.stages.includes(b.dataset.addst)) s.stages.push(b.dataset.addst); setDirty(); b.replaceWith(Object.assign(document.createElement('span'), { className: 'pill ok', textContent: 'добавлено — нажмите «Сохранить»' })); });
   };
   $('#dgRun').onclick = dgRun;
+  const wzSt = R => { const el = $('#wzSt'); if (!el) return; if (R.error && !R.channels) { el.innerHTML = `<div class="warn">${esc(R.error)}</div>`; return; }
+    el.innerHTML = `${R.connected ? '<span class="pill ok">Подключено</span>' : '<span class="pill no">Не подключено</span>'}${R.key ? ' · ключ ' + esc(R.key) : ''} · сообщений в базе: ${R.messages}${R.lastAt ? ' · последнее: ' + new Date(R.lastAt).toLocaleString('ru-RU') : ''}
+      ${R.channels && R.channels.length ? `<div style="margin-top:8px">${R.channels.map(c => `<span class="pill ${c.state === 'active' ? 'ok' : 'no'}" style="margin:0 6px 6px 0">${esc((S.wzCh || {})[c.id] || c.transport + ' ' + c.plainId)}${c.state && c.state !== 'active' ? ' · ' + esc(c.state) : ''}</span>`).join('')}</div>` : ''}`; };
+  api('/api/admin/wz/settings').then(wzSt).catch(e => wzSt({ error: e.message }));
+  $('#wzGo').onclick = async () => { const b = $('#wzGo'); b.disabled = true; b.textContent = 'Подключаю…';
+    try { const R = await api('/api/admin/wz/settings', { method: 'POST', body: JSON.stringify({ key: $('#wzKey').value.trim() }) }); $('#wzKey').value = ''; await loadState(); wzSt(R); toast('Wazzup подключён'); }
+    catch (e) { wzSt({ error: e.message }); } b.disabled = false; b.textContent = 'Подключить'; };
   document.querySelectorAll('[data-vk]').forEach(el => el.onchange = () => { const id = el.dataset.vk, v = s.vykup || (s.vykup = { won: [], lost: [] });
     v.won = v.won.filter(x => x !== id); v.lost = v.lost.filter(x => x !== id); if (el.value) v[el.value].push(id); setDirty(); });
   api('/api/admin/funnel?from=' + addD(S.today, -90) + '&to=' + S.today).then(R => (R.byStage || []).forEach(x => { const el = document.querySelector(`[data-vkc="${CSS.escape(x.stage)}"]`); if (el) el.textContent = x.cnt + ' зак.'; })).catch(() => {});
@@ -983,7 +994,7 @@ pages.calls = async () => {
       <div class="kpi"><small>Входящие</small><b class="num">${T.inc}</b><span class="${T.missed ? 'bad' : ''}">пропущено ${T.missed}</span></div>
       <div class="kpi"><small>Разговоров</small><b class="num">${T.talkMin} мин</b><span>в среднем ${Math.round(T.avgTalkSec / 6) / 10} мин</span></div>
       <div class="kpi"><small>Звонков на 1 заказ</small><b class="num">${T.callsPerOrder == null ? '—' : Math.round(T.callsPerOrder * 10) / 10}</b><span>${T.orders} заказов</span></div>
-      <div class="kpi"><small>Первый звонок по новой ${DM ? 'сделке' : 'заявке (лиду)'}</small><b class="num ${L.medianMin != null && L.medianMin <= 5 ? 'good' : L.medianMin > 30 ? 'bad' : ''}">${mins(L.medianMin)}</b><span>медиана · до 5 мин: ${L.within5} из ${L.called} · без звонка: <b class="${L.noCall ? 'bad' : ''}">${L.noCall}</b></span></div>
+      <div class="kpi"><small>Первый контакт с новой ${DM ? 'сделкой' : 'заявкой'} (звонок или WhatsApp)</small><b class="num ${L.medianMin != null && L.medianMin <= 5 ? 'good' : L.medianMin > 30 ? 'bad' : ''}">${mins(L.medianMin)}</b><span>медиана · до 5 мин: ${L.within5} из ${L.called} · без звонка: <b class="${L.noCall ? 'bad' : ''}">${L.noCall}</b></span></div>
     </div>
     <div class="card"><h3>Звонки по часам</h3><div class="hrs">${R.hours.map((v, h) => `<div style="height:${(v / mh * 100).toFixed(1)}%" title="${h}:00 — ${v}"></div>`).join('')}</div><div class="hrl">${R.hours.map((v, h) => `<span>${h % 2 ? '' : h}</span>`).join('')}</div></div>
     <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Всего</th><th class="r">Исход.</th><th class="r">Дозвон</th><th class="r">Вход.</th><th class="r">Пропущ.</th><th class="r">Минут</th><th class="r">Заказы</th><th class="r">Звонков/заказ</th><th class="r">Первый звонок по ${LW}</th><th class="r">${DM ? 'Сделок' : 'Лидов'} без звонка</th></tr></thead><tbody>
@@ -1075,7 +1086,7 @@ pages.eff = async () => {
         <div class="kpi"><small>Лидер</small><b class="num good" style="font-size:24px">${top ? esc(top.name) : '—'}</b><span>${top ? 'индекс ' + top.index : ''}</span></div>
         <div class="kpi"><small>Нужна помощь</small><b class="num bad" style="font-size:24px">${low && low !== top ? esc(low.name) : '—'}</b><span>${low && low !== top ? 'индекс ' + low.index + ' · слабее всего: ' + (GN[low.weak] || '—') : ''}</span></div>
       </div>
-      <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Менеджер</th><th class="r">Индекс</th>${R.groups.filter(g => g.w).map(g => `<th class="r" title="${g.name} · вес ${g.w}%">${g.short}</th>`).join('')}<th class="r">Касса</th><th class="r">Конверсия</th><th class="r">Звонков/день</th><th class="r">Первый звонок</th><th class="r">AI</th><th class="r">Опозд.</th><th>Слабое место</th></tr></thead><tbody>
+      <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Менеджер</th><th class="r">Индекс</th>${R.groups.filter(g => g.w).map(g => `<th class="r" title="${g.name} · вес ${g.w}%">${g.short}</th>`).join('')}<th class="r">Касса</th><th class="r">Конверсия</th><th class="r">Звонков/день</th><th class="r">Первый контакт</th><th class="r">AI</th><th class="r">Опозд.</th><th>Слабое место</th></tr></thead><tbody>
       ${R.rows.map((r, i) => `<tr data-card="${r.uid}" style="cursor:pointer"><td class="num">${i + 1}</td><td><div class="who">${av(r.name, uPhoto(r.uid))}<div>${esc(r.name)}<small>${esc(r.sector)}</small></div></div></td>
         <td class="r">${r.index == null ? '—' : `<span class="sc ${scCls(r.index)}">${r.index}</span>`}</td>${R.groups.filter(g => g.w).map(g => `<td class="r num">${gsc(r.groups[g.key])}</td>`).join('')}
         <td class="r num">${money(r.cash)}</td><td class="r num">${pct(r.conv)}</td><td class="r num">${num1(r.callsDay)}</td><td class="r num">${minsF(r.resp)}</td><td class="r num">${r.ai ?? '—'}</td><td class="r num">${r.late == null ? '—' : r.late + (r.absent ? ' / ' + r.absent + ' пр.' : '')}</td>
@@ -1089,7 +1100,7 @@ pages.eff = async () => {
   }
   const T = R.total, O = R.byOutcome, mxo = Math.max(0.1, ...Object.values(O).map(x => x.avg || 0));
   const ob = (k, label) => `<div class="cr" style="grid-template-columns:150px 1fr 120px"><b style="font-size:14px">${label}</b><div class="bar"><i style="width:${(O[k].avg || 0) / mxo * 100}%"></i></div><span class="num">${num1(O[k].avg)} · ${O[k].deals} сд.</span></div>`;
-  $('#view').innerHTML = head('Эффективность менеджеров', 'Касание — звонок по сделке (к самой сделке, её контакту или лиду). Считаются сделки, созданные в выбранный период.') + tabs + filters() + `
+  $('#view').innerHTML = head('Эффективность менеджеров', 'Касание — звонок по сделке (к самой сделке, её контакту или лиду) или сообщение менеджера в WhatsApp (Wazzup) на номер из сделки. Считаются сделки, созданные в выбранный период.') + tabs + filters() + `
     <div class="grid">
       <div class="kpi"><small>Касаний на сделку</small><b class="num">${num1(T.avgTouches)}</b><span>из них разговоров: ${num1(T.avgOk)}</span></div>
       <div class="kpi"><small>Касаний до заказа</small><b class="num">${num1(T.touchesToOrder)}</b><span>дней до заказа (медиана): ${num1(T.daysToOrder)}</span></div>
@@ -1101,7 +1112,7 @@ pages.eff = async () => {
       <div class="card"><h3>Касаний на сделку по итогу</h3>${ob('won', 'Выкуплено')}${ob('order', 'Заказ в работе')}${ob('lost', 'Отказ')}${ob('open', 'Ещё открыта')}<p class="hint" style="margin-top:10px">Если у отказов касаний заметно меньше, чем у выкупленных, — клиентов отпускают слишком рано.</p></div>
       <div class="card"><h3>Сколько касаний было</h3><div class="tw"><table><thead><tr><th>Касаний</th><th class="r">Заказы</th><th class="r">Отказы</th></tr></thead><tbody>${R.dist.buckets.map((b, i) => `<tr><td>${b}</td><td class="r num">${R.dist.order[i]}</td><td class="r num">${R.dist.lost[i]}</td></tr>`).join('')}</tbody></table></div></div>
     </div>
-    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Новых сделок</th><th class="r">Касаний/сделку</th><th class="r">Разговоров/сделку</th><th class="r">Касаний до заказа</th><th class="r">Дней до заказа</th><th class="r">Первый звонок</th><th class="r">Без звонка</th><th class="r">Отказ ≤1 разг.</th><th class="r">Забытые</th></tr></thead><tbody>
+    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Новых сделок</th><th class="r">Касаний/сделку</th><th class="r">Разговоров/сделку</th><th class="r">Касаний до заказа</th><th class="r">Дней до заказа</th><th class="r">Первый контакт</th><th class="r">Без звонка</th><th class="r">Отказ ≤1 разг.</th><th class="r">Забытые</th></tr></thead><tbody>
     ${R.managers.map(m => `<tr><td><div class="who">${av(m.name, uPhoto(m.uid))}<div>${esc(m.name)}<small>${esc(m.sector)}</small></div></div></td><td class="r num">${m.deals}</td><td class="r num"><b>${num1(m.avgTouches)}</b></td><td class="r num">${num1(m.avgOk)}</td><td class="r num">${num1(m.touchesToOrder)}</td><td class="r num">${num1(m.daysToOrder)}</td><td class="r num">${minsF(m.firstMin)}</td>
       <td class="r num ${m.zero ? 'bad' : ''}">${m.zero || '—'}</td><td class="r num ${m.lostLow ? 'bad' : ''}">${m.lostLow ? m.lostLow + ' из ' + m.lost : '—'}</td><td class="r num ${m.forgotten ? 'bad' : ''}">${m.forgotten || '—'}</td></tr>`).join('') || '<tr><td colspan="10" class="empty">Нет сделок за период</td></tr>'}</tbody></table></div></div>
     <div class="card"><h3>Забытые клиенты</h3><p class="hint">Открытые сделки без заказа (созданы за последние 90 дней), где последнее касание было ${R.forgetDays}+ дней назад. Позвоните им в первую очередь.</p><div class="tw"><table><thead><tr><th>Сделка</th><th>Менеджер</th><th>Этап</th><th class="r">Сумма</th><th class="r">Касаний</th><th>Последнее касание</th><th class="r">Дней</th></tr></thead><tbody>
@@ -1120,11 +1131,36 @@ async function openEffCard(uid) {
     ${row('<b>Индекс</b>', m => m.index == null ? '—' : `<span class="sc ${scCls(m.index)}">${m.index}</span>`)}
     ${Object.keys(GN).map(k => row(GN[k], m => gsc(m.groups ? m.groups[k] : null))).join('')}
     ${row('Касса', m => money(m.cash))}${row('Заказы', m => m.orders)}${row('Средний чек', m => m.avgCheck ? money(m.avgCheck) : '—')}${row('Конверсия в заказ', m => pct(m.conv))}${row('Выкуп', m => pct(m.vykup))}
-    ${row('Звонков в день', m => num1(m.callsDay))}${row('Минут разговора в день', m => num1(m.talkDay))}${row('Дозвон', m => pct(m.reach))}${row('Первый звонок (медиана)', m => minsF(m.resp))}
+    ${row('Звонков в день', m => num1(m.callsDay))}${row('Минут разговора в день', m => num1(m.talkDay))}${row('Дозвон', m => pct(m.reach))}${row('Первый контакт (медиана)', m => minsF(m.resp))}
     ${row('Касаний до заказа', m => num1(m.touchesToOrder))}${row('AI-оценка разговоров', m => m.ai == null ? '—' : m.ai + ' (' + m.aiN + ')')}${row('Опоздания / пропуски', m => m.late == null ? '—' : m.late + ' / ' + m.absent)}
     </tbody></table></div><p class="hint" style="margin-top:12px">Индекс каждого месяца считается среди коллег за тот же месяц.</p>`;
   $('#ovX').onclick = () => o.remove();
 }
+
+/* ===== WhatsApp (Wazzup) ===== */
+pages.wa = async () => {
+  $('#view').innerHTML = head('WhatsApp', 'Загрузка…') + filters() + '<div class="empty">Загрузка…</div>'; bindFilters();
+  let R; try { R = await api('/api/admin/wz/report?' + qs()); } catch (e) { $('#view .empty').textContent = 'Ошибка: ' + e.message; return; }
+  const T = R.total, own = S.me.role === 'owner', mm = v => v == null ? '—' : v < 1 ? '<1 мин' : v < 60 ? Math.round(v) + ' мин' : (Math.round(v / 6) / 10) + ' ч';
+  const note = !R.connected ? `<div class="warn">Wazzup ещё не подключён. ${own ? '<a href="#/settings/system">Настройки → Система → Wazzup</a> — вставьте API-ключ и нажмите «Подключить».' : 'Попросите владельца подключить Wazzup.'}</div>`
+    : !T.dialogs && !T.sent ? '<div class="warn" style="background:#eef4ff;border-color:#cfe0ff;color:#1e3a8a">Wazzup подключён. Сообщения начнут появляться здесь с момента подключения — история до подключения в API Wazzup недоступна.</div>' : '';
+  $('#view').innerHTML = head('WhatsApp', 'Сообщения из Wazzup: скорость первого ответа, кто отвечает, кто ждёт ответа. Диалог — входящее сообщение после 24 ч тишины.') + filters() + note + `
+    <div class="grid">
+      <div class="kpi"><small>Новых диалогов</small><b class="num">${T.dialogs}</b><span>отвечено ${T.answered}</span></div>
+      <div class="kpi"><small>Первый ответ (медиана)</small><b class="num ${T.medianMin != null && T.medianMin <= 15 ? 'good' : T.medianMin > 60 ? 'bad' : ''}">${mm(T.medianMin)}</b><span>до 5 мин: ${T.within5} · до 15 мин: ${T.within15}</span></div>
+      <div class="kpi"><small>Ждут ответа</small><b class="num ${T.waiting ? 'bad' : ''}">${T.waiting}</b><span>клиент написал — ответа нет</span></div>
+      <div class="kpi"><small>Отправлено сообщений</small><b class="num">${T.sent}</b><span>менеджерами за период</span></div>
+    </div>
+    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Сообщений</th><th class="r">Чатов</th><th class="r">Диалогов</th><th class="r">Первый ответ</th><th class="r">До 15 мин</th></tr></thead><tbody>
+      ${R.managers.map(m => `<tr><td><div class="who">${av(m.name, uPhoto(m.uid))}${esc(m.name)}</div></td><td class="r num"><b>${m.sent}</b></td><td class="r num">${m.chats}</td><td class="r num">${m.dialogs}</td><td class="r num ${m.medianMin > 60 ? 'bad' : ''}">${mm(m.medianMin)}</td><td class="r num">${m.dialogs ? m.within15 + ' из ' + m.dialogs : '—'}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Нет сообщений за период</td></tr>'}</tbody></table></div></div>
+    <div class="row2" style="grid-template-columns:1fr 1fr">
+      <div class="card"><h3>Ждут ответа</h3><p class="hint">Клиент написал, менеджер ещё не ответил. Сверху — кто ждёт дольше всех.</p><div class="tw"><table><thead><tr><th>Номер</th><th>Написал</th><th class="r">Ждёт</th></tr></thead><tbody>
+        ${R.waiting.map(w => `<tr><td class="num">+${esc(w.chat)}</td><td class="num">${esc(new Date(w.at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))}</td><td class="r num bad"><b>${mm(w.waitMin)}</b></td></tr>`).join('') || '<tr><td colspan="3" class="empty">Никто не ждёт 👍</td></tr>'}</tbody></table></div></div>
+      <div class="card"><h3>Каналы</h3><p class="hint">Входящие сообщения по номерам WhatsApp за период.</p><div class="tw"><table><thead><tr><th>Канал</th><th class="r">Входящих</th></tr></thead><tbody>
+        ${R.channels.map(c => `<tr><td>${esc(c.name)}</td><td class="r num">${c.inbound}</td></tr>`).join('') || '<tr><td colspan="2" class="empty">Нет данных</td></tr>'}</tbody></table></div></div>
+    </div>`;
+  bindFilters();
+};
 
 /* ===== AI-ассистент ===== */
 const AI = { msgs: JSON.parse(sessionStorage.getItem('ai-msgs') || '[]'), busy: false };
@@ -1218,7 +1254,7 @@ const SECTIONS = [
   { id: 'home', title: 'Главная' },
   { id: 'sales', title: 'Продажи', tabs: [['list', 'Сделки'], ['funnel', 'Воронка и выкуп']] },
   { id: 'team', title: 'Команда', tabs: [['eff', 'Эффективность'], ['touch', 'Касания'], ['att', 'Посещаемость']] },
-  { id: 'calls', title: 'Звонки', tabs: [['stats', 'Аналитика'], ['rec', 'Записи и AI-разбор']] },
+  { id: 'calls', title: 'Звонки и WhatsApp', tabs: [['stats', 'Звонки'], ['wa', 'WhatsApp'], ['rec', 'Записи и AI-разбор']] },
   { id: 'money', title: 'Зарплата', tabs: [['payouts', 'Выплаты'], ['penalties', 'Штрафы', 1]] },
   { id: 'ai', title: 'AI-ассистент' },
   { id: 'settings', title: 'Настройки', own: 1, tabs: [['board', 'Табло и планы'], ['managers', 'Менеджеры'], ['users', 'Доступы'], ['terminal', 'Терминал'], ['system', 'Система']] },
@@ -1249,7 +1285,7 @@ function route() {
     home: () => pages.home(),
     sales: () => (tab === 'funnel' ? pages.funnel() : pages.sales()),
     team: () => { if (tab === 'att') { if (AT.view === 'setup') AT.view = 'day'; return pages.att(); } EFV.tab = tab === 'touch' ? 'touch' : 'index'; return pages.eff(); },
-    calls: () => { CALLV = tab; return pages.calls(); },
+    calls: () => { if (tab === 'wa') return pages.wa(); CALLV = tab; return pages.calls(); },
     money: () => (tab === 'penalties' ? pages.penalties() : pages.payouts()),
     ai: () => pages.ai(),
     settings: () => ({ board: () => pages.board((cfg.boards[0] || {}).id, b || 'main'), managers: () => pages.managers(), users: () => pages.users(),

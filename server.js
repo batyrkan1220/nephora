@@ -14,6 +14,7 @@ const AN = require('./lib/analytics');
 const att = require('./lib/attendance');
 const cai = require('./lib/callai');
 const EF = require('./lib/efficiency');
+const wz = require('./lib/wazzup');
 
 const PORT = process.env.PORT || 3000;
 const PASS = process.env.DASH_PASSWORD || '';
@@ -157,6 +158,16 @@ async function handle(req, res) {
     return res.end(Buffer.from(b64, 'base64'));
   }
 
+  // --- Wazzup: вебхук сообщений (адрес с секретным ключом, ставится при подключении в настройках) ---
+  if ((m = p.match(/^\/api\/wz\/(\w+)\/?$/))) {
+    const t = wz.token(), ok = m[1].length === t.length && crypto.timingSafeEqual(Buffer.from(m[1]), Buffer.from(t));
+    if (!ok) return send(res, 403, { error: 'bad token' });
+    if (req.method !== 'POST') return send(res, 200, { ok: true });
+    let body = {}; try { body = JSON.parse(await readBody(req, 5e6) || '{}'); } catch {}
+    const n = body.test ? 0 : await wz.ingest(body).catch(e => { console.error('wazzup ingest', e.message); return 0; });
+    return send(res, 200, { ok: true, accepted: n });
+  }
+
   // --- терминал Hikvision: события прихода/ухода (HTTP Listening терминала или мост hik-bridge) ---
   if ((m = p.match(/^\/api\/att\/(\w+)\/?$/))) {
     const t = att.token(), ok = m[1].length === t.length && crypto.timingSafeEqual(Buffer.from(m[1]), Buffer.from(t));
@@ -187,7 +198,7 @@ async function handle(req, res) {
   const scope = auth.scopeOf(user), isOwner = user.role === 'owner';
   // только владелец: настройки, фото, сверка, пересинхронизация, аккаунты, база
   const ownerOnly = (p === '/api/admin/config' && req.method !== 'GET') || p.startsWith('/api/admin/photo/') || p === '/api/admin/diag' ||
-    p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/') || p.startsWith('/api/admin/att/') || p.startsWith('/api/admin/callai/settings');
+    p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/') || p.startsWith('/api/admin/att/') || p.startsWith('/api/admin/callai/settings') || p.startsWith('/api/admin/wz/settings');
   if (ownerOnly && !isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
 
   // --- кабинет ---
@@ -206,7 +217,7 @@ async function handle(req, res) {
       boards: cfg.boards.map(b => ({ id: b.id, members: C.computeBoard(b, ctx()).members })),
       dealUids: [...new Set(cache.deals.map(d => d.uid))],
       secOf: C.sectorMap(ctx()), me: auth.publicUser(user), sectors: C.sectorsOf(cache.deps).map(d => ({ id: d.id, name: d.name })),
-      accounts: isOwner ? auth.list() : undefined, attPen: isOwner ? att.penalties(cfg) : undefined, wh: wh.status(), ai: !!process.env.ANTHROPIC_API_KEY,
+      accounts: isOwner ? auth.list() : undefined, wzCh: Object.fromEntries(wz.status().channels.map(x => [x.id, wz.channelName(x.id)])), attPen: isOwner ? att.penalties(cfg) : undefined, wh: wh.status(), ai: !!process.env.ANTHROPIC_API_KEY,
     });
   }
   if (p === '/api/admin/config' && req.method === 'PUT') {
@@ -399,6 +410,23 @@ async function handle(req, res) {
     if (!AN.allowedUids(c, scope, {}).has(m[1])) return send(res, 403, { error: 'Нет доступа' });
     return send(res, 200, EF.card(c, scope, m[1], cfg));
   }
+  // Wazzup: подключение и отчёт по мессенджерам
+  if (p === '/api/admin/wz/settings') {
+    if (req.method === 'POST') {
+      const b = JSON.parse(await readBody(req, 1e4) || '{}'), proto = req.headers['x-forwarded-proto'] || 'http';
+      try { return send(res, 200, await wz.connect(b.key, `${proto}://${req.headers.host}/api/wz/${wz.token()}`)); }
+      catch (e) { return send(res, 400, { error: e.message }); }
+    }
+    return send(res, 200, wz.status());
+  }
+  if (p === '/api/admin/wz/report') {
+    const q = url.searchParams, today = C.todayKey(cfg.settings.tz), c = ctx();
+    const A = AN.allowedUids(c, scope, { sector: q.get('sector') || '', uid: q.get('uid') || '' });
+    const norm = x => String(x || '').toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-яәғқңөұүһі0-9 ]/gi, ' ').split(/\s+/).filter(Boolean).sort().join(' ');
+    const byName = {}; c.users.forEach(u => { const k = norm((cfg.managers[u.id] || {}).name || u.name); if (k) byName[k] = u.id; });
+    const nm = id => (c.userMap[id] ? ((cfg.managers[id] || {}).name || c.userMap[id].name) : '');
+    return send(res, 200, wz.report(q.get('from') || C.monthRange(today).from, q.get('to') || today, cfg.settings.tz, nm, n => byName[norm(n)] || '', id => A.has(id)));
+  }
   // AI-разбор звонков
   if (p === '/api/admin/callai/summary') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz), c = ctx();
@@ -521,5 +549,5 @@ async function handle(req, res) {
     console.error(e); if (!res.headersSent) send(res, 500, { error: String(e.message || e) });
   })).listen(PORT, () => console.log('Leaderboard on :' + PORT));
   sync().then(async () => { loop(); if (!cache.meta && bx.configured()) cache.meta = await bx.meta().catch(() => null); });
-  wh.start(cfg); cai.start(cfg);
+  wh.start(cfg); cai.start(cfg); wz.init().catch(e => console.error('wazzup init', e.message));
 })();
