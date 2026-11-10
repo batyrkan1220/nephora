@@ -231,6 +231,17 @@ html.pt .cs{grid-column:1/-1}
 html.pt .slst{flex-direction:row;flex:none}
 html.pt .scd{flex:1 1 0;max-height:none}
 html.pt .li .dp .el{display:none}
+html.pt .slst.many{flex-direction:column;gap:.5em}
+html.pt .slst.many .scd{flex:none;padding:.6em 1em;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:1em}
+html.pt .slst.many .sbody{display:contents}
+html.pt .slst.many .sh1{grid-column:1}
+html.pt .slst.many .sdat{grid-column:1;display:flex;align-items:baseline;gap:.8em;flex-wrap:wrap}
+html.pt .slst.many .sdat small{display:none}
+html.pt .slst.many .sdat>b{font-size:1.5em;display:inline}
+html.pt .slst.many .sline{margin:0}
+html.pt .slst.many .ring{grid-column:2;grid-row:1/3;width:4.2em;height:4.2em}
+.scd .sdat>b{white-space:nowrap}
+.scd .sh1 b{flex:0 1 auto}
 /* ===== вертикальный экран (ТВ стоит вертикально или повёрнут) ===== */
 html.pt .hd{flex-wrap:wrap;gap:1em}
 html.pt .ttl{flex-basis:100%}
@@ -356,10 +367,11 @@ function render() {
   };
   const REC = D.recent || [];
 
+  const oldTick = $('.tickr'); if (oldTick) oldTick.remove();
   $('#app').innerHTML = `
     <div class="hd">
       <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>
-        <div class="per num"><span class="lv"><i></i>LIVE</span>${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : 'обновлено ' + new Date(D.syncedAt).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit' })}</div></div>
+        <div class="per num"><span class="lv"><i></i>LIVE</span>${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : `<span id="upd">${updText()}</span>`}</div></div>
       <div class="stat kw"><small>Продаж сегодня</small><b class="num">${T.dayCnt}</b></div>
       ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · план ${short(T.dayPlan)} ₸</small><b class="num">${money(T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
         : `<div class="stat kp"><small>Касса сегодня · вся компания</small><b class="num">${money(T.daySum)}</b></div>`}
@@ -369,15 +381,17 @@ function render() {
     </div>
     <div class="cols3">
       <div class="col cs"><div class="ch"><span class="ci">${ICO.sec}</span><b>Рейтинг секторов</b><span>по кассе дня</span></div>
-        <div class="slst" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
+        <div class="slst ${SEC.length > 2 ? 'many' : ''}" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
         ${T.plan ? `<div class="cfoot num"><div><span>План компании</span><b>${money(T.sum)} <em>/ ${short(T.plan)} ₸</em></b></div>${bar(T.sum, T.plan)}</div>` : ''}</div>
       <div class="col cd"><div class="ch"><span class="ci">${ICO.day}</span><b>Топ-${N} сегодня</b><span>касса за день</span></div>
         <div class="lst" id="l2">${TOPD.map((r, i) => mgrRow(r, i, true, TOPD[0].daySum)).join('')}${Array.from({ length: Math.max(0, N - TOPD.length) }, (_, k) => slot(TOPD.length + k)).join('')}</div></div>
       <div class="col cp"><div class="ch"><span class="ci">${ICO.per}</span><b>Топ-${N} периода</b><span>${fd(P.from).slice(0, 5)}–${fd(P.to).slice(0, 5)}</span></div>
         <div class="lst" id="l3">${TOPP.length ? TOPP.map((r, i) => mgrRow(r, i, false, TOPP[0].sum)).join('') : '<div class="li none">Пока нет продаж за период</div>'}</div></div>
     </div>
-    ${REC.length && !PH ? `<div class="tickr"><span class="tl">Последние продажи</span><div class="tw2"><div class="tm" style="--d:${Math.max(25, REC.length * 6)}s">${[...REC, ...REC].map(x => `<span class="ti"><b>${esc(x.name)}</b>${x.dep ? ` <small>${esc(x.dep)}</small>` : ''} <em class="num">+${money(x.sum)}</em></span>`).join('')}</div></div></div>` : ''}`;
+    ${REC.length && !PH ? `<div class="tickr" data-k="${esc(REC.map(x => x.name + x.sum).join('|'))}"><span class="tl">Последние продажи</span><div class="tw2"><div class="tm" style="--d:${Math.max(25, REC.length * 6)}s">${[...REC, ...REC].map(x => `<span class="ti"><b>${esc(x.name)}</b>${x.dep ? ` <small>${esc(x.dep)}</small>` : ''} <em class="num">+${money(x.sum)}</em></span>`).join('')}</div></div></div>` : ''}`;
   tick();
+  const newTick = $('.tickr');
+  if (oldTick && newTick && oldTick.dataset.k === newTick.dataset.k) newTick.replaceWith(oldTick);
 
   // топ-листы: 10 строк всегда влезают — высота подстраивается под экран
   const fs = parseFloat(getComputedStyle($('#app')).fontSize);
@@ -412,6 +426,7 @@ function askSound() {
   document.body.appendChild(el);
   el.querySelector('.yes').onclick = () => { soundOk = true; sessionStorage.setItem('lb-sound', '1'); audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); el.remove(); };
   el.querySelector('.no').onclick = () => el.remove();
+  setTimeout(() => el.remove(), 20000); // на ТВ без мыши окно не должно висеть
 }
 const queue = []; let showing = false;
 function popup(e) { queue.push(e); if (!showing) next(); }
@@ -434,6 +449,8 @@ function next() {
 }
 
 /* ===== загрузка ===== */
+let lastKey = '';
+const updText = () => D.error ? '' : 'обновлено ' + new Date(D.syncedAt).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit' });
 async function load() {
   try {
     const r = await fetch(`/api/board/${KEY}` + (D ? `?since=${seq}` : ''), { cache: 'no-store' });
@@ -441,7 +458,10 @@ async function load() {
     if (!r.ok) { $('#app').innerHTML = `<div class="center"><div><b>Лидерборд не найден</b>Проверьте ссылку в кабинете</div></div>`; return setTimeout(load, 30000); }
     if (j.paused) { $('#app').innerHTML = `<div class="center"><div><b>${esc(j.name)}</b>Лидерборд на паузе</div></div>`; D = null; return setTimeout(load, 15000); }
     const first = !D; D = j;
-    render();
+    // перерисовываем только при реальных изменениях — иначе анимации и бегущая строка «прыгают»
+    const key = JSON.stringify({ ...j, syncedAt: 0, events: 0, seq: 0 });
+    if (key !== lastKey) { lastKey = key; render(); }
+    else { const u = $('#upd'); if (u) u.textContent = updText(); }
     if (!first && D.board.screen.popup) j.events.forEach(popup);
     seq = j.seq;
     if (first) askSound();
