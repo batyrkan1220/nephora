@@ -330,6 +330,48 @@ async function handle(req, res) {
     out.callai = { on: cai.status().settings.on, ready: cai.status().ready };
     return send(res, 200, out);
   }
+  // главная: всё важное одним запросом (руководитель — только свои секторы)
+  if (p === '/api/admin/overview') {
+    const c = ctx(), A = AN.allowedUids(c, scope, {}), b = cfg.boards[0];
+    if (!b) return send(res, 200, { empty: true });
+    const d = C.computeBoard(b, c), mine = r => A.has(r.uid);
+    const secs = d.sectors.filter(x => !scope.sectors || scope.sectors.includes(x.id));
+    const rows = d.rows.filter(mine);
+    const sum = rows.reduce((a, r) => a + r.sum, 0), daySum = rows.reduce((a, r) => a + r.daySum, 0);
+    const cnt = rows.reduce((a, r) => a + r.cnt, 0), dayCnt = rows.reduce((a, r) => a + r.dayCnt, 0);
+    const plan = secs.reduce((a, x) => a + x.plan, 0), dayPlan = secs.reduce((a, x) => a + x.dayPlan, 0);
+    const P = d.period, elapsed = Math.max(1, P.workdays - P.daysLeft + 1);
+    const forecast = P.today >= P.from && P.today <= P.to ? Math.round(sum / elapsed * P.workdays) : sum;
+    const days = []; for (let k = P.from; k <= P.to; k = C.addDays(k, 1)) days.push({ dk: k, sum: 0, cnt: 0 });
+    const DI = Object.fromEntries(days.map((x, i) => [x.dk, i]));
+    const mem = new Set(d.members);
+    c.deals.forEach(x => { if (mem.has(x.uid) && A.has(x.uid) && DI[x.dk] != null) { days[DI[x.dk]].sum += x.sum; days[DI[x.dk]].cnt++; } });
+    const nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || ('ID ' + id);
+    const recent = c.deals.filter(x => x.dk === P.today && mem.has(x.uid) && A.has(x.uid)).sort((x, y) => +y.id - +x.id).slice(0, 8)
+      .map(x => ({ id: x.id, title: x.title, sum: x.sum, uid: x.uid, name: nm(x.uid) }));
+    // сигналы «требует внимания»
+    const f = { from: P.from, to: P.today, stageNames: stageNames() };
+    let alerts = {};
+    try {
+      const T = EF.touches(c, scope, f, cfg);
+      alerts = { zero: T.total.zero, deals: T.total.deals, lostLow: T.total.lostLow, lost: T.total.lost, forgotten: T.total.forgotten, forgetDays: T.forgetDays };
+      const CL = AN.calls(c, scope, { from: P.today, to: P.today });
+      alerts.missedToday = CL.total.missed; alerts.callsToday = CL.total.total;
+      const at = att.report(cfg, { date: P.today }, uid => A.has(uid));
+      if (at.rows.length) { alerts.lateToday = at.rows.filter(r => r.st === 'late').length; alerts.absentToday = at.rows.filter(r => r.st === 'absent').length; alerts.attTotal = at.rows.length; }
+      const q = cai.summary(uid => A.has(uid), P.from, P.today, nm);
+      if (q.total.n) alerts.ai = { avg: q.total.avg, n: q.total.n };
+    } catch (e) { alerts.error = e.message; }
+    let eff = null;
+    try { const E = EF.efficiency(c, scope, f, cfg); eff = { team: E.team, top: E.rows.slice(0, 3).map(r => ({ uid: r.uid, name: r.name, index: r.index })), low: E.rows.filter(r => r.index != null).slice(-3).reverse().map(r => ({ uid: r.uid, name: r.name, index: r.index, weak: r.weak })) }; } catch {}
+    return send(res, 200, {
+      period: P, board: { key: b.key, active: b.active, name: b.name }, syncedAt: cache.syncedAt, error: cache.error,
+      team: { sum, daySum, cnt, dayCnt, plan, dayPlan, forecast, avg: cnt ? sum / cnt : 0, salary: isOwner ? rows.reduce((a, r) => a + (r.salary || 0), 0) : undefined, managers: rows.length },
+      sectors: secs, today: rows.filter(r => r.daySum > 0).sort((x, y) => y.daySum - x.daySum).slice(0, 5).map(r => ({ uid: r.uid, name: r.name, photo: r.photo, sector: r.sectorName, daySum: r.daySum, dayCnt: r.dayCnt })),
+      leaders: rows.slice(0, 5).map(r => ({ uid: r.uid, name: r.name, photo: r.photo, sector: r.sectorName, sum: r.sum, cnt: r.cnt })),
+      days, recent, alerts, eff,
+    });
+  }
   // эффективность менеджеров и касания
   if (p === '/api/admin/eff' || p === '/api/admin/touches') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz);

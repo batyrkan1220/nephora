@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Кабинет · Safa Leaderboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#0f1222;--muted:#9aa1b5;--muted2:#6b7286;--line:#edf0f7;--soft:#f5f7fd;--panel:#f7f9fe;--card:#fff;--bg:#eef2fb;
   --blue:#1f6bff;--blue2:#3d82ff;--purple:#d68bf7;--purple2:#c86df2;--yellow:#fcd94a;--green:#12b76a;--red:#ef4444;
   --grad:linear-gradient(135deg,#3d82ff,#1f6bff);--sh:0 10px 30px -18px rgba(31,107,255,.35);--r:22px}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Poppins,system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 .num{font-variant-numeric:tabular-nums}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -153,83 +153,7 @@ tfoot td{font-weight:600;border-top:2px solid var(--line)}
 .stg{columns:2 260px;column-gap:24px}
 .stg h4{margin:10px 0 4px;font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em;break-after:avoid}
 
-/* ===== Главная (CallAction) ===== */
-.dash{display:grid;grid-template-columns:minmax(330px,520px) minmax(0,1fr);gap:40px;align-items:start}
-@media (max-width:1300px){.dash{grid-template-columns:1fr}}
-.dash>div,.shell>main{min-width:0}
-@media (max-width:700px){.pnl{padding:22px 16px;border-radius:26px}.ph h1{font-size:28px}.kc .bg b{font-size:36px}.donut{margin:0 auto}.mc{padding:14px}.mc .v{margin-left:8px}.mc .v b{font-size:14px}}
-.pnl{background:var(--panel);border-radius:34px;padding:34px 30px 30px}
-.ph{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px}
-.ph h1{margin:0;font-size:36px;font-weight:500;letter-spacing:-.015em;line-height:1.15}
-.ph p{margin:4px 0 0;font-size:15px}
-.ph .burger{margin-right:4px}
-.flt{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
-.flt .row2{gap:10px}
-.flt .in{background:#fff;border-color:transparent;box-shadow:0 6px 16px -12px rgba(31,107,255,.4);padding:10px 12px;font-size:13.5px}
-.sh{display:flex;align-items:center;gap:10px;margin:0 0 14px}
-.sh h2{margin:0;font-size:21px;font-weight:400;color:#a3abc0;flex:1}
-.ar{width:34px;height:34px;border-radius:11px;border:0;background:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 14px -10px rgba(15,18,34,.35)}
-.ar:disabled{opacity:.4;cursor:default}
-.ar svg{width:16px;height:16px}
-.cal{color:var(--blue)}.cal svg{width:24px;height:24px}
-.mc{background:#fff;border-radius:20px;padding:18px 20px 14px;margin-bottom:16px;box-shadow:0 10px 26px -20px rgba(15,18,34,.35)}
-.mc .t{display:flex;align-items:center;gap:12px}
-.mc .av{width:48px;height:48px;border-radius:14px}
-.mc .n{flex:1;min-width:0}
-.mc .n b{display:block;font-weight:500;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mc .n small{color:var(--muted);font-size:13px}
-.mc .v{text-align:right;margin-left:14px}
-.mc .v b{display:block;font-weight:500;font-size:16px}
-.mc .v small{color:var(--muted);font-size:12.5px}
-.mc .bt{display:flex;align-items:center;gap:20px;margin-top:14px}
-.mc .bt .tr{flex:1;height:4px;border-radius:99px;background:#d5e3ff;overflow:hidden;max-width:62%}
-.mc .bt .tr i{display:block;height:100%;background:var(--blue);border-radius:99px}
-.mc .bt a{margin-left:auto;color:var(--blue);font-size:13.5px;display:flex;align-items:center;gap:10px}
-.mc .bt a svg{width:22px}
-.mc .rk{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-size:12px;font-weight:600;background:var(--soft);color:var(--muted2);flex:none}
-.mc .rk.r1{background:#fff3c4;color:#a16207}.mc .rk.r2{background:#e8edf7;color:#475569}.mc .rk.r3{background:#ffe6d5;color:#b45309}
-.hr{height:1px;background:#e3e8f3;margin:26px 0 24px}
-.msg{display:flex;align-items:center;gap:14px;padding:10px 0}
-.msg .av{width:48px;height:48px;border-radius:50%;position:relative;overflow:visible}
-.msg .av img{border-radius:50%}
-.msg .av::after{content:"";position:absolute;right:-1px;bottom:1px;width:11px;height:11px;border-radius:50%;background:var(--yellow);border:2px solid var(--panel)}
-.msg .n{flex:1;min-width:0}
-.msg .n b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.msg .n small{color:var(--muted);font-size:13px;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.msg .bd{background:#f0dafc;color:#8b2fc9;border-radius:99px;padding:4px 10px;font-size:12.5px;font-weight:600;white-space:nowrap}
-.live{background:#fff;border-radius:18px;display:flex;align-items:center;gap:14px;padding:14px 20px;margin-top:14px;box-shadow:0 10px 26px -20px rgba(15,18,34,.35)}
-.live .dot{width:9px;height:9px;border-radius:50%;background:#f43f5e;box-shadow:0 0 0 5px rgba(244,63,94,.15);animation:bl 1.4s infinite}
-@keyframes bl{50%{opacity:.35}}
-.live b{font-weight:500}.live span{color:var(--muted);font-size:13px}
-.live .cnt{margin-left:auto;background:#f0dafc;color:#8b2fc9;border-radius:99px;padding:3px 10px;font-weight:600;font-size:12.5px}
-.kp{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:44px}
-@media (max-width:700px){.kp{grid-template-columns:1fr}}
-.kc{border-radius:34px;padding:28px 30px 26px;color:#fff;position:relative;overflow:hidden}
-.kc.b{background:linear-gradient(160deg,#3d86ff,#1f6bff);box-shadow:0 24px 44px -26px rgba(31,107,255,.95)}
-.kc.p{background:linear-gradient(160deg,#e3a1fb,#cf7cf4);box-shadow:0 24px 44px -26px rgba(200,109,242,.95)}
-.kc .ki{width:62px;height:62px;border-radius:18px;background:#fff;display:grid;place-items:center;margin-bottom:26px}
-.kc.b .ki{color:var(--blue)}.kc.p .ki{color:var(--purple2)}
-.kc .ki svg{width:28px;height:28px}
-.kc .bg{display:flex;align-items:center;gap:12px}
-.kc .bg b{font-size:44px;font-weight:500;letter-spacing:-.02em;line-height:1}
-.kc .bg span{font-size:13.5px;line-height:1.35;opacity:.95}
-.kc hr{border:0;border-top:1px solid rgba(255,255,255,.4);margin:24px 0 16px}
-.kc .sm{display:flex;align-items:baseline;gap:12px}
-.kc .sm b{font-size:22px;font-weight:500}.kc .sm span{font-size:13.5px;opacity:.95}
-.perf{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:24px;align-items:center;margin-bottom:44px}
-@media (max-width:700px){.perf{grid-template-columns:1fr}}
-.perf h2,.geo h2{margin:0;font-size:24px;font-weight:500}
-.perf p,.geo p{margin:2px 0 22px;color:var(--muted);font-size:13.5px}
-.lg{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px 14px;align-items:center;font-size:15px;max-width:440px}
-.lg i{width:14px;height:14px;border-radius:4px}
-.lg span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lg b{font-weight:400;text-align:right}
-.donut{position:relative;width:240px;height:240px}
-.donut svg{width:100%;height:100%;transform:rotate(-90deg)}
-.donut .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
-.donut .c b{display:block;font-size:22px;font-weight:500}.donut .c small{font-size:13px;font-weight:500}
-.geo .gh{display:flex;align-items:flex-start;gap:12px}
-.geo .gh div{flex:1}
+
 .amx{border-collapse:separate;border-spacing:3px;font-size:11.5px}
 .amx td,.amx th{padding:0;text-align:center;min-width:34px}
 .amx td.n{text-align:left;min-width:170px;padding-right:8px;font-size:13px}
@@ -246,28 +170,115 @@ ol.steps{margin:6px 0 0;padding-left:20px;line-height:1.7;font-size:14px}
 .cr{display:grid;grid-template-columns:1fr 120px 34px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .cr .bar{height:8px;border-radius:6px;background:#eef0f5;overflow:hidden}.cr .bar i{display:block;height:100%;background:var(--blue)}
 .dlg p{margin:0 0 8px;line-height:1.5}.dlg .mg{background:#eef3ff;border-radius:12px;padding:8px 12px}.dlg .cl{background:#f6f7fa;border-radius:12px;padding:8px 12px}
+
+/* ===== Safa 4: новый каркас ===== */
+:root{--bg:#f4f6fa;--line:#e7eaf1;--muted:#8a91a5;--muted2:#5b6275;--soft:#f2f4f9;--panel:#f8f9fc;--r:16px;--sh:none;--blue:#2563eb;--blue2:#3b82f6}
+body{font-size:14px;letter-spacing:-.005em}
+.shell{margin:0;border-radius:0;min-height:100vh;box-shadow:none;background:transparent;grid-template-columns:240px minmax(0,1fr)}
+aside{background:#fff;border-right:1px solid var(--line);padding:20px 12px 16px;top:0;height:100vh;gap:2px;overflow:auto}
+.logo{font-size:17px;font-weight:700;margin:0 8px 22px;gap:10px}
+.logo i{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed)}
+.logo i svg{width:18px;height:18px}
+aside a{gap:12px;padding:9px 12px;border-radius:10px;color:var(--muted2);font-size:14px;font-weight:500}
+aside a .ic{width:20px;height:20px;border-radius:0;background:none!important;box-shadow:none!important;color:inherit}
+aside a .ic svg{width:20px;height:20px}
+aside a:hover{background:var(--soft);color:var(--ink)}
+aside a.on{background:#eef3ff;color:var(--blue);font-weight:600}
+aside a.on .ic{color:var(--blue)!important}
+.shell{background:linear-gradient(90deg,#fff 239px,var(--line) 239px,var(--line) 240px,transparent 240px)}
+@media (max-width:1000px){.shell{background:none}}
+.navl{font-size:11px;margin:16px 12px 6px;letter-spacing:.06em}
+aside .tv{margin:10px 4px 6px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:600}
+aside .tv:hover{background:linear-gradient(135deg,#1d4ed8,#6d28d9);color:#fff}
+.me{padding:8px 12px}
+main{padding:0}
+.pgh{position:sticky;top:0;z-index:20;background:rgba(244,246,250,.92);backdrop-filter:blur(8px);padding:18px 32px 0;border-bottom:1px solid var(--line)}
+.pgt{display:flex;align-items:center;gap:12px;padding-bottom:14px}
+.pgt h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.02em;flex:1}
+.pga{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sync{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}.sync i{width:8px;height:8px;border-radius:50%;background:var(--green)}.sync.er i{background:var(--red)}
+.stabs{display:flex;gap:4px;overflow-x:auto}
+.stabs a{padding:10px 14px;color:var(--muted2);font-weight:500;border-bottom:2px solid transparent;white-space:nowrap}
+.stabs a:hover{color:var(--ink)}
+.stabs a.on{color:var(--blue);border-bottom-color:var(--blue)}
+#view{padding:22px 32px 110px;max-width:1500px}
+#view>.top{margin-bottom:16px;gap:10px}
+#view .top h1,#view .top .burger{display:none}
+#view .top .sub{margin:0;width:auto;flex:1;min-width:240px;order:-1;color:var(--muted2)}
+.card{border-radius:var(--r);border-color:var(--line);box-shadow:none;padding:20px 22px}
+.card h3{font-size:16px;font-weight:600}
+.kpi{background:#fff;border-radius:14px}
+.kpi b{font-weight:700}
+.tabs{background:none;padding:0;border-radius:0;gap:2px;border-bottom:1px solid var(--line);width:100%}
+.tabs a{border-radius:8px 8px 0 0;padding:8px 14px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs a.on{background:none;color:var(--blue);box-shadow:none;border-bottom-color:var(--blue);font-weight:600}
+.fbar{display:flex;flex-direction:row;justify-content:flex-start;flex-wrap:wrap;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:18px}
+.fbar .chips{flex:none}
+.fbar .in{width:auto;min-width:170px;padding:8px 12px;border-radius:10px}
+.fbar input[type=date].in{min-width:150px}
+.chip{padding:7px 12px;border-radius:9px;font-weight:500}
+.chip.on{box-shadow:none}
+.btn{border-radius:10px;box-shadow:none;font-weight:600}
+.btn.s{border-radius:9px}
+.in,select.in,textarea.in{border-radius:10px;border-width:1px}
+.av{border-radius:10px;width:36px;height:36px}
+th{font-size:12px;font-weight:500}
+td{padding:11px 12px}
+.save{border-radius:14px}
+@media (max-width:1000px){
+  .shell{grid-template-columns:1fr}
+  aside{width:250px}
+  .pgh{padding:14px 16px 0}#view{padding:16px 16px 110px}
+  .pgt .burger{display:inline-grid}
+}
+/* главная */
+.hk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:18px}
+@media (max-width:1200px){.hk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.hk{grid-template-columns:1fr}}
+.ht{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;position:relative;overflow:hidden}
+.ht small{color:var(--muted);font-size:12.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.ht b{display:block;font-size:30px;font-weight:700;letter-spacing:-.025em;margin:6px 0 4px}
+.ht span{color:var(--muted2);font-size:13px}
+.ht.main{background:linear-gradient(135deg,#2563eb,#7c3aed);border:0;color:#fff}
+.ht.main small,.ht.main span{color:rgba(255,255,255,.85)}
+.pr{height:8px;border-radius:99px;background:#eef1f7;overflow:hidden;margin-top:12px}.pr i{display:block;height:100%;border-radius:99px;background:var(--blue)}
+.ht.main .pr{background:rgba(255,255,255,.25)}.ht.main .pr i{background:#fff}
+.hg{display:grid;gap:18px;margin-bottom:18px}
+.hg.a{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}.hg.b{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:1200px){.hg.a,.hg.b{grid-template-columns:1fr}}
+.hg .card{margin:0}
+.chd{display:flex;align-items:center;gap:10px;margin-bottom:12px}.chd h3{flex:1;margin:0}.chd a{color:var(--blue);font-size:13px;font-weight:500}
+.sr{display:grid;grid-template-columns:150px minmax(0,1fr) 150px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.sr:last-child{border-bottom:0}
+.sr b{font-weight:600}.sr .pr{margin:0}.sr .v{text-align:right;font-size:13px;color:var(--muted2)}.sr .v b{display:block;color:var(--ink);font-size:14px}
+@media (max-width:700px){.sr{grid-template-columns:1fr}.sr .v{text-align:left}}
+.al{display:flex;gap:12px;align-items:center;padding:11px 12px;border-radius:12px;margin-bottom:8px;background:var(--panel);border:1px solid var(--line)}
+.al b{font-size:20px;font-weight:700;min-width:44px;text-align:center}
+.al div{flex:1;font-size:13.5px;line-height:1.35}.al div small{display:block;color:var(--muted);font-size:12px}
+.al.r{background:#fff5f5;border-color:#fde2e2}.al.r b{color:#dc2626}
+.al.y{background:#fffaf0;border-color:#fdecc8}.al.y b{color:#b45309}
+.al.g{background:#f0fbf5;border-color:#d3f2e1}.al.g b{color:#059669}
+.al:hover{filter:brightness(.98)}
+.lr{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}.lr:last-child{border-bottom:0}
+.lr .n{flex:1;min-width:0}.lr .n b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lr .n small{color:var(--muted);font-size:12px}
+.lr .v{text-align:right;font-weight:600;white-space:nowrap}.lr .v small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lr .k{width:22px;color:var(--muted);font-weight:600;text-align:center}
+.chart div{background:linear-gradient(180deg,#3b82f6,#93c5fd)}
+.chart div.t{background:linear-gradient(180deg,#7c3aed,#a78bfa)}
 </style>
 </head>
 <body>
 <div class="shell">
   <aside>
     <div class="logo"><i><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2L5 13.5h6L10 22l9-12.5h-6.2z"/></svg></i>Safa</div>
-    <a href="#/" data-r="home"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg></span>Главная</a>
-    <a href="#/boards" data-r="boards" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 12l3-3 3 2 4-4"/></svg></span>Лидерборды</a>
-    <a href="#/sales" data-r="sales"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 15v-3M12 15V9M15 15v-5"/></svg></span>Продажи</a>
-    <a href="#/payouts" data-r="payouts"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x='3' y='6' width='18' height='13' rx='3'/><path d='M3 10h18M7 15h3'/></svg></span>Выплаты</a>
-    <a href="#/att" data-r="att"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x='6' y='2.5' width='12' height='19' rx='3'/><circle cx='12' cy='9' r='2.6'/><path d='M8.5 16c.6-1.8 2-2.8 3.5-2.8s2.9 1 3.5 2.8'/></svg></span>Посещаемость</a>
-    <div class="navl">Аналитика</div>
-    <a href="#/funnel" data-r="funnel"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M3 4h18l-7 8v6l-4 2v-8z'/></svg></span>Воронка и выкуп</a>
-    <a href="#/eff" data-r="eff"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M4 19V9M10 19V5M16 19v-7M22 19H2'/></svg></span>Эффективность</a>
-    <a href="#/calls" data-r="calls"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2'/></svg></span>Звонки</a>
-    <a href="#/ai" data-r="ai"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M12 3l1.8 4.6L18 9.5l-4.2 1.9L12 16l-1.8-4.6L6 9.5l4.2-1.9z'/><path d='M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z'/></svg></span>AI-ассистент</a>
-    <div class="navl own">Управление</div>
-
-    <a href="#/managers" data-r="managers" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.2c2.6.3 4.5 2.6 4.5 5.3"/></svg></span>Менеджеры</a>
-    <a href="#/penalties" data-r="penalties" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx='12' cy='12' r='8.5'/><path d='M12 7.5v5l3 2'/></svg></span>Штрафы</a>
-    <a href="#/users" data-r="users" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx='12' cy='8' r='3.5'/><path d='M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7'/><path d='M19 4v4M17 6h4'/></svg></span>Пользователи</a>
-    <a href="#/settings" data-r="settings" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5V2.5h6v1M9 10h6M9 14h4"/></svg></span>Настройки</a>
+    <a href="#/" data-r="home"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg></span>Главная</a>
+    <a href="#/sales" data-r="sales"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V10M10 19V5M16 19v-6M21 19H3"/></svg></span>Продажи</a>
+    <a href="#/team" data-r="team"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3 3-4.6 5.5-4.6s4.7 1.6 5.5 4.6"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.5c2.4 0 4 1.4 4.6 4"/></svg></span>Команда</a>
+    <a href="#/calls" data-r="calls"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg></span>Звонки</a>
+    <a href="#/money" data-r="money"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h3"/></svg></span>Зарплата</a>
+    <a href="#/ai" data-r="ai"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></span>AI-ассистент</a>
+    <a href="#/settings" data-r="settings" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 010-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 014 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 010 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg></span>Настройки</a>
+    <a class="tv" id="tvLink" href="#" target="_blank"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>ТВ-табло ↗</a>
     <div class="sp"></div>
     <div class="me" id="me"></div>
     <a href="/logout" class="out"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg></span>Выйти</a>
@@ -311,6 +322,7 @@ async function loadState() {
   cfg = JSON.parse(JSON.stringify(S.cfg)); saved = JSON.stringify(cfg); setDirty();
   document.body.classList.toggle('head', S.me.role !== 'owner');
   const secN = S.me.sectors ? mySectors().map(x => x.name).join(', ') || 'секторы не назначены' : 'все секторы';
+  const b0 = (S.cfg.boards || [])[0]; $('#tvLink').href = b0 && b0.key ? '/b/' + b0.key : '#'; $('#tvLink').style.display = b0 && b0.key && b0.active ? '' : 'none';
   $('#me').innerHTML = `<b>${esc(S.me.name)}</b>${S.me.role === 'owner' ? 'Владелец' : 'Руководитель'} · ${esc(secN)}`;
 }
 function setDirty() { dirty = JSON.stringify(cfg) !== saved; $('#save').classList.toggle('on', dirty); }
@@ -359,12 +371,10 @@ const secSelect = (id, all) => `<select class="in" id="${id}"><option value="">$
 function filters() {
   const P = presets(S.today);
   if (F.p !== 'custom') { F.from = P[F.p][1]; F.to = P[F.p][2]; }
-  return `<div class="card"><div class="chips">${Object.entries(P).map(([k, v]) => `<button class="chip ${F.p === k ? 'on' : ''}" data-p="${k}">${v[0]}</button>`).join('')}</div>
-    ${F.p === 'custom' ? `<div class="row2" style="margin-top:12px"><label class="f"><span>С</span><input class="in" type="date" id="fFrom" value="${F.from}"></label><label class="f"><span>По</span><input class="in" type="date" id="fTo" value="${F.to}"></label></div>` : ''}
-    <div class="row2" style="margin-top:12px">
-      <label class="f"><span>Сектор</span>${secSelect('fSec', S.me.sectors ? 'Все мои секторы' : 'Все секторы')}</label>
-      <label class="f"><span>Менеджер</span><select class="in" id="fUid"><option value="">Все</option>${uidsFor().sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}" ${F.uid === id ? 'selected' : ''}>${esc(uName(id))}</option>`).join('')}</select></label>
-    </div></div>`;
+  return `<div class="fbar"><div class="chips">${Object.entries(P).map(([k, v]) => `<button class="chip ${F.p === k ? 'on' : ''}" data-p="${k}">${v[0]}</button>`).join('')}</div>
+    ${F.p === 'custom' ? `<input class="in" type="date" id="fFrom" value="${F.from}"><input class="in" type="date" id="fTo" value="${F.to}">` : ''}
+    ${secSelect('fSec', S.me.sectors ? 'Все мои секторы' : 'Все секторы')}
+    <select class="in" id="fUid"><option value="">Все менеджеры</option>${uidsFor().sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}" ${F.uid === id ? 'selected' : ''}>${esc(uName(id))}</option>`).join('')}</select></div>`;
 }
 function bindFilters() {
   document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { F.p = b.dataset.p; route(); });
@@ -401,109 +411,81 @@ function donut(parts, center, sub) {
     <div class="c"><div><b class="num">${center}</b><small>${sub}</small></div></div></div>`;
 }
 
+/* ===== Главная ===== */
+const pctOf = (a, b) => b ? a / b * 100 : null;
+const prc = v => v == null ? '—' : Math.round(v) + '%';
+const prog = (v, c) => `<div class="pr"><i style="width:${Math.max(0, Math.min(100, v || 0)).toFixed(1)}%${c ? ';background:' + c : ''}"></i></div>`;
+const short2 = n => { n = Math.round(n || 0); return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 1 : 2).replace(/\.?0+$/, '') + ' млн ₸' : money(n); };
 pages.home = async () => {
-  const P = presets(S.today);
-  if (F.p !== 'custom') { F.from = P[F.p][1]; F.to = P[F.p][2]; }
-  const filt = `<div class="flt"><div class="chips">${Object.entries(P).map(([k, v]) => `<button class="chip ${F.p === k ? 'on' : ''}" data-p="${k}">${v[0]}</button>`).join('')}</div>
-    ${F.p === 'custom' ? `<div class="row2"><input class="in" type="date" id="fFrom" value="${F.from}"><input class="in" type="date" id="fTo" value="${F.to}"></div>` : ''}
-    <div class="row2">${secSelect('fSec', S.me.sectors ? 'Все мои секторы' : 'Все секторы')}
-    <select class="in" id="fUid"><option value="">Все менеджеры</option>${uidsFor().sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}" ${F.uid === id ? 'selected' : ''}>${esc(uName(id))}</option>`).join('')}</select></div></div>`;
-  const head = `<div class="ph"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><div style="flex:1"><h1>Главная</h1><p>${agoText(S.syncedAt)}</p></div>
-    <a class="ibtn" id="csv" title="Скачать CSV">${ICO.dl}</a></div>`;
-  $('#main').innerHTML = `<div class="dash"><div class="pnl">${head}${filt}<div class="empty">Считаем…</div></div><div></div></div>`; bindFilters();
-  let R; try { R = await api('/api/admin/report?' + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
-  const T = R.totals, mx = Math.max(1, ...R.days.map(d => d.sum));
-
-  // план: если выбрана доска — личные планы
-  const bsel = cfg.boards.find(b => b.id === F.board);
-  const planOf = () => 0;
-  const top = R.rows[0] ? R.rows[0].sum : 1;
-  const per = 3, pages_ = Math.max(1, Math.ceil(R.rows.length / per)); if (H.page >= pages_) H.page = 0;
-  const pr = R.rows.slice(H.page * per, H.page * per + per);
-  const card = (r, i) => { const pl = planOf(r.uid), pct = pl ? r.sum / pl * 100 : r.sum / top * 100; const place = H.page * per + i + 1;
-    return `<div class="mc"><div class="t"><span class="rk ${place <= 3 ? 'r' + place : ''}">${place}</span>${av(r.name, r.photo)}<div class="n"><b>${esc(r.name)}</b><small>${esc(r.dep || r.board || '—')}</small></div>
-      <div class="v"><b class="num">${money(r.sum)}</b><small>Выручка</small></div><div class="v"><b class="num">${r.cnt}</b><small>Продаж</small></div></div>
-      <div class="bt"><div class="tr" title="${pl ? 'План ' + Math.floor(pct) + '%' : 'От лидера ' + Math.floor(pct) + '%'}"><i style="width:${Math.min(100, pct).toFixed(1)}%"></i></div>
-      <a href="javascript:void 0" data-uid="${r.uid}">${pl ? Math.floor(pct) + '% плана' : 'Подробнее'} ${ICO.arrow}</a></div></div>`; };
-  const recent = R.deals.slice(0, 4);
-  const shareTop = R.rows.slice(0, 3).map(r => T.sum ? r.sum / T.sum : 0);
-  const planTot = companyPlan(bsel || cfg.boards[0]);
-  const center = planTot ? Math.round(T.sum / planTot * 1000) / 10 + '%' : (shareTop[0] ? Math.round(shareTop[0] * 1000) / 10 + '%' : '—');
-  const colors = ['url(#dgP)', 'url(#dgB)', 'url(#dgY)'], sw = ['#d68bf7', '#1f6bff', '#fcd94a'];
-
-  $('#main').innerHTML = `<div class="dash">
-    <div class="pnl">${head}${filt}
-      <div class="sh"><h2>Рейтинг менеджеров</h2><button class="ar" id="pv" ${H.page ? '' : 'disabled'}>${ICO.left}</button><button class="ar" id="nx" ${H.page < pages_ - 1 ? '' : 'disabled'}>${ICO.right}</button>
-        <span class="cal" title="${fd(R.from)} — ${fd(R.to)}">${ICO.cal}</span></div>
-      ${pr.map(card).join('') || '<div class="mc empty">Продаж за период нет</div>'}
-      <div class="hr"></div>
-      <div class="sh"><h2>Последние продажи</h2><a class="cal" href="#/sales" title="Все продажи">${ICO.right}</a></div>
-      ${recent.map(d => `<div class="msg">${av(d.name, uPhoto(d.uid))}<div class="n"><b>${esc(d.name)}</b><small>${ICO.tag.replace('<svg', '<svg width="14" style="color:var(--blue);flex:none"')}${esc(d.title || 'Сделка #' + d.id)} · ${fd(d.dk)}</small></div><span class="bd num">${money(d.sum)}</span></div>`).join('') || '<div class="empty">Пока нет продаж</div>'}
-      <div class="live"><span class="dot"></span><b>Live</b><span>${S.syncedAt ? new Date(S.syncedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '—'} · Bitrix24 ${S.error ? '— ошибка' : 'на связи'}</span><span class="cnt">${T.todayCnt} сегодня</span></div>
+  $('#view').innerHTML = '<div class="empty">Загрузка…</div>';
+  let R; try { R = await api('/api/admin/overview'); } catch (e) { $('#view').innerHTML = `<div class="warn">Ошибка: ${esc(e.message)}</div>`; return; }
+  if (R.empty) { $('#view').innerHTML = '<div class="warn">Табло ещё не настроено — откройте «Настройки → Табло и планы».</div>'; return; }
+  const T = R.team, P = R.period, A = R.alerts || {}, own = S.me.role === 'owner';
+  const dPct = pctOf(T.daySum, T.dayPlan), mPct = pctOf(T.sum, T.plan), fPct = pctOf(T.forecast, T.plan);
+  const need = T.plan && P.daysLeft ? Math.max(0, (T.plan - T.sum) / P.daysLeft) : 0;
+  const mx = Math.max(1, ...R.days.map(d => d.sum)), avgDay = T.sum / Math.max(1, P.workdays - P.daysLeft + 1);
+  const AL = [];
+  const al = (cls, n, text, sub, href) => AL.push(`<a class="al ${cls}" href="${href}"><b class="num">${n}</b><div>${text}<small>${sub}</small></div></a>`);
+  if (A.forgotten) al('r', A.forgotten, 'Забытые клиенты', `открытые сделки без касания ${A.forgetDays}+ дней`, '#/team/touch');
+  if (A.zero) al('y', A.zero, 'Новые сделки без звонка', `из ${A.deals} за месяц`, '#/team/touch');
+  if (A.lostLow) al('y', A.lostLow, 'Отказ после ≤1 разговора', `из ${A.lost} отказов — клиентов отпускают рано`, '#/team/touch');
+  if (A.missedToday) al('r', A.missedToday, 'Пропущенные входящие сегодня', `из ${A.callsToday} звонков`, '#/calls/stats');
+  if (A.attTotal != null) al(A.lateToday || A.absentToday ? 'y' : 'g', (A.lateToday || 0) + (A.absentToday || 0), 'Опоздания и пропуски сегодня', `опоздали ${A.lateToday}, нет на работе ${A.absentToday} из ${A.attTotal}`, '#/team/att');
+  if (A.ai) al(A.ai.avg >= 75 ? 'g' : A.ai.avg >= 60 ? 'y' : 'r', A.ai.avg, 'AI-оценка разговоров', `средняя за месяц, ${A.ai.n} разборов`, '#/calls/rec');
+  const E = R.eff;
+  const person = (r, v, sub) => `<div class="lr">${av(r.name, r.photo || uPhoto(r.uid))}<div class="n"><b>${esc(r.name)}</b><small>${esc(r.sector || '')}</small></div><div class="v">${v}${sub ? `<small>${sub}</small>` : ''}</div></div>`;
+  $('#view').innerHTML = `
+    ${R.error ? `<div class="warn">Bitrix24: ${esc(R.error)}</div>` : ''}
+    <div class="hk">
+      <div class="ht main"><small>Касса сегодня</small><b class="num">${money(T.daySum)}</b><span>${T.dayPlan ? `план дня ${money(T.dayPlan)} · ${prc(dPct)}` : `${T.dayCnt} продаж`}</span>${T.dayPlan ? prog(dPct) : ''}</div>
+      <div class="ht"><small>Касса за ${new Date(P.from + 'T00:00:00Z').toLocaleString('ru-RU', { month: 'long', timeZone: 'UTC' })}</small><b class="num">${short2(T.sum)}</b><span>${T.plan ? `план ${short2(T.plan)} · <b style="display:inline;font-size:13px;margin:0;color:${mPct >= 100 ? 'var(--green)' : 'inherit'}">${prc(mPct)}</b>` : T.cnt + ' продаж'}</span>${T.plan ? prog(mPct) : ''}</div>
+      <div class="ht"><small>Прогноз на конец месяца</small><b class="num" style="color:${fPct == null ? 'inherit' : fPct >= 100 ? 'var(--green)' : fPct >= 90 ? '#b45309' : 'var(--red)'}">${short2(T.forecast)}</b><span>${T.plan ? `${prc(fPct)} плана · ${P.daysLeft} раб. дн. осталось` : `осталось ${P.daysLeft} раб. дн.`}</span>${T.plan && T.sum < T.plan ? `<span style="display:block;margin-top:6px">нужно <b style="display:inline;font-size:13px;margin:0">${money(need)}</b> в день</span>` : ''}</div>
+      <div class="ht"><small>Продажи</small><b class="num">${T.dayCnt} <span style="font-size:15px;color:var(--muted)">сегодня</span></b><span>${T.cnt} за месяц · ср. чек ${money(T.avg)}${own && T.salary != null ? `<br>к выплате ${money(T.salary)}` : ''}</span></div>
     </div>
-    <div>
-      ${S.error ? `<div class="warn">Bitrix24: ${esc(S.error)}</div>` : ''}
-      <div class="kp">
-        <div class="kc b"><div class="ki">${ICO.coin}</div><div class="bg"><b class="num">${short(T.sum)}</b><span>Выручка<br>за период</span></div><hr><div class="sm"><b class="num">${money(T.avg)}</b><span>Средний чек</span></div></div>
-        <div class="kc p"><div class="ki">${ICO.cart}</div><div class="bg"><b class="num">${T.cnt}</b><span>Продаж<br>за период</span></div><hr><div class="sm"><b class="num">${money(T.salary)}</b><span>К выплате</span></div></div>
-      </div>
-      <div class="perf"><div><h2>Эффективность</h2><p>${T.todayCnt} продаж сегодня на ${money(T.todaySum)} · ${T.managers} менеджеров</p>
-        <div class="lg">${R.rows.slice(0, 3).map((r, i) => `<i style="background:${sw[i]}"></i><span>${esc(r.name)}</span><b class="num">${(shareTop[i] * 100).toFixed(2)}%</b>`).join('')}
-          <i style="background:#e3e8f3"></i><span>Остальные</span><b class="num">${T.sum ? ((1 - shareTop.reduce((a, b) => a + b, 0)) * 100).toFixed(2) : '0.00'}%</b>
-          <i style="background:#12b76a"></i><span>Зарплата к выплате</span><b class="num">${money(T.salary)}</b></div></div>
-        ${donut(shareTop.map((v, i) => ({ v, c: colors[i], w: i === 0 ? 20 : 16 })), center, planTot ? 'ПЛАН' : 'ЛИДЕР')}</div>
-      <div class="geo"><div class="gh"><div><h2>Динамика продаж</h2><p>${fd(R.from)} — ${fd(R.to)} · наведите на столбец</p></div><a class="btn l s" id="csv2">${ICO.doc.replace('<svg', '<svg width="18"')} CSV отчёт</a></div>
-        <div class="card" style="padding:18px 20px"><div class="chart">${R.days.map(d => `<div class="${d.sum ? '' : 'z'}" style="height:${(d.sum / mx * 100).toFixed(1)}%" title="${fd(d.dk)}: ${money(d.sum)} · ${d.cnt} прод."></div>`).join('')}</div>
-        <div class="cx">${R.days.map((d, i) => `<span>${R.days.length <= 31 || i % Math.ceil(R.days.length / 31) === 0 ? d.dk.slice(8, 10) : ''}</span>`).join('')}</div></div></div>
-    </div></div>
-      <div class="card" style="margin-top:40px"><h3>По менеджерам</h3><div class="tw"><table>
-        <thead><tr><th>Менеджер</th><th class="r">Продаж</th><th class="r">Выручка</th><th class="r">Ср. чек</th><th class="r">% сетки</th><th class="r">Премия уровня</th><th class="r">Бонусы</th><th class="r">Штрафы</th><th class="r">Зарплата</th></tr></thead>
-        <tbody>${R.rows.map(r => `<tr><td><div class="who">${av(r.name, r.photo)}<div>${esc(r.name)}<small>${esc(r.dep || r.board)}</small></div></div></td>
-          <td class="r num">${r.cnt}</td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${money(r.avg)}</td><td class="r num">${r.comm ? money(r.comm) + `<small style="display:block;color:var(--muted)">${+r.commPct.toFixed(1)}%${r.elite ? ' · ★ Элит' : ''}</small>` : '—'}</td><td class="r num">${r.premium ? money(r.premium) : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td><td class="r num" style="color:var(--red)">${r.pen ? '−' + money(r.pen) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td></tr>`).join('') || '<tr><td colspan="9" class="empty">Продаж за период нет</td></tr>'}</tbody>
-        ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${T.cnt}</td><td class="r num">${money(T.sum)}</td><td class="r num">${money(T.avg)}</td><td class="r num">${money(T.comm)}</td><td class="r num">${money(T.premium)}</td><td class="r num">${money(T.bonus)}</td><td class="r num">${T.pen ? '−' + money(T.pen) : '—'}</td><td class="r num">${money(T.salary)}</td></tr></tfoot>` : ''}
-      </table></div></div>`;
-  bindFilters();
-  const csv = '/api/admin/report?' + qs({ format: 'csv' }); $('#csv').href = csv; $('#csv2').href = csv;
-  $('#pv').onclick = () => { H.page--; pages.home(); }; $('#nx').onclick = () => { H.page++; pages.home(); };
-  document.querySelectorAll('[data-uid]').forEach(a => a.onclick = () => { F.uid = a.dataset.uid; H.page = 0; pages.home(); });
+    <div class="hg a">
+      <div class="card"><div class="chd"><h3>Секторы</h3><a href="#/team/eff">Команда →</a></div>
+        ${R.sectors.map(x => { const p = pctOf(x.sum, x.plan); return `<div class="sr"><div><b>${esc(x.name)}</b><br><small style="color:var(--muted)">${x.managers} менеджеров</small></div>
+          <div>${x.plan ? prog(p, p >= 100 ? 'var(--green)' : '') : prog(0)}<small style="color:var(--muted);font-size:12px">${x.plan ? prc(p) + ' плана' : 'план не задан'}</small></div>
+          <div class="v"><b class="num">${money(x.sum)}</b>${x.plan ? 'из ' + short2(x.plan) : ''}${x.daySum ? `<br><span style="color:var(--green)">+${money(x.daySum)} сегодня</span>` : ''}</div></div>`; }).join('') || '<div class="empty">Нет секторов с планом — задайте их в «Настройки → Табло и планы»</div>'}</div>
+      <div class="card"><div class="chd"><h3>Требует внимания</h3></div>${AL.join('') || '<div class="empty">Всё в порядке 👍</div>'}</div>
+    </div>
+    <div class="hg b">
+      <div class="card"><div class="chd"><h3>Лидеры сегодня</h3></div>${R.today.map(r => person(r, money(r.daySum), r.dayCnt + ' прод.')).join('') || '<div class="empty">Сегодня продаж ещё нет</div>'}</div>
+      <div class="card"><div class="chd"><h3>Лидеры месяца</h3><a href="#/sales/list">Все продажи →</a></div>${R.leaders.map(r => person(r, short2(r.sum), r.cnt + ' прод.')).join('') || '<div class="empty">Нет продаж</div>'}</div>
+      <div class="card"><div class="chd"><h3>Последние продажи</h3></div>${R.recent.map(d => `<div class="lr">${av(d.name, uPhoto(d.uid))}<div class="n"><b>${esc(d.title || 'Сделка #' + d.id)}</b><small>${esc(d.name)}</small></div><div class="v">${money(d.sum)}</div></div>`).join('') || '<div class="empty">Сегодня продаж ещё нет</div>'}</div>
+    </div>
+    <div class="hg a">
+      <div class="card"><div class="chd"><h3>Продажи по дням</h3><span style="color:var(--muted);font-size:12.5px">в среднем ${money(avgDay)} за рабочий день</span></div>
+        <div class="chart">${R.days.map(d => `<div class="${d.dk === P.today ? 't' : d.sum ? '' : 'z'}" style="height:${(d.sum / mx * 100).toFixed(1)}%" title="${fd(d.dk)}: ${money(d.sum)} · ${d.cnt} прод."></div>`).join('')}</div>
+        <div class="cx">${R.days.map(d => `<span>${+d.dk.slice(8)}</span>`).join('')}</div></div>
+      <div class="card"><div class="chd"><h3>Эффективность команды</h3><a href="#/team/eff">Подробнее →</a></div>
+        ${E ? `<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px"><b style="font-size:34px;font-weight:700">${E.team ?? '—'}</b><span style="color:var(--muted)">средний индекс из 100</span></div>
+          <small style="color:var(--muted);text-transform:uppercase;font-size:11.5px;letter-spacing:.05em">Лучшие</small>${E.top.map(r => person(r, `<span class="sc ${scCls(r.index)}">${r.index}</span>`)).join('')}
+          <small style="color:var(--muted);text-transform:uppercase;font-size:11.5px;letter-spacing:.05em;display:block;margin-top:10px">Нужна помощь</small>${E.low.map(r => person(r, `<span class="sc ${scCls(r.index)}">${r.index}</span>`, GN[r.weak] || '')).join('')}` : '<div class="empty">Нет данных</div>'}</div>
+    </div>`;
+  homeTimer = setTimeout(() => { if ((location.hash || '#/') .replace(/^#\/?/, '') === '' && !dirty && !document.querySelector('.ovl')) route(); }, 60000);
 };
 const short = n => { n = Math.round(n || 0); return n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M' : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k' : String(n); };
 
 pages.sales = async () => {
   const head = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Продажи</h1><a class="btn l" id="csv">⬇ CSV</a>
     <div class="sub">Сделки из Bitrix24 в стадиях «факт кассы». Дата — по полю из настроек.</div></div>`;
-  $('#main').innerHTML = head + filters() + '<div class="empty">Загрузка…</div>'; bindFilters();
+  $('#view').innerHTML = head + filters() + '<div class="empty">Загрузка…</div>'; bindFilters();
   const R = await api('/api/admin/report?' + qs());
-  $('#main').innerHTML = head + filters() + `<div class="card"><h3>${R.deals.length} продаж · ${money(R.totals.sum)}</h3><div class="tw"><table>
+  $('#view').innerHTML = head + filters() + `<div class="card"><h3>${R.deals.length} продаж · ${money(R.totals.sum)}</h3><div class="tw"><table>
     <thead><tr><th>Дата</th><th>Менеджер</th><th>Сделка</th><th class="r">Сумма</th></tr></thead>
     <tbody>${R.deals.slice(0, 1000).map(d => `<tr><td class="num">${fd(d.dk)}</td><td><div class="who">${av(d.name, uPhoto(d.uid))}${esc(d.name)}</div></td><td>#${esc(d.id)} ${esc(d.title)}</td><td class="r num"><b>${money(d.sum)}</b></td></tr>`).join('') || '<tr><td colspan="4" class="empty">Продаж за период нет</td></tr>'}</tbody></table></div>
     ${R.deals.length > 1000 ? '<p class="hint">Показаны первые 1000 — полный список в CSV</p>' : ''}</div>`;
   bindFilters(); $('#csv').href = '/api/admin/report?' + qs({ format: 'csv', kind: 'deals' });
 };
 
-pages.boards = () => {
-  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Лидерборды <span class="pill">${cfg.boards.length}</span></h1><button class="btn g" id="add">+ Добавить</button>
-    <div class="sub">У каждой доски своя ссылка для телевизора, свой состав, план и бонусы.</div></div>
-    <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Название</th><th>Период</th><th class="r">План компании</th><th class="r">Менеджеры</th><th>Статус</th><th></th></tr></thead><tbody>
-    ${cfg.boards.map((b, i) => { const st = S.boards.find(x => x.id === b.id); return `<tr><td>${i + 1}</td><td><a href="#/board/${b.id}"><b>${esc(b.name)}</b></a><div style="color:var(--muted);font-size:12.5px">${b.departments.length ? 'Сектор: ' + esc(b.departments.map(id => (S.deps.find(d => d.id === id) || { name: id }).name).join(', ')) : (b.members.length ? 'Выбранные менеджеры' : 'Все отделы')}</div></td>
-      <td>${b.auto ? 'Текущий месяц' : fd(b.from) + ' — ' + fd(b.to)}</td><td class="r num">${companyPlan(b) ? money(companyPlan(b)) : '—'}</td><td class="r">${st ? st.members.length : '—'}</td>
-      <td>${b.active ? '<span class="pill ok">Активный</span>' : '<span class="pill no">Пауза</span>'}</td>
-      <td class="r" style="white-space:nowrap"><a class="btn l s" href="/b/${b.key}" target="_blank">Открыть ТВ ↗</a> <a class="btn s" href="#/board/${b.id}">Настроить</a></td></tr>`; }).join('')}
-    </tbody></table></div></div>`;
-  $('#add').onclick = () => {
-    const b = JSON.parse(JSON.stringify(cfg.boards[0] || {}));
-    Object.assign(b, { id: uid(), key: '', name: 'Новый лидерборд', departments: [], members: [], exclude: [], sectorPlans: {} });
-    cfg.boards.push(b); setDirty(); location.hash = '#/board/' + b.id;
-  };
-};
-
 pages.board = (id, tab = 'main') => {
-  const i = cfg.boards.findIndex(b => b.id === id); if (i < 0) { location.hash = '#/boards'; return; }
+  const i = cfg.boards.findIndex(b => b.id === id); if (i < 0) { $('#view').innerHTML = '<div class="empty">Табло не настроено</div>'; return; }
   const b = cfg.boards[i], K = `boards.${i}`;
   const tabs = [['main', 'Настройки'], ['screen', 'Экран'], ['people', 'Участники']];
   let h = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>${esc(b.name)}</h1>
-    ${b.key ? `<a class="btn l" href="/b/${b.key}" target="_blank">Открыть ТВ ↗</a>` : ''}<div class="sub"><a href="#/boards">← Все лидерборды</a></div></div>
-    <div class="tabs">${tabs.map(([k, n]) => `<a href="#/board/${id}/${k}" class="${tab === k ? 'on' : ''}">${n}</a>`).join('')}</div>`;
+    ${b.key ? `<a class="btn l" href="/b/${b.key}" target="_blank">Открыть ТВ ↗</a>` : ''}<div class="sub">Публичная ссылка для телевизора, период, план секторов, сетка зарплаты и бонусы.</div></div>
+    <div class="tabs">${tabs.map(([k, n]) => `<a href="#/settings/board/${k}" class="${tab === k ? 'on' : ''}">${n}</a>`).join('')}</div>`;
 
   if (tab === 'main') {
     h += `<div class="card"><h3>Доска</h3><p class="hint">Как конкурс называется на ТВ и в кабинете.</p>
@@ -572,7 +554,7 @@ pages.board = (id, tab = 'main') => {
         </tbody></table></div>
         ${b.exclude.length ? `<p class="hint" style="margin-top:12px">Убраны с доски: ${b.exclude.map(id => `<span class="pill">${esc(uName(id))} <a href="javascript:void 0" data-unex="${id}" style="color:#15803d">вернуть</a></span>`).join(' ')}</p>` : ''}</div>`;
   }
-  $('#main').innerHTML = h;
+  $('#view').innerHTML = h;
 
   // действия
   document.querySelectorAll('[data-add]').forEach(el => el.onclick = () => { const arr = getP(cfg, el.dataset.add); arr.push(el.dataset.add.endsWith('commission') ? { from: '', to: '', pct: '', premium: '' } : { min: '', amount: '' }); setDirty(); route(); });
@@ -604,7 +586,7 @@ pages.managers = () => {
     .filter(u => !q || uName(u.id).toLowerCase().includes(q) || u.name.toLowerCase().includes(q))
     .sort((a, b) => (S.dealUids.includes(b.id) - S.dealUids.includes(a.id)) || a.name.localeCompare(b.name, 'ru'));
   const inBoards = id => cfg.boards.filter(b => (S.boards.find(x => x.id === b.id) || { members: [] }).members.includes(id)).map(b => b.name);
-  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Менеджеры <span class="pill">${list.length}</span></h1>
+  $('#view').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Менеджеры <span class="pill">${list.length}</span></h1>
     <input class="in" id="q" placeholder="Поиск…" style="max-width:260px" value="${esc(pages.managers.q || '')}">
     <div class="sub">Сотрудники приходят из Bitrix24. Здесь можно заменить фото, имя на табло, подпись (категорию) и скрыть человека со всех досок.</div></div>
     <div class="card"><div class="tw"><table><thead><tr><th>Фото</th><th>Сотрудник Bitrix24</th><th>Имя на табло</th><th>Подпись / категория</th><th>Лидерборды</th><th>Скрыть</th></tr></thead><tbody>
@@ -639,7 +621,7 @@ pages.settings = () => {
   const cats = {}; (M.stages || []).forEach(st => { (cats[st.category] = cats[st.category] || []).push(st); });
   const known = new Set((M.stages || []).map(x => x.id));
   const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Настройки</h1></div>
+  $('#view').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Настройки</h1></div>
     <div class="card"><h3>Bitrix24</h3>
       <p>${S.bitrix ? (S.error ? `<span class="pill er">Ошибка</span> ${esc(S.error)}` : '<span class="pill ok">Подключено</span>') : '<span class="pill er">BITRIX_WEBHOOK не задан в Render</span>'}
       ${S.syncedAt ? ` · последняя синхронизация ${new Date(S.syncedAt).toLocaleTimeString('ru-RU')}` : ''} · хранилище: <b>${S.store === 'postgres' ? 'Postgres' : 'файл (временное!)'}</b></p>
@@ -724,13 +706,13 @@ pages.payouts = async () => {
     <div class="sub">Зарплата выплачивается еженедельно. Выплата недели = начислено на конец недели минус уже выплачено, поэтому переход на следующую ступень сетки доплачивается автоматически.</div></div>
     <div class="card"><div class="row2"><label class="f"><span>Месяц</span><select class="in" id="poM">${months.map(m => `<option value="${m}" ${m === PO.month ? 'selected' : ''}>${mName(m)}</option>`).join('')}</select></label>
       <label class="f"><span>Лидерборд (его условия)</span><select class="in" id="poB">${cfg.boards.map(b => `<option value="${b.id}" ${b.id === PO.board ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select></label></div></div>`;
-  $('#main').innerHTML = head + '<div class="empty">Считаем…</div>';
+  $('#view').innerHTML = head + '<div class="empty">Считаем…</div>';
   const bind = () => { $('#poM').onchange = e => { PO.month = e.target.value; route(); }; $('#poB').onchange = e => { PO.board = e.target.value; route(); }; };
   bind();
-  let R; try { R = await api('/api/admin/payouts?' + q); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  let R; try { R = await api('/api/admin/payouts?' + q); } catch (e) { $('#view .empty').textContent = 'Ошибка: ' + e.message; return; }
   const wl = w => `${w.from.slice(8)}.${w.from.slice(5, 7)}–${w.to.slice(8)}.${w.to.slice(5, 7)}`;
   const tot = k => R.rows.reduce((a, r) => a + (+r[k] || 0), 0);
-  $('#main').innerHTML = head + `<div class="card"><div class="tw"><table>
+  $('#view').innerHTML = head + `<div class="card"><div class="tw"><table>
     <thead><tr><th>Менеджер</th><th class="r">Касса</th><th class="r">% сетки</th><th class="r">Процент</th><th class="r">Премия</th><th class="r">Бонусы</th><th class="r">Штрафы</th><th class="r">Итого</th>${R.weeks.map(w => `<th class="r">Неделя<br>${wl(w)}</th>`).join('')}</tr></thead>
     <tbody>${R.rows.map(r => `<tr><td><div class="who">${av(r.name, r.photo)}<div>${esc(r.name)}<small>${r.elite ? '★ Элит' : esc(r.dep)}</small></div></div></td>
       <td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${r.commPct ? +r.commPct.toFixed(1) + '%' : '—'}</td><td class="r num">${money(r.comm)}</td><td class="r num">${r.premium ? money(r.premium) : '—'}</td>
@@ -752,7 +734,7 @@ pages.penalties = () => {
   const people = [...new Set([...S.boards.flatMap(b => b.members), ...S.dealUids])].filter(id => !(cfg.managers[id] || {}).hidden).sort((a, b) => uName(a).localeCompare(uName(b), 'ru'));
   const list = [...cfg.penalties, ...(S.attPen || [])].filter(p => p.date.startsWith(PN.month)).sort((a, b) => b.date.localeCompare(a.date));
   const by = {}; list.forEach(p => { by[p.uid] = (by[p.uid] || 0) + (+p.amount || 0); });
-  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Штрафы</h1>
+  $('#view').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Штрафы</h1>
     <div class="sub">Опоздание и пропуск дня — вручную или автоматически с терминала Hikvision (см. «Посещаемость»). Штрафы вычитаются из зарплаты за период и из выплаты недели.</div></div>
     <div class="card"><h3>Добавить штраф</h3>
       <div class="row2">
@@ -787,12 +769,12 @@ const AST = { ok: ['ok', 'Вовремя'], late: ['er', 'Опоздал'], abse
 pages.att = async () => {
   if (!AT.date) AT.date = S.today; if (!AT.month) AT.month = S.today.slice(0, 7);
   const own = S.me.role === 'owner';
-  const top = sub => head('Посещаемость', sub) + `<div class="tabs"><a href="javascript:void 0" data-av="day" class="${AT.view === 'day' ? 'on' : ''}">День</a><a href="javascript:void 0" data-av="month" class="${AT.view === 'month' ? 'on' : ''}">Месяц</a>${own ? `<a href="javascript:void 0" data-av="setup" class="${AT.view === 'setup' ? 'on' : ''}">Терминал и правила</a>` : ''}</div>`;
+  const top = sub => head('Посещаемость', sub) + (AT.view === 'setup' ? '' : `<div class="tabs"><a href="javascript:void 0" data-av="day" class="${AT.view === 'day' ? 'on' : ''}">День</a><a href="javascript:void 0" data-av="month" class="${AT.view === 'month' ? 'on' : ''}">Месяц</a></div>`);
   const bindTop = () => document.querySelectorAll('[data-av]').forEach(el => el.onclick = () => { AT.view = el.dataset.av; route(); });
-  $('#main').innerHTML = top('Загрузка…') + '<div class="empty">Загрузка…</div>'; bindTop();
+  $('#view').innerHTML = top('Загрузка…') + '<div class="empty">Загрузка…</div>'; bindTop();
   if (AT.view === 'setup' && own) return attSetup(top, bindTop);
   const q = (AT.view === 'month' ? 'month=' + AT.month : 'date=' + AT.date) + '&sector=' + encodeURIComponent(F.sector || '');
-  let R; try { R = await api('/api/admin/att?' + q); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  let R; try { R = await api('/api/admin/att?' + q); } catch (e) { $('#view .empty').textContent = 'Ошибка: ' + e.message; return; }
   const sub = `Рабочий день с ${R.settings.start}${+R.settings.grace ? ' (допуск ' + R.settings.grace + ' мин)' : ''}, опоздание до ${R.settings.lateUntil}, позже — пропуск. Данные с терминала Hikvision.`;
   const ctl = AT.view === 'month' ? `<input class="in" type="month" id="aM" value="${AT.month}" style="max-width:190px">` : `<input class="in" type="date" id="aD" value="${AT.date}" style="max-width:190px">`;
   const bar = `<div class="card" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap"><label class="f" style="margin:0"><span>${AT.view === 'month' ? 'Месяц' : 'Дата'}</span>${ctl}</label><label class="f" style="margin:0;min-width:220px"><span>Сектор</span>${secSelect('aSec', S.me.sectors ? 'Все мои секторы' : 'Все секторы')}</label></div>`;
@@ -800,7 +782,7 @@ pages.att = async () => {
   const dis = (r, label) => own && r.penId ? `<button class="btn l s" data-dis="${r.penId}" data-on="${r.dismissed ? '' : '1'}" title="${r.dismissed ? 'Вернуть штраф' : 'Уважительная причина — снять штраф'}">${r.dismissed ? 'Вернуть' : label}</button>` : '';
   if (AT.view === 'day') {
     const c = k => R.rows.filter(r => r.st === k).length, came = R.rows.filter(r => r.in).length;
-    $('#main').innerHTML = top(sub) + bar + noMap + (R.rows.length ? `
+    $('#view').innerHTML = top(sub) + bar + noMap + (R.rows.length ? `
       <div class="grid">
         <div class="kpi"><small>Пришли</small><b class="num">${came} / ${R.rows.length}</b><span>${R.work ? 'рабочий день' : 'выходной по графику'}</span></div>
         <div class="kpi"><small>Вовремя</small><b class="num good">${c('ok')}</b><span>до ${R.settings.start}</span></div>
@@ -815,7 +797,7 @@ pages.att = async () => {
       </tbody></table></div></div>` : '');
   } else {
     const wd = d => new Date(d + 'T00:00:00Z').getUTCDay() || 7;
-    $('#main').innerHTML = top(sub) + bar + noMap + (R.rows.length ? `
+    $('#view').innerHTML = top(sub) + bar + noMap + (R.rows.length ? `
       <div class="card"><div class="tw"><table class="amx"><thead><tr><th></th>${R.days.map(d => `<th class="${(cfg.settings.workDays || []).includes(wd(d)) ? '' : 'we'}">${+d.slice(8)}</th>`).join('')}<th>Опозд.</th><th>Мин</th><th>Пропуск</th><th>Штрафы</th></tr></thead><tbody>
       ${R.rows.map(r => `<tr><td class="n"><b>${esc(r.name)}</b><br><small style="color:var(--muted)">${esc(r.sector)}</small></td>${r.cells.map((x, i) => `<td><i class="${x.st}${x.dismissed ? ' dis' : ''}" title="${fd(R.days[i])}: ${(AST[x.st] || [, x.st])[1]}${x.in ? ' · ' + x.in + (x.out ? '–' + x.out : '') : ''}${x.lateMin ? ' (+' + x.lateMin + ' мин)' : ''}${x.pen ? ' · штраф ' + money(x.pen) : ''}">${x.in || (x.st === 'absent' ? '✕' : x.st === 'off' ? '·' : '')}</i></td>`).join('')}
         <td class="num ${r.late ? 'bad' : ''}"><b>${r.late}</b></td><td class="num">${r.lateMin}</td><td class="num ${r.absent ? 'bad' : ''}"><b>${r.absent}</b></td><td class="num" style="color:var(--red)">${r.pen ? '−' + money(r.pen) : '—'}</td></tr>`).join('')}
@@ -831,13 +813,13 @@ pages.att = async () => {
   });
 };
 async function attSetup(top, bindTop) {
-  let R; try { R = await api('/api/admin/att/setup'); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  let R; try { R = await api('/api/admin/att/setup'); } catch (e) { $('#view .empty').textContent = 'Ошибка: ' + e.message; return; }
   const st = R.status, ago = st && st.lastAt ? Math.round((Date.now() - st.lastAt) / 60000) : null;
   const people = [...new Set([...S.boards.flatMap(b => b.members), ...S.dealUids, ...Object.keys(cfg.managers)])].filter(id => !(cfg.managers[id] || {}).hidden).sort((a, b) => uName(a).localeCompare(uName(b), 'ru'));
   const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е').split(/\s+/).filter(Boolean).sort().join(' ');
   const guess = n => { const k = norm(n); if (!k) return ''; const f = people.filter(id => norm(uName(id)) === k || (k.split(' ').length > 1 && norm(uName(id)).includes(k))); return f.length === 1 ? f[0] : ''; };
   const used = Object.values(cfg.settings.att.map || {});
-  $('#main').innerHTML = top('Подключение терминала Hikvision DS-K1T343M (и других терминалов доступа Hikvision) и правила учёта') + `
+  $('#view').innerHTML = top('Подключение терминала Hikvision DS-K1T343M (и других терминалов доступа Hikvision) и правила учёта') + `
     <div class="card"><h3>Состояние</h3>
       ${st && st.lastAt ? `<p><span class="pill ${ago < 24 * 60 ? 'ok' : 'er'}">${ago < 24 * 60 ? 'Подключено' : 'Давно нет событий'}</span> Последнее событие: ${new Date(st.lastAt).toLocaleString('ru-RU')} (${ago} мин назад) · источник: ${st.lastFrom === 'bridge' ? 'мост' : 'терминал напрямую'} · всего принято ${st.total}</p>` : '<p><span class="pill no">Ещё нет событий</span> Подключите терминал одним из способов ниже и пройдите по лицу — запись появится здесь.</p>'}
     </div>
@@ -878,16 +860,16 @@ async function attSetup(top, bindTop) {
 /* ===== общие помощники аналитики ===== */
 const pct = v => v == null ? '—' : (Math.round(v * 10) / 10) + '%';
 const whNote = w => w ? `База: ${w.counts.deal} сделок · ${w.counts.lead} лидов · ${w.counts.call} звонков · с ${fd(w.from)}${w.lastRun ? ' · синхр. ' + new Date(w.lastRun).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : ' · идёт первая загрузка…'}${w.progress ? ' (' + w.progress + ')' : ''}` : '';
-const head = (title, sub, extra = '') => `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>${title}</h1>${extra}<div class="sub">${sub}</div></div>`;
+const head = (title, sub, extra = '') => `<div class="top"><div class="sub">${sub}</div>${extra}</div>`;
 
 /* ===== воронка и выкуп ===== */
 pages.funnel = async () => {
-  $('#main').innerHTML = head('Воронка и выкуп', 'Загрузка…') + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
-  let R; try { R = await api('/api/admin/funnel?' + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  $('#view').innerHTML = head('Воронка и выкуп', 'Загрузка…') + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
+  let R; try { R = await api('/api/admin/funnel?' + qs()); } catch (e) { $('#view .empty').textContent = 'Ошибка: ' + e.message; return; }
   const T = R.total, mx = Math.max(1, T.leads, T.deals, T.orders), DM = R.mode === 'deals';
   const bar = (label, v, sub) => `<div><i style="width:${Math.max(1, v / mx * 70)}%"></i><span><b class="num">${v}</b> ${label}${sub ? ` <span style="color:var(--muted)">${sub}</span>` : ''}</span></div>`;
   const vk = v => v == null ? '—' : `<b class="${v >= 80 ? 'good' : v < 60 ? 'bad' : ''}">${pct(v)}</b>`;
-  $('#main').innerHTML = head('Воронка и выкуп', whNote(R.wh)) + filters() + `
+  $('#view').innerHTML = head('Воронка и выкуп', whNote(R.wh)) + filters() + `
     ${R.wh && R.wh.error ? `<div class="warn">База: ${esc(R.wh.error)}</div>` : ''}
     ${DM ? '<div class="warn" style="background:#eef4ff;border-color:#cfe0ff;color:#1e3a8a">В Bitrix24 нет лидов (простой режим CRM: обращение сразу становится сделкой). Поэтому верх воронки — новые сделки, а «конверсия» — сколько из них дошли до заказа.</div>' : ''}
     <div class="grid">
@@ -911,12 +893,20 @@ pages.funnel = async () => {
 };
 
 /* ===== звонки ===== */
+let CALLV = 'stats';
 pages.calls = async () => {
-  $('#main').innerHTML = head('Звонки', 'Загрузка…') + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
-  let R; try { R = await api('/api/admin/calls?' + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  if (CALLV === 'rec') {
+    $('#view').innerHTML = head('Звонки', 'Записи разговоров из Bitrix24 и AI-оценка менеджеров. ▶ — послушать, оценка — открыть разбор.') + filters() + `    <div class="card" id="aiSum"><h3>AI-оценка разговоров</h3><div id="aiSumB" class="empty">Загрузка…</div></div>
+    <div class="card" id="recs"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><h3 style="flex:1;margin:0">Записи разговоров</h3>
+      <input class="in" id="recQ" placeholder="Поиск по номеру" value="${esc(REC.q)}" style="max-width:220px"><label class="ck"><input type="checkbox" id="recAll" ${REC.all ? 'checked' : ''}> все звонки</label></div>
+      <div id="recBody" class="empty">Загрузка…</div></div>`;
+    bindFilters(); loadRecs(); loadAiSum(); return;
+  }
+  $('#view').innerHTML = head('Звонки', 'Загрузка…') + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
+  let R; try { R = await api('/api/admin/calls?' + qs()); } catch (e) { $('#view .empty').textContent = 'Ошибка: ' + e.message; return; }
   const DM = R.mode === 'deals', LW = DM ? 'сделке' : 'лиду';
   const T = R.total, L = R.leadResponse, mh = Math.max(1, ...R.hours), mins = v => v == null ? '—' : v < 1 ? '<1 мин' : v < 60 ? Math.round(v) + ' мин' : (Math.round(v / 6) / 10) + ' ч';
-  $('#main').innerHTML = head('Звонки', whNote(R.wh)) + filters() + `
+  $('#view').innerHTML = head('Звонки', whNote(R.wh)) + filters() + `
     ${R.wh && R.wh.callsError ? `<div class="warn">${esc(R.wh.callsError)}</div>` : ''}
     <div class="grid">
       <div class="kpi"><small>Звонков</small><b class="num">${T.total}</b><span>${T.unique} уникальных номеров</span></div>
@@ -931,11 +921,8 @@ pages.calls = async () => {
       ${R.managers.map(x => `<tr><td><div class="who">${av(x.name, uPhoto(x.uid))}<div>${esc(x.name)}<small>${esc(x.sector)}</small></div></div></td><td class="r num"><b>${x.total}</b></td><td class="r num">${x.out}</td><td class="r num">${pct(x.reach)}</td><td class="r num">${x.inc}</td><td class="r num ${x.missed ? 'bad' : ''}">${x.missed || '—'}</td><td class="r num">${x.talkMin}</td><td class="r num">${x.orders}</td><td class="r num">${x.callsPerOrder == null ? '—' : Math.round(x.callsPerOrder * 10) / 10}</td><td class="r num">${mins(x.respMedianMin)}</td><td class="r num ${x.leadsNoCall ? 'bad' : ''}">${x.leadsNoCall || '—'}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Звонков за период нет</td></tr>'}</tbody></table></div></div>
     ${L.noCallList.length ? `<div class="card"><h3>${DM ? 'Новые сделки' : 'Лиды'} без звонка</h3><p class="hint">${DM ? 'Сделки' : 'Лиды'} периода, по которым нет ни одного звонка в Bitrix24.</p><div class="tw"><table><thead><tr><th>${DM ? 'Сделка' : 'Лид'}</th><th>Менеджер</th><th>Создан(а)</th></tr></thead><tbody>
       ${L.noCallList.map(l => `<tr><td>#${esc(l.id)} ${esc(l.title)}</td><td>${esc(l.manager)}</td><td class="num">${esc(String(l.created).slice(0, 16).replace('T', ' '))}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
-    <div class="card" id="aiSum"><h3>AI-оценка разговоров</h3><div id="aiSumB" class="empty">Загрузка…</div></div>
-    <div class="card" id="recs"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><h3 style="flex:1;margin:0">Записи разговоров</h3>
-      <input class="in" id="recQ" placeholder="Поиск по номеру" value="${esc(REC.q)}" style="max-width:220px"><label class="ck"><input type="checkbox" id="recAll" ${REC.all ? 'checked' : ''}> все звонки</label></div>
-      <div id="recBody" class="empty">Загрузка…</div></div>`;
-  bindFilters(); loadRecs(); loadAiSum();
+`;
+  bindFilters();
 };
 const REC = { q: '', all: false, play: '' };
 const scCls = v => v >= 80 ? 'g' : v >= 60 ? 'm' : 'b';
@@ -944,9 +931,9 @@ async function loadAiSum() {
   const b = $('#aiSumB'); if (!b) return;
   let R; try { R = await api('/api/admin/callai/summary?' + qs()); } catch (e) { b.textContent = 'Ошибка: ' + e.message; return; }
   const st = R.status, own = S.me.role === 'owner';
-  if (!st.ready.stt || !st.ready.claude) { b.className = ''; b.innerHTML = `<div class="warn">AI-разбор не подключён: ${!st.ready.stt ? 'нужен ключ расшифровки (ElevenLabs или OpenAI)' : 'нужен ANTHROPIC_API_KEY'}. ${own ? '<a href="#/settings">Настройки → AI-разбор звонков</a>' : 'Обратитесь к владельцу.'}</div>`; return; }
+  if (!st.ready.stt || !st.ready.claude) { b.className = ''; b.innerHTML = `<div class="warn">AI-разбор не подключён: ${!st.ready.stt ? 'нужен ключ расшифровки (ElevenLabs или OpenAI)' : 'нужен ANTHROPIC_API_KEY'}. ${own ? '<a href="#/settings/system">Настройки → Система → AI-разбор звонков</a>' : 'Обратитесь к владельцу.'}</div>`; return; }
   b.className = '';
-  b.innerHTML = `<p class="hint" style="margin:0 0 10px">${st.on ? `Автоматически разбираются новые звонки с записью · сегодня: ${st.doneToday}` : `Авторазбор выключен${own ? ' (<a href="#/settings">включить</a>)' : ''} — разбор по кнопке «AI разбор» в записях`} · всего разборов: ${st.total}</p>
+  b.innerHTML = `<p class="hint" style="margin:0 0 10px">${st.on ? `Автоматически разбираются новые звонки с записью · сегодня: ${st.doneToday}` : `Авторазбор выключен${own ? ' (<a href="#/settings/system">включить</a>)' : ''} — разбор по кнопке «AI разбор» в записях`} · всего разборов: ${st.total}</p>
     ${R.total.n ? `<div class="grid"><div class="kpi"><small>Средняя оценка</small><b class="num">${R.total.avg}<span style="font-size:15px;color:var(--muted)"> / 100</span></b><span>${R.total.n} разговоров за период</span></div>
       ${R.criteria.slice().sort((a, b) => a.avg - b.avg).filter(c => c.avg < 8).slice(0, 3).map(c => `<div class="kpi"><small>Слабое место</small><b class="num ${c.avg < 6 ? 'bad' : ''}" style="font-size:24px">${c.avg}/10</b><span>${esc(c.name)}</span></div>`).join('')}</div>
     <div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Разборов</th><th class="r">Средняя оценка</th><th class="r">Заказов</th><th>Сильнее всего</th><th>Слабее всего</th></tr></thead><tbody>
@@ -1007,13 +994,13 @@ const num1 = v => v == null ? '—' : (Math.round(v * 10) / 10).toLocaleString('
 const minsF = v => v == null ? '—' : v < 60 ? Math.round(v) + ' мин' : (Math.round(v / 6) / 10) + ' ч';
 const gsc = v => v == null ? '<span style="color:var(--muted)">—</span>' : `<b style="color:${v >= 70 ? '#0f7a48' : v >= 45 ? '#a85800' : '#c0281b'}">${v}</b>`;
 pages.eff = async () => {
-  const tabs = `<div class="tabs"><a href="javascript:void 0" data-et="index" class="${EFV.tab === 'index' ? 'on' : ''}">Индекс эффективности</a><a href="javascript:void 0" data-et="touch" class="${EFV.tab === 'touch' ? 'on' : ''}">Касания</a></div>`;
+  const tabs = '';
   const bindT = () => document.querySelectorAll('[data-et]').forEach(el => el.onclick = () => { EFV.tab = el.dataset.et; route(); });
-  $('#main').innerHTML = head('Эффективность менеджеров', 'Загрузка…') + tabs + filters() + '<div class="empty">Считаем…</div>'; bindFilters(); bindT();
-  let R; try { R = await api((EFV.tab === 'index' ? '/api/admin/eff?' : '/api/admin/touches?') + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  $('#view').innerHTML = head('Эффективность менеджеров', 'Загрузка…') + tabs + filters() + '<div class="empty">Считаем…</div>'; bindFilters(); bindT();
+  let R; try { R = await api((EFV.tab === 'index' ? '/api/admin/eff?' : '/api/admin/touches?') + qs()); } catch (e) { $('#view .empty').textContent = 'Ошибка: ' + e.message; return; }
   if (EFV.tab === 'index') {
     const own = S.me.role === 'owner', top = R.rows[0], low = R.rows.filter(r => r.index != null).slice(-1)[0];
-    $('#main').innerHTML = head('Эффективность менеджеров', 'Индекс 0–100: место менеджера среди коллег по каждому направлению с учётом весов. Нажмите на строку — карточка за 3 месяца.') + tabs + filters() + `
+    $('#view').innerHTML = head('Эффективность менеджеров', 'Индекс 0–100: место менеджера среди коллег по каждому направлению с учётом весов. Нажмите на строку — карточка за 3 месяца.') + tabs + filters() + `
       <div class="grid">
         <div class="kpi"><small>Средний индекс команды</small><b class="num">${R.team ?? '—'}</b><span>${R.rows.length} менеджеров</span></div>
         <div class="kpi"><small>Лидер</small><b class="num good" style="font-size:24px">${top ? esc(top.name) : '—'}</b><span>${top ? 'индекс ' + top.index : ''}</span></div>
@@ -1033,7 +1020,7 @@ pages.eff = async () => {
   }
   const T = R.total, O = R.byOutcome, mxo = Math.max(0.1, ...Object.values(O).map(x => x.avg || 0));
   const ob = (k, label) => `<div class="cr" style="grid-template-columns:150px 1fr 120px"><b style="font-size:14px">${label}</b><div class="bar"><i style="width:${(O[k].avg || 0) / mxo * 100}%"></i></div><span class="num">${num1(O[k].avg)} · ${O[k].deals} сд.</span></div>`;
-  $('#main').innerHTML = head('Эффективность менеджеров', 'Касание — звонок по сделке (к самой сделке, её контакту или лиду). Считаются сделки, созданные в выбранный период.') + tabs + filters() + `
+  $('#view').innerHTML = head('Эффективность менеджеров', 'Касание — звонок по сделке (к самой сделке, её контакту или лиду). Считаются сделки, созданные в выбранный период.') + tabs + filters() + `
     <div class="grid">
       <div class="kpi"><small>Касаний на сделку</small><b class="num">${num1(T.avgTouches)}</b><span>из них разговоров: ${num1(T.avgOk)}</span></div>
       <div class="kpi"><small>Касаний до заказа</small><b class="num">${num1(T.touchesToOrder)}</b><span>дней до заказа (медиана): ${num1(T.daysToOrder)}</span></div>
@@ -1092,7 +1079,7 @@ function md(t) {
 pages.ai = () => {
   const TL = { get_board_today: 'табло', get_sales_report: 'продажи', get_funnel: 'воронка', get_calls: 'звонки', find_deals: 'сделки', get_sources: 'источники', get_payouts: 'зарплата', list_people: 'сотрудники' };
   const sug = ['Бүгін қалай? Жоспар орындала ма?', 'Кто лучший менеджер за неделю и почему?', 'Где мы теряем выкуп в этом месяце?', 'Кто медленно звонит по новым лидам?', 'Сравни секторы за месяц', 'Какие заказы зависли дольше всего?'];
-  $('#main').innerHTML = head('AI-ассистент', `Отвечает по данным базы Safa${S.me.sectors ? ' — только по вашим секторам' : ''}. Цифры берёт из CRM, не выдумывает.`,
+  $('#view').innerHTML = head('AI-ассистент', `Отвечает по данным базы Safa${S.me.sectors ? ' — только по вашим секторам' : ''}. Цифры берёт из CRM, не выдумывает.`,
     AI.msgs.length ? '<button class="btn l s" id="aiClear">Новый диалог</button>' : '') + `
     ${S.ai ? '' : '<div class="warn">AI ещё не подключён: владельцу нужно добавить ключ <b>ANTHROPIC_API_KEY</b> в переменные окружения сервиса на Render.</div>'}
     <div class="chat"><div class="msgs" id="msgs">${AI.msgs.length ? '' : `<div class="hello"><b>Спросите что угодно о продажах</b>Касса, выкуп, звонки, зарплата, сравнение менеджеров и секторов — на казахском или русском.</div>`}</div>
@@ -1129,7 +1116,7 @@ const UE = { edit: null };
 pages.users = () => {
   const list = S.accounts || [], secName = id => (S.sectors.find(x => x.id === id) || { name: id }).name;
   const u = UE.edit;
-  $('#main').innerHTML = head(`Пользователи <span class="pill">${list.length}</span>`, 'Руководители секторов входят со своим логином и паролем и видят только свои секторы: главная, продажи, выплаты, воронка, звонки и AI-ассистент. Настройки, лидерборд и штрафы доступны только владельцу.',
+  $('#view').innerHTML = head(`Пользователи <span class="pill">${list.length}</span>`, 'Руководители секторов входят со своим логином и паролем и видят только свои секторы: главная, продажи, выплаты, воронка, звонки и AI-ассистент. Настройки, лидерборд и штрафы доступны только владельцу.',
     '<button class="btn g" id="uAdd">+ Добавить руководителя</button>') + `
     ${u ? `<div class="card"><h3>${u.id ? 'Изменить' : 'Новый'} аккаунт</h3>
       <div class="row2"><label class="f"><span>Имя</span><input class="in" id="uName" value="${esc(u.name || '')}" placeholder="Айгерим — руководитель Gold"></label>
@@ -1158,15 +1145,44 @@ pages.users = () => {
 };
 
 /* ===== роутер ===== */
+const SECTIONS = [
+  { id: 'home', title: 'Главная' },
+  { id: 'sales', title: 'Продажи', tabs: [['list', 'Сделки'], ['funnel', 'Воронка и выкуп']] },
+  { id: 'team', title: 'Команда', tabs: [['eff', 'Эффективность'], ['touch', 'Касания'], ['att', 'Посещаемость']] },
+  { id: 'calls', title: 'Звонки', tabs: [['stats', 'Аналитика'], ['rec', 'Записи и AI-разбор']] },
+  { id: 'money', title: 'Зарплата', tabs: [['payouts', 'Выплаты'], ['penalties', 'Штрафы', 1]] },
+  { id: 'ai', title: 'AI-ассистент' },
+  { id: 'settings', title: 'Настройки', own: 1, tabs: [['board', 'Табло и планы'], ['managers', 'Менеджеры'], ['users', 'Доступы'], ['terminal', 'Терминал'], ['system', 'Система']] },
+];
+// старые адреса → новые разделы
+const OLD = { funnel: 'sales/funnel', eff: 'team/eff', att: 'team/att', payouts: 'money/payouts', penalties: 'money/penalties', boards: 'settings/board', board: 'settings/board', managers: 'settings/managers', users: 'settings/users' };
+let homeTimer = null;
 function route() {
   if (!S) return;
-  document.body.classList.remove('menu');
+  document.body.classList.remove('menu'); clearTimeout(homeTimer);
   const [, r = '', a, b] = location.hash.split('/');
-  const name = r || 'home';
-  document.querySelectorAll('aside a[data-r]').forEach(x => x.classList.toggle('on', x.dataset.r === name || (name === 'board' && x.dataset.r === 'boards')));
-  const OWN = ['boards', 'board', 'managers', 'penalties', 'settings', 'users'];
-  if (S.me.role !== 'owner' && OWN.includes(name)) { location.hash = '#/'; return; }
-  (pages[name] || pages.home)(a, b);
+  if (OLD[r]) { location.replace('#/' + (r === 'board' && b ? 'settings/board/' + b : OLD[r])); return; }
+  const own = S.me.role === 'owner';
+  const sec = SECTIONS.find(x => x.id === (r || 'home')) || SECTIONS[0];
+  if (sec.own && !own) { location.hash = '#/'; return; }
+  const tabs = (sec.tabs || []).filter(t => !t[2] || own);
+  const tab = tabs.some(t => t[0] === a) ? a : (tabs[0] || [])[0];
+  document.querySelectorAll('aside a[data-r]').forEach(x => x.classList.toggle('on', x.dataset.r === sec.id));
+  const ago = S.syncedAt ? Math.max(0, Math.round((Date.now() - S.syncedAt) / 60000)) : null;
+  $('#main').innerHTML = `<header class="pgh"><div class="pgt"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>${sec.title}</h1>
+    <div class="pga"><span class="sync ${S.error ? 'er' : ''}" title="${esc(S.error || '')}"><i></i>${S.error ? 'Bitrix24: ошибка' : ago == null ? 'Bitrix24' : ago < 1 ? 'Bitrix24 · только что' : 'Bitrix24 · ' + ago + ' мин назад'}</span></div></div>
+    ${tabs.length > 1 ? `<nav class="stabs">${tabs.map(t => `<a href="#/${sec.id}/${t[0]}" class="${t[0] === tab ? 'on' : ''}">${t[1]}</a>`).join('')}</nav>` : ''}</header><div id="view"></div>`;
+  const go = {
+    home: () => pages.home(),
+    sales: () => (tab === 'funnel' ? pages.funnel() : pages.sales()),
+    team: () => { if (tab === 'att') { if (AT.view === 'setup') AT.view = 'day'; return pages.att(); } EFV.tab = tab === 'touch' ? 'touch' : 'index'; return pages.eff(); },
+    calls: () => { CALLV = tab; return pages.calls(); },
+    money: () => (tab === 'penalties' ? pages.penalties() : pages.payouts()),
+    ai: () => pages.ai(),
+    settings: () => ({ board: () => pages.board((cfg.boards[0] || {}).id, b || 'main'), managers: () => pages.managers(), users: () => pages.users(),
+      terminal: () => { AT.view = 'setup'; return pages.att(); }, system: () => pages.settings() })[tab](),
+  };
+  go[sec.id]();
 }
 addEventListener('hashchange', route);
 loadState().then(route).catch(e => { $('#main').innerHTML = `<div class="warn">Ошибка загрузки: ${esc(e.message)}</div>`; });
