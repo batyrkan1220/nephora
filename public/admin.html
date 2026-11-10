@@ -754,23 +754,24 @@ const head = (title, sub, extra = '') => `<div class="top"><button class="burger
 pages.funnel = async () => {
   $('#main').innerHTML = head('Воронка и выкуп', 'Загрузка…') + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
   let R; try { R = await api('/api/admin/funnel?' + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
-  const T = R.total, mx = Math.max(1, T.leads, T.deals, T.orders);
+  const T = R.total, mx = Math.max(1, T.leads, T.deals, T.orders), DM = R.mode === 'deals';
   const bar = (label, v, sub) => `<div><i style="width:${Math.max(1, v / mx * 70)}%"></i><span><b class="num">${v}</b> ${label}${sub ? ` <span style="color:var(--muted)">${sub}</span>` : ''}</span></div>`;
   const vk = v => v == null ? '—' : `<b class="${v >= 80 ? 'good' : v < 60 ? 'bad' : ''}">${pct(v)}</b>`;
   $('#main').innerHTML = head('Воронка и выкуп', whNote(R.wh)) + filters() + `
     ${R.wh && R.wh.error ? `<div class="warn">База: ${esc(R.wh.error)}</div>` : ''}
+    ${DM ? '<div class="warn" style="background:#eef4ff;border-color:#cfe0ff;color:#1e3a8a">В Bitrix24 нет лидов (простой режим CRM: обращение сразу становится сделкой). Поэтому верх воронки — новые сделки, а «конверсия» — сколько из них дошли до заказа.</div>' : ''}
     <div class="grid">
-      <div class="kpi"><small>Лиды</small><b class="num">${T.leads}</b><span>${T.leadsWon} сконвертировано</span></div>
+      <div class="kpi"><small>${DM ? 'Новые сделки (обращения)' : 'Лиды'}</small><b class="num">${T.leads}</b><span>${T.leadsWon} ${DM ? 'дошли до заказа' : 'сконвертировано'}</span></div>
       <div class="kpi"><small>Заказы (по дате заказа)</small><b class="num">${T.orders}</b><span>${money(T.ordersSum)}</span></div>
-      <div class="kpi"><small>Конверсия лидов</small><b class="num">${pct(T.conv)}</b><span>ср. чек ${money(T.avg)}</span></div>
+      <div class="kpi"><small>${DM ? 'Конверсия в заказ' : 'Конверсия лидов'}</small><b class="num">${pct(T.conv)}</b><span>ср. чек ${money(T.avg)}</span></div>
       <div class="kpi"><small>Выкуп</small><b class="num ${T.vykup >= 80 ? 'good' : T.vykup < 60 ? 'bad' : ''}">${pct(T.vykup)}</b><span>по сумме ${pct(T.vykupSum)}</span></div>
       <div class="kpi"><small>Выкуплено</small><b class="num good">${money(T.wonSum)}</b><span>${T.won} заказов</span></div>
       <div class="kpi"><small>Отказ / возврат</small><b class="num bad">${money(T.lostSum)}</b><span>${T.lost} заказов · в работе ${T.open} на ${money(T.openSum)}</span></div>
     </div>
-    <div class="card"><h3>Воронка периода</h3><div class="fun">${bar('лидов', T.leads)}${bar('сделок создано', T.deals)}${bar('заказов', T.orders, money(T.ordersSum))}${bar('выкуплено', T.won, money(T.wonSum))}</div></div>
-    <div class="card"><h3>По секторам</h3><div class="tw"><table><thead><tr><th>Сектор</th><th class="r">Лиды</th><th class="r">Заказы</th><th class="r">Сумма</th><th class="r">Конверсия</th><th class="r">Выкуп</th><th class="r">Отказ</th><th class="r">В работе</th></tr></thead><tbody>
+    <div class="card"><h3>Воронка периода</h3><div class="fun">${DM ? '' : bar('лидов', T.leads)}${bar(DM ? 'новых сделок' : 'сделок создано', T.deals)}${bar('заказов', T.orders, money(T.ordersSum))}${bar('выкуплено', T.won, money(T.wonSum))}</div></div>
+    <div class="card"><h3>По секторам</h3><div class="tw"><table><thead><tr><th>Сектор</th><th class="r">${DM ? 'Сделки' : 'Лиды'}</th><th class="r">Заказы</th><th class="r">Сумма</th><th class="r">Конверсия</th><th class="r">Выкуп</th><th class="r">Отказ</th><th class="r">В работе</th></tr></thead><tbody>
       ${R.sectors.map(x => `<tr><td><b>${esc(x.name)}</b></td><td class="r num">${x.leads}</td><td class="r num">${x.orders}</td><td class="r num"><b>${money(x.ordersSum)}</b></td><td class="r num">${pct(x.conv)}</td><td class="r num">${vk(x.vykup)}</td><td class="r num bad">${x.lostSum ? money(x.lostSum) : '—'}</td><td class="r num">${x.openSum ? money(x.openSum) : '—'}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Нет данных</td></tr>'}</tbody></table></div></div>
-    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Лиды</th><th class="r">Заказы</th><th class="r">Сумма</th><th class="r">Конверсия</th><th class="r">Выкуп</th><th class="r">Выкуплено</th><th class="r">Отказ</th><th class="r">В работе</th></tr></thead><tbody>
+    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">${DM ? 'Сделки' : 'Лиды'}</th><th class="r">Заказы</th><th class="r">Сумма</th><th class="r">Конверсия</th><th class="r">Выкуп</th><th class="r">Выкуплено</th><th class="r">Отказ</th><th class="r">В работе</th></tr></thead><tbody>
       ${R.managers.map(x => `<tr><td><div class="who">${av(x.name, uPhoto(x.uid))}<div>${esc(x.name)}<small>${esc(x.sector)}</small></div></div></td><td class="r num">${x.leads}</td><td class="r num">${x.orders}</td><td class="r num"><b>${money(x.ordersSum)}</b></td><td class="r num">${pct(x.conv)}</td><td class="r num">${vk(x.vykup)}</td><td class="r num">${x.wonSum ? money(x.wonSum) : '—'}</td><td class="r num bad">${x.lostSum ? money(x.lostSum) : '—'}</td><td class="r num">${x.openSum ? money(x.openSum) : '—'}</td></tr>`).join('') || '<tr><td colspan="9" class="empty">Нет данных</td></tr>'}</tbody></table></div></div>
     <div class="card"><h3>Зависшие заказы</h3><p class="hint">Заказы, которые ещё не выкуплены и не отменены, — по стадиям. «Дней в стадии» — сколько сделка стоит без движения.</p><div class="tw"><table><thead><tr><th>Стадия</th><th class="r">Сделок</th><th class="r">Сумма</th><th class="r">Ср. дней в стадии</th><th class="r">Больше 7 дней</th></tr></thead><tbody>
       ${R.stuck.map(x => `<tr><td>${esc(x.name)}</td><td class="r num">${x.cnt}</td><td class="r num"><b>${money(x.sum)}</b></td><td class="r num">${x.avgDays == null ? '—' : Math.round(x.avgDays)}</td><td class="r num ${x.over7 ? 'bad' : ''}">${x.over7 || '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Зависших нет</td></tr>'}</tbody></table></div>
@@ -783,6 +784,7 @@ pages.funnel = async () => {
 pages.calls = async () => {
   $('#main').innerHTML = head('Звонки', 'Загрузка…') + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
   let R; try { R = await api('/api/admin/calls?' + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  const DM = R.mode === 'deals', LW = DM ? 'сделке' : 'лиду';
   const T = R.total, L = R.leadResponse, mh = Math.max(1, ...R.hours), mins = v => v == null ? '—' : v < 1 ? '<1 мин' : v < 60 ? Math.round(v) + ' мин' : (Math.round(v / 6) / 10) + ' ч';
   $('#main').innerHTML = head('Звонки', whNote(R.wh)) + filters() + `
     ${R.wh && R.wh.callsError ? `<div class="warn">${esc(R.wh.callsError)}</div>` : ''}
@@ -792,12 +794,12 @@ pages.calls = async () => {
       <div class="kpi"><small>Входящие</small><b class="num">${T.inc}</b><span class="${T.missed ? 'bad' : ''}">пропущено ${T.missed}</span></div>
       <div class="kpi"><small>Разговоров</small><b class="num">${T.talkMin} мин</b><span>в среднем ${Math.round(T.avgTalkSec / 6) / 10} мин</span></div>
       <div class="kpi"><small>Звонков на 1 заказ</small><b class="num">${T.callsPerOrder == null ? '—' : Math.round(T.callsPerOrder * 10) / 10}</b><span>${T.orders} заказов</span></div>
-      <div class="kpi"><small>Первый звонок по лиду</small><b class="num ${L.medianMin != null && L.medianMin <= 5 ? 'good' : L.medianMin > 30 ? 'bad' : ''}">${mins(L.medianMin)}</b><span>медиана · до 5 мин: ${L.within5} из ${L.called} · без звонка: <b class="${L.noCall ? 'bad' : ''}">${L.noCall}</b></span></div>
+      <div class="kpi"><small>Первый звонок по новой ${DM ? 'сделке' : 'заявке (лиду)'}</small><b class="num ${L.medianMin != null && L.medianMin <= 5 ? 'good' : L.medianMin > 30 ? 'bad' : ''}">${mins(L.medianMin)}</b><span>медиана · до 5 мин: ${L.within5} из ${L.called} · без звонка: <b class="${L.noCall ? 'bad' : ''}">${L.noCall}</b></span></div>
     </div>
     <div class="card"><h3>Звонки по часам</h3><div class="hrs">${R.hours.map((v, h) => `<div style="height:${(v / mh * 100).toFixed(1)}%" title="${h}:00 — ${v}"></div>`).join('')}</div><div class="hrl">${R.hours.map((v, h) => `<span>${h % 2 ? '' : h}</span>`).join('')}</div></div>
-    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Всего</th><th class="r">Исход.</th><th class="r">Дозвон</th><th class="r">Вход.</th><th class="r">Пропущ.</th><th class="r">Минут</th><th class="r">Заказы</th><th class="r">Звонков/заказ</th><th class="r">Первый звонок по лиду</th><th class="r">Лидов без звонка</th></tr></thead><tbody>
+    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Всего</th><th class="r">Исход.</th><th class="r">Дозвон</th><th class="r">Вход.</th><th class="r">Пропущ.</th><th class="r">Минут</th><th class="r">Заказы</th><th class="r">Звонков/заказ</th><th class="r">Первый звонок по ${LW}</th><th class="r">${DM ? 'Сделок' : 'Лидов'} без звонка</th></tr></thead><tbody>
       ${R.managers.map(x => `<tr><td><div class="who">${av(x.name, uPhoto(x.uid))}<div>${esc(x.name)}<small>${esc(x.sector)}</small></div></div></td><td class="r num"><b>${x.total}</b></td><td class="r num">${x.out}</td><td class="r num">${pct(x.reach)}</td><td class="r num">${x.inc}</td><td class="r num ${x.missed ? 'bad' : ''}">${x.missed || '—'}</td><td class="r num">${x.talkMin}</td><td class="r num">${x.orders}</td><td class="r num">${x.callsPerOrder == null ? '—' : Math.round(x.callsPerOrder * 10) / 10}</td><td class="r num">${mins(x.respMedianMin)}</td><td class="r num ${x.leadsNoCall ? 'bad' : ''}">${x.leadsNoCall || '—'}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Звонков за период нет</td></tr>'}</tbody></table></div></div>
-    ${L.noCallList.length ? `<div class="card"><h3>Лиды без звонка</h3><p class="hint">Новые лиды периода, по которым нет ни одного звонка в Bitrix24.</p><div class="tw"><table><thead><tr><th>Лид</th><th>Менеджер</th><th>Создан</th></tr></thead><tbody>
+    ${L.noCallList.length ? `<div class="card"><h3>${DM ? 'Новые сделки' : 'Лиды'} без звонка</h3><p class="hint">${DM ? 'Сделки' : 'Лиды'} периода, по которым нет ни одного звонка в Bitrix24.</p><div class="tw"><table><thead><tr><th>${DM ? 'Сделка' : 'Лид'}</th><th>Менеджер</th><th>Создан(а)</th></tr></thead><tbody>
       ${L.noCallList.map(l => `<tr><td>#${esc(l.id)} ${esc(l.title)}</td><td>${esc(l.manager)}</td><td class="num">${esc(String(l.created).slice(0, 16).replace('T', ' '))}</td></tr>`).join('')}</tbody></table></div></div>` : ''}`;
   bindFilters();
 };
