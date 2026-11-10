@@ -57,12 +57,44 @@ async function sync() {
       }
       seen = ids;
       Object.assign(cache, { deals, users, userMap, deps, range: { from, to }, syncedAt: Date.now(), error: '' });
+      saveSnap();
     } catch (e) {
       cache.error = String(e.message || e);
       console.error('sync:', cache.error);
     } finally { syncing = null; }
   })();
   return syncing;
+}
+// снимок живого кэша в базе: после перезапуска страницы открываются сразу из базы, Bitrix догружается в фоне
+let snapAt = 0, snapSig = '';
+function saveSnap(force) {
+  const sig = cache.deals.length + ':' + cache.deals.reduce((a, d) => a + (+d.sum || 0), 0) + ':' + cache.users.length + ':' + !!cache.meta + ':' + (cache.range || {}).from;
+  if (!force && sig === snapSig && Date.now() - snapAt < 10 * 60e3) return;
+  snapSig = sig; snapAt = Date.now();
+  store.set('cache:snap', { v: 1, deals: cache.deals, users: cache.users, deps: cache.deps, meta: cache.meta || null, range: cache.range, syncedAt: cache.syncedAt })
+    .catch(e => console.error('snap:', e.message));
+}
+function loadSnap() {
+  const x = store.get('cache:snap');
+  if (!x || x.v !== 1 || !Array.isArray(x.deals)) return false;
+  const userMap = Object.fromEntries((x.users || []).map(u => [u.id, u]));
+  Object.assign(cache, { deals: x.deals, users: x.users || [], userMap, deps: x.deps || [], meta: x.meta || null, range: x.range, syncedAt: x.syncedAt, error: '' });
+  seen = new Set(x.deals.map(d => d.id));
+  console.log('cache: снимок из базы —', x.deals.length, 'сделок от', new Date(x.syncedAt).toISOString());
+  return true;
+}
+// прогрев: после загрузки/обновления базы заранее считаем тяжёлые отчёты главной (эффективность, касания) для владельца
+let warmLast = -1;
+function warm() {
+  setTimeout(warm, 20e3);
+  const st = wh.status(); if (!st.counts.deal || st.lastRun === warmLast || !cache.syncedAt) return;
+  warmLast = st.lastRun;
+  try {
+    const b = cfg.boards[0]; if (!b) return;
+    const c = ctx(), P = C.computeBoard(b, c).period, sc = { role: 'owner', sectors: null };
+    const f = { from: P.from, to: P.today, stageNames: stageNames() };
+    EF.touches(c, sc, f, cfg); EF.efficiency(c, sc, f, cfg);
+  } catch (e) { console.error('warm:', e.message); }
 }
 function loop() {
   clearTimeout(timer);
@@ -195,6 +227,8 @@ async function handle(req, res) {
     if (p.startsWith('/api/')) return send(res, 401, { error: 'unauthorized' });
     return send(res, 200, loginPage(false), 'text/html; charset=utf-8');
   }
+  // пока данные из базы грузятся после перезапуска (несколько секунд) — отчёты ждут, а не отдают пустоту
+  if (p.startsWith('/api/admin/') && p !== '/api/admin/state') await wh.ready();
   const scope = auth.scopeOf(user), isOwner = user.role === 'owner';
   // только владелец: настройки, фото, сверка, пересинхронизация, аккаунты, база
   const ownerOnly = (p === '/api/admin/config' && req.method !== 'GET') || p.startsWith('/api/admin/photo/') || p === '/api/admin/diag' ||
@@ -545,9 +579,10 @@ async function handle(req, res) {
     cfg.brandV3 = true;
   }
   await store.set('config', cfg);
+  loadSnap();
   http.createServer((req, res) => handle(req, res).catch(e => {
     console.error(e); if (!res.headersSent) send(res, 500, { error: String(e.message || e) });
   })).listen(PORT, () => console.log('Leaderboard on :' + PORT));
-  sync().then(async () => { loop(); if (!cache.meta && bx.configured()) cache.meta = await bx.meta().catch(() => null); });
-  wh.start(cfg); cai.start(cfg); wz.init().catch(e => console.error('wazzup init', e.message));
+  sync().then(async () => { loop(); if (!cache.meta && bx.configured()) { cache.meta = await bx.meta().catch(() => null); if (cache.meta) saveSnap(true); } });
+  wh.start(cfg).then(warm); cai.start(cfg); wz.init().catch(e => console.error('wazzup init', e.message));
 })();
