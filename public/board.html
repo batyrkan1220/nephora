@@ -342,6 +342,14 @@ html.pt .slst.many .scd{flex:none;max-height:none}
 .pop .sm{animation:pulseSum 1.2s ease-in-out infinite 1.6s}
 @keyframes pulseSum{50%{transform:scale(1.06)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* кнопка тестовой продажи */
+.tbtn{flex:none;align-self:center;display:flex;align-items:center;gap:.45em;border:0;cursor:pointer;font:inherit;font-size:.85em;font-weight:600;line-height:1.1;text-align:left;
+  color:#fff;background:linear-gradient(135deg,#ff8a00,#ff3d8b 55%,#c86df2);border-radius:1em;padding:.7em .95em;box-shadow:0 12px 26px -14px rgba(255,61,139,.95);transition:transform .15s}
+.tbtn:hover{transform:translateY(-2px) scale(1.03)}.tbtn:active{transform:scale(.96)}
+.tbtn{animation:tbPulse 2.6s ease-in-out infinite}
+@keyframes tbPulse{50%{box-shadow:0 12px 26px -14px rgba(255,61,139,.95),0 0 0 .35em rgba(255,61,139,.15)}}
+html.pt .tbtn{order:-1;margin-left:auto}
+@media (max-width:600px){.tbtn{font-size:12px}}
 /* ===== вертикальный экран (ТВ стоит вертикально или повёрнут) ===== */
 html.pt .hd{flex-wrap:wrap;gap:1em}
 html.pt .ttl{flex-basis:100%}
@@ -408,6 +416,14 @@ function bar(v, plan, extra = '') {
 }
 
 let D = null, seq = 0, prev = {};
+// кнопка «Тест продажа»: попап только на этом экране, данные не меняются
+document.addEventListener('click', e => {
+  if (!e.target.closest('#testSale') || !D) return;
+  if (D.board.screen.sound && !soundOk) { soundOk = true; try { audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch {} const sn = $('.snd'); if (sn) sn.remove(); }
+  const pool = D.rows.slice(0, 10), r = pool[Math.floor(Math.random() * pool.length)] || { name: 'Тестовый менеджер', photo: '' };
+  const sum = (10 + Math.floor(Math.random() * 90)) * 5000;
+  popup({ name: r.name, photo: r.photo, place: r.place, total: (r.sum || 0) + sum, sum, title: 'Тестовая продажа' });
+});
 let audio = null, soundOk = sessionStorage.getItem('lb-sound') === '1';
 
 function setRotation() {
@@ -485,6 +501,7 @@ function render() {
       ${T.plan ? `<div class="stat plan kb"><small>Касса периода · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
         : `<div class="stat kb"><small>Касса периода · вся компания</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
+      <button class="tbtn" id="testSale" title="Показать тестовую продажу на этом экране">🎉<span>Тест<br>продажа</span></button>
     </div>
     <div class="cols3">
       <div class="col cs"><div class="ch"><span class="ci">${ICO.sec}</span><b>Рейтинг секторов</b><span>по кассе дня</span></div>
