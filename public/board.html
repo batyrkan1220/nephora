@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Safa Leaderboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#0f1222; --muted:#9aa1b5; --muted2:#6b7286; --line:#edf0f7; --soft:#f5f7fd; --panel:#f7f9fe; --card:#fff; --bg:#eef2fb;
@@ -14,7 +14,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--ink);font-family:Poppins,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .num{font-variant-numeric:tabular-nums}
 #app{position:absolute;inset:1.6vh;background:#fff;border-radius:3.2vh;box-shadow:0 30px 80px -50px rgba(31,107,255,.35);display:flex;flex-direction:column;padding:3vh 2.4vw 1.8vh;gap:1.8vh}
 html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;left:1.6vh;top:1.6vw;transform-origin:top left;transform:translateX(calc(100vw - 3.2vh)) rotate(90deg);border-radius:3.2vw}
@@ -404,6 +404,70 @@ html.pt .tbl{padding:1em}
 .snd b{font-size:18px;font-weight:500}.snd p{margin:6px 0 14px;color:var(--muted2)}
 .snd button{font:inherit;font-weight:500;border:0;border-radius:14px;padding:11px 20px;cursor:pointer;background:var(--blue);color:#fff;margin-right:8px;box-shadow:0 10px 22px -12px rgba(31,107,255,.9)}
 .snd button.no{background:var(--soft);color:var(--ink);box-shadow:none}
+
+/* ================= Safa 5: дизайн «DealDeck» ================= */
+:root{--ink:#1C1D22;--muted:#8B90A3;--muted2:#5F6478;--line:#E6E8F0;--soft:#F3F4F9;--panel:#F3F4F9;--bg:#D9DCE4;--blue:#4B4FE8;--blue2:#6366F1;--green:#16A34A;--red:#EF4444;--sh:none}
+body{background:#D9DCE4}
+.aura{display:none}
+#app{background:#EEF0F7;border:0;box-shadow:0 30px 80px -40px rgba(30,35,80,.35)}
+.ttl h1{font-weight:700;letter-spacing:-.025em}
+.ttl h1 b{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--ink);animation:none;font-weight:700}
+.ttl .per{color:var(--muted)}
+.per .lv{background:#FFE4E4;color:#E11D48}
+.stat{border-radius:1.5em;background:#fff}
+.stat b{font-weight:700;letter-spacing:-.02em}
+.stat.kw{background:#fff}
+.stat.kp{background:#fff;color:var(--ink);box-shadow:none}
+.stat.kp small{color:var(--muted2);opacity:1}
+.stat.kp .pb .tr{background:#E6E8F0}.stat.kp .pb .tr i{background-color:var(--blue)}.stat.kp .pb .pc{color:var(--muted2)}
+.stat.kb{background:linear-gradient(140deg,#5B5FF0,#3F43DD);box-shadow:0 18px 34px -20px rgba(75,79,232,.95)}
+.stat.kp::after{display:none}
+.clock{background:#fff;color:var(--ink);font-weight:600;border-radius:1.2em}
+.tbtn{background:#1C1D22;box-shadow:none;animation:none;border-radius:1.1em}
+.tbtn:hover{background:#2A2B33}
+.pb .tr{background:#E6E8F0}
+.pb .tr i{background-color:var(--blue)}
+.col,.col.cd,.col.cp{background:#fff;border-radius:1.7em;padding:1.1em 1.2em}
+.ch b{text-transform:none;letter-spacing:-.01em;font-weight:700;font-size:1.25em}
+.cs .ch b,.cd .ch b,.cp .ch b{color:var(--ink)}
+.ch .ci,.cs .ci,.cd .ci,.cp .ci{background:var(--soft);color:var(--ink);border-radius:.8em}
+.cp .ci{background:var(--blue);color:#fff}
+.ch span{background:var(--soft);color:var(--muted2);border-radius:.8em;padding:.35em .8em;font-size:.75em}
+.li{background:var(--soft);box-shadow:none;border:0;border-radius:1.1em}
+.li .pl{background:#fff;color:var(--muted2)}
+.li .av{background:#fff;color:var(--blue)}
+.li .sp{background:#E7E8FD;color:var(--blue)}
+.li .v small{color:var(--muted)}
+.li .lb,.cd .li .lb,.cp .li .lb{background:var(--blue);height:.2em}
+.li.m1{background:linear-gradient(140deg,#5B5FF0,#3F43DD);color:#fff;box-shadow:0 14px 28px -18px rgba(75,79,232,.95)}
+.li.m1 .dp,.li.m1 .v small{color:rgba(255,255,255,.8)}.li.m1 .sp{background:rgba(255,255,255,.22);color:#fff}
+.li.m1 .lb{background:#fff;opacity:.5}.li.m1 .av{box-shadow:0 0 0 .18em #fff;animation:none}
+.li.m1 .tag,.li.m1 .el{background:#fff;color:var(--blue);border:0}
+.li.m2{background:#E9EAFD}.li.m3{background:#F1F1FD}
+.li.m2 .pl,.li.m3 .pl{background:#fff;color:var(--blue)}
+.li.first{box-shadow:0 14px 28px -18px rgba(75,79,232,.95)}
+.li.first::after{background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.25) 45%,transparent 60%)}
+.li.slot{background:transparent;border:1.5px dashed #DDE0EA}
+.li.none{border:1.5px dashed #DDE0EA}
+.el{background:#FEF3C7;color:#92400E}
+.mv.upm{background:#7CEB9B;color:#0B4F23}.mv.nw{background:#E7E8FD;color:var(--blue)}
+.scd{background:var(--soft);box-shadow:none;border-left:0;border-radius:1.3em}
+.scd.lead{background:#E9EAFD;animation:none}
+.intro .scd.lead{animation:rowIn .7s cubic-bezier(.2,.9,.25,1.15) both .25s}
+.scd .sr{border-radius:.6em}
+.scd .tag{background:#fff;color:var(--blue)}
+.ring{background:radial-gradient(closest-side,var(--soft) 72%,transparent 73% 100%),conic-gradient(var(--c) calc(var(--p)*1%),#DCDEE8 0)}
+.scd.lead .ring{background:radial-gradient(closest-side,#E9EAFD 72%,transparent 73% 100%),conic-gradient(var(--c) calc(var(--p)*1%),#DCDEE8 0)}
+.ring.ok{background:radial-gradient(closest-side,var(--soft) 72%,transparent 73% 100%),conic-gradient(var(--green) calc(var(--p)*1%),#DCDEE8 0)}
+.cfoot{background:#1C1D22;border-radius:1.3em}
+.cfoot .pb .tr i{background-color:#7C80F3}
+.tickr{background:#fff;border-radius:1.2em}
+.tickr .tl{background:var(--blue);border-radius:.9em}
+.ti em{color:var(--green)}
+.pop{background:rgba(28,29,34,.45)}
+.pop .card{background:linear-gradient(150deg,#6366F1,#4B4FE8 50%,#3F43DD);box-shadow:0 40px 90px -30px rgba(75,79,232,.95)}
+.pop .psec{color:var(--blue)}
+.snd button{background:var(--blue);box-shadow:none}
 </style>
 </head>
 <body>
@@ -467,7 +531,7 @@ function render() {
   const TOPD = ALL.filter(r => r.daySum > 0).sort((a, b) => b.daySum - a.daySum || b.dayCnt - a.dayCnt).slice(0, N); // топ сегодня
   SEC.sort((a, b) => b.daySum - a.daySum || b.sum - a.sum);
   const MED = ['m1', 'm2', 'm3'];
-  const SCOL = ['#1f6bff', '#c86df2', '#f5b400', '#12b76a', '#ff7a45', '#06b6d4'];
+  const SCOL = ['#4B4FE8', '#8B8EF6', '#F04B4B', '#16A34A', '#F59E0B', '#06B6D4'];
   const MEDAL = i => `<svg class="medal" viewBox="0 0 32 32"><path d="M9 2h5l2 7-4 2zM23 2h-5l-2 7 4 2z" fill="${['#1f6bff', '#c86df2', '#12b76a'][i]}"/><circle cx="16" cy="19" r="10" fill="${['#f5b400', '#a8b3c7', '#e07b39'][i]}"/><circle cx="16" cy="19" r="7.2" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><text x="16" y="23.2" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Poppins,sans-serif">${i + 1}</text></svg>`;
   const place = i => i < 3 ? MEDAL(i) : `<span class="pl num">${i + 1}</span>`;
 
@@ -599,7 +663,7 @@ function next() {
   { const t0 = performance.now(), to = Math.round(e.sum || 0), ps = el.querySelector('#psum');
     const st = n => { const p = Math.min(1, (n - t0) / 1600), v = Math.round(to * (1 - Math.pow(1 - p, 4))); ps.textContent = money(v); if (p < 1) requestAnimationFrame(st); };
     requestAnimationFrame(st); }
-  const colors = ['#1f6bff', '#3d86ff', '#d68bf7', '#cf7cf4', '#fcd94a', '#12b76a'];
+  const colors = ['#4B4FE8', '#8B8EF6', '#ffffff', '#7CEB9B', '#FBBF24', '#C7C9FA'];
   for (let i = 0; i < 90; i++) {
     const c = document.createElement('i'); c.className = 'cf';
     c.style.cssText = `left:${Math.random() * 100}vw;background:${colors[i % colors.length]};animation-duration:${2.5 + Math.random() * 2.5}s;animation-delay:${Math.random() * .8}s;border-radius:${Math.random() > .5 ? '50%' : '2px'}`;
