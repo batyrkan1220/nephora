@@ -1,4 +1,4 @@
-// Nephora Leaderboard — сервер.
+// Safa Leaderboard — сервер.
 // • Раз в N секунд забирает сделки из Bitrix24 (вебхук только на сервере)
 // • Отдаёт ТВ-табло по публичной ссылке /b/<ключ> и кабинет руководителя /admin
 // • Настройки (доски, планы, бонусы, фото) хранятся в Postgres (DATABASE_URL)
@@ -92,14 +92,14 @@ function readBody(req, limit = 4e6) {
   });
 }
 const authed = req => !PASS || (req.headers.cookie || '').split(/;\s*/).includes('lb=' + TOKEN);
-const loginPage = err => `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вход · Nephora Leaderboard</title>
+const loginPage = err => `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вход · Safa Leaderboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(900px 600px at 0 0,#ffe1ef,transparent 60%),radial-gradient(900px 600px at 100% 100%,#dff3ff,transparent 60%),#fff8f0;font-family:Poppins,system-ui,sans-serif;color:#1f1640}
 form{background:#fff;padding:32px;border-radius:24px;width:min(360px,90vw);display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 60px -30px rgba(123,92,255,.5)}
 h1{margin:0 0 6px;font-size:22px}h1 b{background:linear-gradient(90deg,#ff3d8b,#a24bff,#22b8f0);-webkit-background-clip:text;color:transparent}
 input{font:inherit;padding:13px 14px;border:1.5px solid #ece4ff;border-radius:12px;outline:none}input:focus{border-color:#a24bff}
 button{font:inherit;font-weight:700;padding:13px;border:0;border-radius:12px;background:linear-gradient(90deg,#ff3d8b,#a24bff);color:#fff;cursor:pointer}.e{color:#be123c;font-size:14px}</style>
-<form method="post" action="/login"><h1>Nephora <b>Leaderboard</b></h1>${err ? '<div class="e">Неверный пароль</div>' : ''}
+<form method="post" action="/login"><h1>Safa <b>Leaderboard</b></h1>${err ? '<div class="e">Неверный пароль</div>' : ''}
 <input type="password" name="password" placeholder="Пароль" autofocus required><button>Войти</button></form></html>`;
 
 function csv(rows) {
@@ -175,8 +175,14 @@ async function handle(req, res) {
   if (p === '/api/admin/config' && req.method === 'PUT') {
     const body = JSON.parse(await readBody(req));
     const prevStages = JSON.stringify([cfg.settings.stages, cfg.settings.dateField]);
-    cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, penalties: body.penalties || [], sectorBoards: cfg.sectorBoards || [], presetV: cfg.presetV, oneBoardV2: cfg.oneBoardV2 });
-    await store.set('config', cfg);
+    cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, penalties: body.penalties || [], sectorBoards: cfg.sectorBoards || [], presetV: cfg.presetV, oneBoardV2: cfg.oneBoardV2, brandV3: cfg.brandV3 });
+    // v3: бренд Safa вместо Nephora (название доски и подпись компании)
+  if (!cfg.brandV3) {
+    for (const b of cfg.boards) if (/nephora/i.test(b.name || '')) b.name = (b.name.replace(/nephora\s*arena/i, 'Safa').replace(/nephora/ig, 'Safa').trim() || 'Safa');
+    if (/nephora/i.test(cfg.settings.company || '')) cfg.settings.company = cfg.settings.company.replace(/nephora/ig, 'Safa');
+    cfg.brandV3 = true;
+  }
+  await store.set('config', cfg);
     if (JSON.stringify([cfg.settings.stages, cfg.settings.dateField]) !== prevStages) seen = null;
     sync().then(loop);
     return send(res, 200, { ok: true, cfg });
@@ -208,7 +214,7 @@ async function handle(req, res) {
       const hd = ['Менеджер', 'Касса', '% сетки', 'Процент', 'Премия уровня', 'Бонусы', 'Штрафы', 'Итого',
         ...r.weeks.map(w => `Выплата ${w.from.slice(8)}.${w.from.slice(5, 7)}–${w.to.slice(8)}.${w.to.slice(5, 7)}`)];
       const body = csv([hd, ...r.rows.map(x => [x.name, Math.round(x.sum), x.commPct, Math.round(x.comm), x.premium, x.bonus, x.pen, Math.round(x.salary), ...x.weeks.map(w => Math.round(w.pay))])]);
-      return send(res, 200, body, 'text/csv; charset=utf-8', { 'Content-Disposition': `attachment; filename="nephora_payouts_${month}.csv"` });
+      return send(res, 200, body, 'text/csv; charset=utf-8', { 'Content-Disposition': `attachment; filename="safa_payouts_${month}.csv"` });
     }
     return send(res, 200, r);
   }
@@ -219,7 +225,7 @@ async function handle(req, res) {
     const r = C.report(cfg, ctx(deals), { from, to, boardId: q.get('board') || '', uid: q.get('uid') || '' });
     if (!r) return send(res, 404, { error: 'not found' });
     if (q.get('format') === 'csv') {
-      const name = `nephora_${q.get('kind') === 'deals' ? 'sales' : 'report'}_${from}_${to}.csv`;
+      const name = `safa_${q.get('kind') === 'deals' ? 'sales' : 'report'}_${from}_${to}.csv`;
       const body = q.get('kind') === 'deals'
         ? csv([['ID сделки', 'Дата', 'Менеджер', 'Сделка', 'Сумма'], ...r.deals.map(d => [d.id, d.dk, d.name, d.title, Math.round(d.sum)])])
         : csv([['Менеджер', 'Отдел', 'Продаж', 'Выручка', 'Ср. чек', '% сетки', 'Процент', 'Премия уровня', 'Бонусы', 'Штрафы', 'Зарплата'],
