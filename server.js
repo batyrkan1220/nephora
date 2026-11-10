@@ -176,13 +176,7 @@ async function handle(req, res) {
     const body = JSON.parse(await readBody(req));
     const prevStages = JSON.stringify([cfg.settings.stages, cfg.settings.dateField]);
     cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, penalties: body.penalties || [], sectorBoards: cfg.sectorBoards || [], presetV: cfg.presetV, oneBoardV2: cfg.oneBoardV2, brandV3: cfg.brandV3 });
-    // v3: бренд Safa вместо Nephora (название доски и подпись компании)
-  if (!cfg.brandV3) {
-    for (const b of cfg.boards) if (/nephora/i.test(b.name || '')) b.name = (b.name.replace(/nephora\s*arena/i, 'Safa').replace(/nephora/ig, 'Safa').trim() || 'Safa');
-    if (/nephora/i.test(cfg.settings.company || '')) cfg.settings.company = cfg.settings.company.replace(/nephora/ig, 'Safa');
-    cfg.brandV3 = true;
-  }
-  await store.set('config', cfg);
+    await store.set('config', cfg);
     if (JSON.stringify([cfg.settings.stages, cfg.settings.dateField]) !== prevStages) seen = null;
     sync().then(loop);
     return send(res, 200, { ok: true, cfg });
@@ -256,6 +250,12 @@ async function handle(req, res) {
     const keep = cfg.boards.filter(b => !((b.departments || []).length === 1 && auto.has(String(b.departments[0]))));
     if (keep.length) cfg.boards = keep;
     cfg.oneBoardV2 = true;
+  }
+  // v3: бренд Safa вместо Nephora (название доски и подпись компании)
+  if (!cfg.brandV3) {
+    for (const b of cfg.boards) if (/nephora/i.test(b.name || '')) b.name = (b.name.replace(/nephora\s*arena/i, 'Safa').replace(/nephora/ig, 'Safa').trim() || 'Safa');
+    if (/nephora/i.test(cfg.settings.company || '')) cfg.settings.company = cfg.settings.company.replace(/nephora/ig, 'Safa');
+    cfg.brandV3 = true;
   }
   await store.set('config', cfg);
   http.createServer((req, res) => handle(req, res).catch(e => {
