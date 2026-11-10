@@ -175,8 +175,62 @@ html.pt .t10 .rows{flex:none}
 .mini i{display:block;height:100%;background:var(--blue);border-radius:99px}.mini i.ok{background:var(--green)}
 .cfoot{margin-top:.8em;background:#fff;border-radius:1em;padding:.7em 1em}
 .cfoot span{color:var(--muted2);font-size:.8em}.cfoot b{display:block;font-weight:500;font-size:1.05em;margin:.1em 0 .35em}
-html.pt .cols3{grid-template-columns:1fr;grid-template-rows:auto auto auto}
-html.pt .lst{flex:none}
+
+/* ===== улучшенный дизайн колонок ===== */
+.per .lv{display:inline-flex;align-items:center;gap:.35em;background:#ffe9ec;color:#e11d48;font-weight:600;font-size:.78em;border-radius:99px;padding:.1em .6em;margin-right:.6em;vertical-align:middle}
+.per .lv i{width:.5em;height:.5em;border-radius:50%;background:#e11d48;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.ch{align-items:center}
+.ch .ci{width:2.1em;height:2.1em;border-radius:.7em;display:grid;place-items:center;color:#fff;flex:none}
+.ch .ci svg{width:1.15em;height:1.15em}
+.cs .ci{background:linear-gradient(135deg,#334155,#0f1222)}.cd .ci{background:linear-gradient(135deg,#e3a1fb,#c86df2)}.cp .ci{background:linear-gradient(135deg,#3d86ff,#1f6bff)}
+.li{position:relative;overflow:hidden}
+.li .lb{position:absolute;left:0;bottom:0;height:.22em;border-radius:0 99px 99px 0;opacity:.85}
+.cd .li .lb{background:linear-gradient(90deg,#e3a1fb,#c86df2)}.cp .li .lb{background:linear-gradient(90deg,#7fb0ff,#1f6bff)}
+.li.m1 .lb,.li.m2 .lb,.li.m3 .lb{opacity:.6}
+.li .medal{width:2.2em;height:2.2em;flex:none;margin-left:-.1em;filter:drop-shadow(0 3px 4px rgba(0,0,0,.15))}
+.li.first{box-shadow:0 12px 26px -16px rgba(245,180,0,.9)}
+.li.first .nm{font-weight:600}
+.li.first .v{font-size:1.3em}
+.li.first::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.65) 45%,transparent 60%);transform:translateX(-100%);animation:shine 4.5s ease-in-out infinite}
+@keyframes shine{60%,100%{transform:translateX(100%)}}
+.li.slot{background:transparent;box-shadow:none;border:1.5px dashed #dfe5f1;color:var(--muted)}
+.li.slot .nm{font-weight:400;color:#b4bccd}.li.slot .dp{color:#c8cfdc}
+/* секторы */
+.slst{flex:1;min-height:0;display:flex;flex-direction:column;gap:.7em;overflow:hidden}
+.scd{flex:1 1 0;max-height:13em;min-height:0;background:#fff;border-radius:1.3em;padding:.9em 1.2em;display:flex;flex-direction:column;box-shadow:0 10px 24px -18px rgba(15,18,34,.45);border-left:.35em solid var(--c);position:relative;overflow:hidden}
+.scd.lead{background:linear-gradient(120deg,#fff8dc,#fff 60%)}
+.scd .sh1{display:flex;align-items:center;gap:.55em;min-width:0}
+.scd .sh1 b{font-weight:600;font-size:1.15em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scd .sh1 small{margin-left:auto;color:var(--muted);font-size:.75em;white-space:nowrap}
+.scd .sr{width:1.7em;height:1.7em;border-radius:.55em;background:var(--c);color:#fff;display:grid;place-items:center;font-size:.8em;font-weight:600;flex:none}
+.scd .tag{background:#fff3c4;color:#a16207;border-radius:99px;padding:.05em .6em;font-size:.72em;font-weight:500;white-space:nowrap}
+.scd .sbody{flex:1;display:flex;align-items:center;gap:1em;min-height:0}
+.scd .sdat{flex:1;min-width:0}
+.scd .sdat small{color:var(--muted2);font-size:.78em}
+.scd .sdat>b{display:block;font-size:2em;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.scd .sline{font-size:.78em;color:var(--muted2);margin-top:.2em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scd .sline b{color:var(--ink);font-weight:500}
+.ring{--p:0;width:5.4em;height:5.4em;border-radius:50%;flex:none;display:grid;place-content:center;text-align:center;
+  background:radial-gradient(closest-side,#fff 74%,transparent 75% 100%),conic-gradient(var(--c) calc(var(--p)*1%),#e8edf7 0)}
+.ring.ok{background:radial-gradient(closest-side,#fff 74%,transparent 75% 100%),conic-gradient(var(--green) calc(var(--p)*1%),#e8edf7 0)}
+.ring span{font-weight:600;font-size:1.15em;line-height:1}.ring small{font-size:.62em;color:var(--muted)}
+.cfoot{display:flex;flex-direction:column;gap:.35em;background:linear-gradient(135deg,#0f1222,#2a2f4a);color:#fff;border-radius:1.2em;padding:.8em 1.1em;margin-top:.7em}
+.cfoot span{color:#aab2c8;font-size:.78em}.cfoot b{display:block;font-weight:600;font-size:1.25em}.cfoot b em{font-style:normal;font-weight:400;color:#aab2c8;font-size:.75em}
+.cfoot .pb .tr{background:rgba(255,255,255,.18)}.cfoot .pb .pc{color:#fff}
+/* бегущая строка */
+.tickr{display:flex;align-items:center;gap:1em;background:var(--panel);border-radius:1.1em;padding:0 0 0 .4em;height:2.6em;overflow:hidden;flex:none}
+.tickr .tl{background:var(--blue);color:#fff;font-weight:600;font-size:.8em;border-radius:.8em;padding:.45em .9em;white-space:nowrap;flex:none}
+.tw2{flex:1;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+.tm{display:inline-flex;gap:2.5em;white-space:nowrap;animation:marq var(--d) linear infinite;padding-left:1em}
+@keyframes marq{to{transform:translateX(-50%)}}
+.ti{font-size:.92em}.ti b{font-weight:500}.ti small{color:var(--muted);font-size:.8em}.ti em{font-style:normal;color:var(--green);font-weight:600;margin-left:.3em}
+@media (max-width:600px){.slst{flex:none;overflow:visible}.scd{flex:none;min-height:8em}.ring{width:4.6em;height:4.6em}}
+html.pt .cols3{grid-template-columns:1fr 1fr;grid-template-rows:auto minmax(0,1fr)}
+html.pt .cs{grid-column:1/-1}
+html.pt .slst{flex-direction:row;flex:none}
+html.pt .scd{flex:1 1 0;max-height:none}
+html.pt .li .dp .el{display:none}
 /* ===== вертикальный экран (ТВ стоит вертикально или повёрнут) ===== */
 html.pt .hd{flex-wrap:wrap;gap:1em}
 html.pt .ttl{flex-basis:100%}
@@ -270,48 +324,67 @@ function render() {
   const TOPD = ALL.filter(r => r.daySum > 0).sort((a, b) => b.daySum - a.daySum || b.dayCnt - a.dayCnt).slice(0, N); // топ сегодня
   SEC.sort((a, b) => b.daySum - a.daySum || b.sum - a.sum);
   const MED = ['m1', 'm2', 'm3'];
+  const SCOL = ['#1f6bff', '#c86df2', '#f5b400', '#12b76a', '#ff7a45', '#06b6d4'];
+  const MEDAL = i => `<svg class="medal" viewBox="0 0 32 32"><path d="M9 2h5l2 7-4 2zM23 2h-5l-2 7 4 2z" fill="${['#1f6bff', '#c86df2', '#12b76a'][i]}"/><circle cx="16" cy="19" r="10" fill="${['#f5b400', '#a8b3c7', '#e07b39'][i]}"/><circle cx="16" cy="19" r="7.2" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><text x="16" y="23.2" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Poppins,sans-serif">${i + 1}</text></svg>`;
+  const place = i => i < 3 ? MEDAL(i) : `<span class="pl num">${i + 1}</span>`;
 
-  const secRow = (x, i) => `<div class="li sec ${x.daySum ? MED[i] || '' : ''}">
-      <span class="pl num">${i + 1}</span>
-      <div class="w"><div class="nm">${esc(x.name)}${i === 0 && x.daySum ? ' <span class="tag">1 место дня</span>' : ''}</div>
-        <div class="dp num">период ${short(x.sum)}${x.plan ? ' / ' + short(x.plan) + ' ₸' : ' ₸'}</div>
-        ${x.plan ? `<div class="mini"><i style="width:${Math.min(100, x.sum / x.plan * 100).toFixed(1)}%" class="${x.sum >= x.plan ? 'ok' : ''}"></i></div>` : ''}</div>
-      <span class="v num">${money(x.daySum)}</span></div>`;
-  const mgrRow = (r, i, today) => {
-    const up = prev[r.uid] !== undefined && prev[r.uid] < r.sum ? 'up' : '';
-    return `<div class="li ${MED[i] || ''} ${up}"><span class="pl num">${i + 1}</span>${av(r)}
-      <div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${r.dep ? `<span class="sp">${esc(r.dep)}</span>` : ''}</div></div>
-      <span class="v num">${money(today ? r.daySum : r.sum)}<small>${today ? r.dayCnt : r.cnt} прод.</small></span></div>`;
+  // сектор: карточка растягивается на свободную высоту; кольцо — выполнение плана периода
+  const secCard = (x, i) => {
+    const pct = x.plan ? x.sum / x.plan * 100 : 0, c = SCOL[i % SCOL.length];
+    return `<div class="scd ${i === 0 && x.daySum ? 'lead' : ''}" style="--c:${c}">
+      <div class="sh1"><span class="sr num">${i + 1}</span><b>${esc(x.name)}</b>${i === 0 && x.daySum ? '<span class="tag">🔥 1 место дня</span>' : ''}<small>${x.managers} ${plural(x.managers, 'менеджер', 'менеджера', 'менеджеров')}</small></div>
+      <div class="sbody">
+        <div class="sdat"><small>Касса сегодня</small><b class="num">${money(x.daySum)}</b>
+          <div class="sline num">период <b>${short(x.sum)}</b>${x.plan ? ` из ${short(x.plan)} ₸ · осталось <b>${short(Math.max(0, x.plan - x.sum))}</b>` : ' ₸ · план не задан'}</div>
+          ${x.dayPlan ? `<div class="sline num">план дня ${short(x.dayPlan)} ₸ · ${Math.floor(x.daySum / x.dayPlan * 100)}%</div>` : ''}</div>
+        ${x.plan ? `<div class="ring ${pct >= 100 ? 'ok' : ''}" style="--p:${Math.min(100, pct).toFixed(1)}"><span class="num">${Math.floor(pct)}%</span><small>плана</small></div>` : ''}
+      </div></div>`;
   };
-  const empty = t => `<div class="li none">${t}</div>`;
+  const mgrRow = (r, i, today, lead) => {
+    const up = prev[r.uid] !== undefined && prev[r.uid] < r.sum ? 'up' : '';
+    const v = today ? r.daySum : r.sum, w = lead ? Math.max(4, v / lead * 100) : 0;
+    return `<div class="li ${MED[i] || ''} ${i === 0 ? 'first' : ''} ${up}">${place(i)}${av(r)}
+      <div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${r.dep ? `<span class="sp">${esc(r.dep)}</span>` : ''}</div></div>
+      <span class="v num">${money(v)}<small>${today ? r.dayCnt : r.cnt} ${plural(today ? r.dayCnt : r.cnt, 'продажа', 'продажи', 'продаж')}</small></span>
+      <i class="lb" style="width:${w.toFixed(1)}%"></i></div>`;
+  };
+  const slot = i => `<div class="li slot">${`<span class="pl num">${i + 1}</span>`}<div class="w"><div class="nm">Свободное место</div><div class="dp">ждём первую продажу</div></div></div>`;
+  const ICO = {
+    sec: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+    day: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
+    per: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM17 6h3v2a3 3 0 01-3 3M7 6H4v2a3 3 0 003 3"/></svg>',
+  };
+  const REC = D.recent || [];
 
   $('#app').innerHTML = `
     <div class="hd">
       <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>
-        <div class="per num">${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : 'обновлено ' + new Date(D.syncedAt).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit' })}</div></div>
-      ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · вся компания</small><b class="num">${money(T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
+        <div class="per num"><span class="lv"><i></i>LIVE</span>${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : 'обновлено ' + new Date(D.syncedAt).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit' })}</div></div>
+      <div class="stat kw"><small>Продаж сегодня</small><b class="num">${T.dayCnt}</b></div>
+      ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · план ${short(T.dayPlan)} ₸</small><b class="num">${money(T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
         : `<div class="stat kp"><small>Касса сегодня · вся компания</small><b class="num">${money(T.daySum)}</b></div>`}
       ${T.plan ? `<div class="stat plan kb"><small>Касса периода · план ${short(T.plan)} ₸</small><b class="num">${money(T.sum)}</b>${bar(T.sum, T.plan)}</div>`
         : `<div class="stat kb"><small>Касса периода · вся компания</small><b class="num">${money(T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
     </div>
     <div class="cols3">
-      <div class="col cs"><div class="ch"><b>Рейтинг секторов</b><span>касса дня</span></div>
-        <div class="lst" id="l1">${SEC.length ? SEC.map(secRow).join('') : empty('Секторы появятся после синхронизации с Bitrix24')}</div>
-        ${T.plan ? `<div class="cfoot num"><span>План компании</span><b>${money(T.sum)} / ${short(T.plan)} ₸</b>${bar(T.sum, T.plan)}</div>` : ''}</div>
-      <div class="col cd"><div class="ch"><b>Топ-${N} сегодня</b><span>касса за день</span></div>
-        <div class="lst" id="l2">${TOPD.length ? TOPD.map((r, i) => mgrRow(r, i, true)).join('') : empty('Сегодня продаж пока нет')}</div></div>
-      <div class="col cp"><div class="ch"><b>Топ-${N} периода</b><span>касса за ${fd(P.from).slice(0, 5)}–${fd(P.to).slice(0, 5)}</span></div>
-        <div class="lst" id="l3">${TOPP.length ? TOPP.map((r, i) => mgrRow(r, i, false)).join('') : empty('Пока нет продаж за период')}</div></div>
-    </div>`;
+      <div class="col cs"><div class="ch"><span class="ci">${ICO.sec}</span><b>Рейтинг секторов</b><span>по кассе дня</span></div>
+        <div class="slst" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
+        ${T.plan ? `<div class="cfoot num"><div><span>План компании</span><b>${money(T.sum)} <em>/ ${short(T.plan)} ₸</em></b></div>${bar(T.sum, T.plan)}</div>` : ''}</div>
+      <div class="col cd"><div class="ch"><span class="ci">${ICO.day}</span><b>Топ-${N} сегодня</b><span>касса за день</span></div>
+        <div class="lst" id="l2">${TOPD.map((r, i) => mgrRow(r, i, true, TOPD[0].daySum)).join('')}${Array.from({ length: Math.max(0, N - TOPD.length) }, (_, k) => slot(TOPD.length + k)).join('')}</div></div>
+      <div class="col cp"><div class="ch"><span class="ci">${ICO.per}</span><b>Топ-${N} периода</b><span>${fd(P.from).slice(0, 5)}–${fd(P.to).slice(0, 5)}</span></div>
+        <div class="lst" id="l3">${TOPP.length ? TOPP.map((r, i) => mgrRow(r, i, false, TOPP[0].sum)).join('') : '<div class="li none">Пока нет продаж за период</div>'}</div></div>
+    </div>
+    ${REC.length && !PH ? `<div class="tickr"><span class="tl">Последние продажи</span><div class="tw2"><div class="tm" style="--d:${Math.max(25, REC.length * 6)}s">${[...REC, ...REC].map(x => `<span class="ti"><b>${esc(x.name)}</b>${x.dep ? ` <small>${esc(x.dep)}</small>` : ''} <em class="num">+${money(x.sum)}</em></span>`).join('')}</div></div></div>` : ''}`;
   tick();
 
-  // строки: 10 штук всегда влезают — высота подстраивается под экран
+  // топ-листы: 10 строк всегда влезают — высота подстраивается под экран
   const fs = parseFloat(getComputedStyle($('#app')).fontSize);
-  ['#l1', '#l2', '#l3'].forEach(id => {
+  ['#l2', '#l3'].forEach(id => {
     const box = $(id); if (!box) return;
-    const n = id === '#l1' ? Math.max(SEC.length, 3) : N, gap = Math.round(fs * .45);
-    const rh = PH || PT ? Math.round(fs * (PH ? 3.4 : 3.3)) : Math.max(Math.round(fs * 2.6), Math.min(Math.round(fs * (id === '#l1' ? 5 : 4.4)), Math.floor((box.clientHeight - gap * (n - 1)) / n)));
+    const gap = Math.round(fs * .42);
+    const rh = PH ? Math.round(fs * 3.4) : Math.max(Math.round(fs * 2.6), Math.min(Math.round(fs * 4.4), Math.floor((box.clientHeight - gap * (N - 1)) / N)));
     box.style.setProperty('--rh', rh + 'px'); box.style.setProperty('--gap', gap + 'px');
   });
   prev = Object.fromEntries(ALL.map(r => [r.uid, r.sum]));
