@@ -180,13 +180,14 @@ aside{background:#fff;border:0;border-radius:26px;padding:24px 14px 16px;top:36p
 .logo i{width:34px;height:34px;border-radius:11px;background:var(--blue)}
 .logo i svg{width:18px;height:18px}
 .navl{font-size:11.5px;margin:18px 14px 8px;letter-spacing:.06em;color:#9DA2B4}
+aside>*{flex-shrink:0}
 aside a{gap:12px;padding:11px 14px;border-radius:14px;color:#3F4352;font-size:14.5px;font-weight:500;margin:1px 0}
 aside a .ic{width:20px;height:20px;border-radius:0;background:none!important;box-shadow:none!important;color:inherit}
 aside a .ic svg{width:20px;height:20px}
 aside a:hover{background:var(--soft);color:var(--ink)}
 aside a.on{background:var(--blue);color:#fff;font-weight:600;box-shadow:0 12px 24px -12px rgba(75,79,232,.9)}
 aside a.on .ic{color:#fff!important}
-.promo{margin:14px 2px 6px;background:#1C1D22;color:#fff;border-radius:20px;padding:18px 16px;position:relative;overflow:hidden}
+.promo{flex:none;margin:14px 2px 6px;background:#1C1D22;color:#fff;border-radius:20px;padding:18px 16px;position:relative;overflow:hidden}
 .promo:after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;border:18px solid rgba(255,255,255,.06)}
 .promo i{width:32px;height:32px;border-radius:10px;background:#fff;color:var(--blue);display:grid;place-items:center;font-style:normal}
 .promo i svg{width:18px;height:18px}
@@ -495,7 +496,7 @@ pages.home = async () => {
   $('#view').innerHTML = `${R.error ? `<div class="warn">Bitrix24: ${esc(R.error)}</div>` : ''}
     <div class="hm"><div>
       <div class="k4">
-        ${kc('pri', I('<rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/>'), 'Касса сегодня', money(T.daySum), T.dayPlan ? `план дня<br>${money(T.dayPlan)}` : `${T.dayCnt} продаж`, bd(ch(T.daySum, K.yestSum)))}
+        ${kc('pri', I('<rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/>'), 'Касса сегодня', money(T.daySum), T.dayPlan ? `план дня<br>${money(T.dayPlan)}` : `${T.dayCnt} продаж`, T.daySum ? bd(ch(T.daySum, K.yestSum)) : '')}
         ${kc('', ICO.coin, 'Касса за ' + monName, short2(T.sum), 'к тому же периоду<br>прошлого месяца', bd(ch(T.sum, K.prevSum)))}
         ${kc('', I('<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>'), 'Прогноз на конец месяца', short2(T.forecast), T.plan ? `план ${short2(T.plan)}<br>осталось ${P.daysLeft} раб. дн.` : `осталось ${P.daysLeft} раб. дн.`, T.plan ? `<span class="bdg ${fPct >= 100 ? 'up' : 'dn'}">${Math.round(fPct)}% плана</span>` : '')}
         ${kc('', ICO.cart, 'Продажи за месяц', T.cnt, `ср. чек ${money(T.avg)}${own && T.salary != null ? '<br>к выплате ' + short2(T.salary) : ''}`, bd(ch(T.cnt, K.prevCnt)))}
