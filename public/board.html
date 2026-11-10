@@ -53,22 +53,6 @@ html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;le
 .sub b{color:var(--ink);font-weight:500}
 
 /* ===== топ-3 ===== */
-.top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.6em}
-.tc{position:relative;border-radius:1.8em;padding:1.1em 1.4em;display:flex;align-items:center;gap:1.1em;min-height:7.6em;overflow:hidden;color:#fff}
-.tc.p1{background:linear-gradient(160deg,#3d86ff,#1f6bff);box-shadow:0 22px 40px -24px rgba(31,107,255,.95)}
-.tc.p2{background:linear-gradient(160deg,#e3a1fb,#cf7cf4);box-shadow:0 22px 40px -24px rgba(200,109,242,.95)}
-.tc.p3{background:linear-gradient(160deg,#ffe680,#fcd94a);color:var(--ink);box-shadow:0 22px 40px -24px rgba(234,179,8,.8)}
-.tc::after{content:"";position:absolute;right:-2.5em;top:-2.5em;width:8em;height:8em;border-radius:50%;background:rgba(255,255,255,.12)}
-.tc .av{width:4.6em;height:4.6em;border-radius:1.2em;font-size:1em;background:#fff;box-shadow:0 0 0 .2em rgba(255,255,255,.55)}
-.tc .crown{position:absolute;left:2.4em;top:.15em;width:2em;transform:translateX(-50%) rotate(-14deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.2));z-index:1}
-.tc .info{min-width:0;flex:1;position:relative;z-index:1}
-.tc .pl{font-weight:500;font-size:.9em;opacity:.9;display:flex;gap:.6em;align-items:center}
-.tc .badge{font-size:.8em;background:#fff;color:var(--green);border-radius:99px;padding:.1em .7em;font-weight:600}
-.tc .nm{font-weight:500;font-size:1.35em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:.1em 0}
-.tc .v{font-weight:500;font-size:2.1em;line-height:1.05;letter-spacing:-.02em}
-.tc .td{font-size:.85em;opacity:.9;margin-top:.2em}
-.tc.empty{opacity:.4}
-
 /* ===== таблица ===== */
 .tbl{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--panel);border-radius:2em;padding:1em 1.2em 1.2em}
 .row{display:grid;grid-template-columns:var(--cols);align-items:center;gap:1.2em;padding:0 1.2em 0 .9em}
@@ -128,13 +112,38 @@ html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;le
 .s2{display:block;color:var(--muted);font-size:.75em}
 /* компактнее по высоте, чтобы топ-10 помещался целиком */
 #app{gap:1.4vh}
-.tc{min-height:5.8em;padding:.7em 1.3em}
 .per .err{color:#dc2626}
-.tc .av{width:4.2em;height:4.2em}
-.tc .v{font-size:1.9em}
-.tc .nm{font-size:1.25em}
 .tbl{padding:.8em 1.2em 1em}
 .tr .s2,.pct small{line-height:1.25}
+
+/* ===== топ-10 + все менеджеры ===== */
+.main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:1.4em}
+.main.solo{grid-template-columns:1fr}
+.t10{background:linear-gradient(160deg,#eaf1ff,#f4ecff);border:1.5px solid #dbe6ff}
+.t10h{display:flex;align-items:center;gap:.7em;padding:.1em .9em .45em;color:var(--muted2);font-size:.9em}
+.t10b{background:linear-gradient(135deg,#3d86ff,#1f6bff);color:#fff;font-weight:600;border-radius:.6em;padding:.25em .75em;font-size:1.05em;letter-spacing:.03em;box-shadow:0 8px 18px -10px rgba(31,107,255,.9)}
+.t10 .place{background:var(--blue);color:#fff}
+.t10 .tr{border-left:.3em solid var(--blue)}
+.rest{background:var(--panel);border-radius:2em;padding:1em 1.1em;display:flex;flex-direction:column;min-height:0}
+.resth{display:flex;align-items:center;gap:.7em;padding:.1em .3em .6em;font-size:.95em}
+.resth b{font-weight:500;font-size:1.1em}
+.resth span{color:var(--muted)}
+.resth .pg{margin-left:auto;display:flex;gap:.35em}
+.resth .pg i{width:.55em;height:.55em;border-radius:50%;background:#d9e0ef}
+.resth .pg i.on{background:var(--blue)}
+.rlist{flex:1;min-height:0;display:grid;grid-template-rows:repeat(var(--rows),var(--rrh));grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:var(--rgap) 1em;align-content:start;overflow:hidden}
+.rr{display:flex;align-items:center;gap:.65em;background:#fff;border-radius:.9em;padding:0 .9em 0 .55em;min-width:0;box-shadow:0 6px 16px -14px rgba(15,18,34,.4)}
+.rr .place{width:1.8em;height:1.8em;font-size:.78em;flex:none}
+.rr .av{width:1.9em;height:1.9em;font-size:.7em;border-radius:.6em}
+.rr .w{flex:1;min-width:0}
+.rr .nm{font-weight:500;font-size:.95em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rr .dp{font-size:.7em;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rr .rs{text-align:right;white-space:nowrap}
+.rr .rs b{font-weight:500;font-size:.98em;display:block}
+.rr .rs small{font-size:.68em;color:var(--muted)}
+.rr.up{animation:flash 1.6s ease 3}
+html.pt .main{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+html.pt .t10 .rows{flex:none}
 /* ===== вертикальный экран (ТВ стоит вертикально или повёрнут) ===== */
 html.pt .hd{flex-wrap:wrap;gap:1em}
 html.pt .ttl{flex-basis:100%}
@@ -142,14 +151,6 @@ html.pt .ttl h1{font-size:2.8em;white-space:normal}
 html.pt .stat{flex:1;min-width:0}
 html.pt .stat.plan{min-width:0}
 html.pt .clock{display:none}
-html.pt .top{gap:1.1em}
-html.pt .tc{flex-direction:column;text-align:center;padding:1.6em 1em 1.3em;gap:.7em}
-html.pt .tc .info{width:100%}
-html.pt .tc .pl{justify-content:center}
-html.pt .tc .nm{white-space:normal;line-height:1.2;min-height:2.4em;display:flex;align-items:center;justify-content:center}
-html.pt .tc .v{font-size:1.8em}
-html.pt .tc .av{width:5.4em;height:5.4em}
-html.pt .tc .crown{left:calc(50% - 2.4em);top:.55em}
 html.pt .tbl{padding:1em}
 /* ===== телефон ===== */
 @media (max-width:600px){
@@ -157,8 +158,6 @@ html.pt .tbl{padding:1em}
   #app{position:static;margin:10px;padding:18px 14px 20px;gap:14px;font-size:13px;border-radius:26px}
   .hd{gap:8px}.ttl{flex-basis:100%}.ttl h1{font-size:1.9em;white-space:normal}
   .stat{flex:1;min-width:0}.stat.plan{min-width:100%}.clock{display:none}
-  .top{grid-template-columns:1fr;gap:10px}
-  .tc{min-height:0;padding:.9em 1em}.tc .av{width:3.6em;height:3.6em}.tc .v{font-size:1.6em}.tc .crown{left:1.9em}
   .tbl{padding:.8em .6em}
   .row{gap:.6em;padding:0 .8em 0 .4em}
   .rows{overflow:visible}
@@ -207,6 +206,8 @@ function bar(v, plan, extra = '') {
 }
 
 let D = null, seq = 0, prev = {};
+const RP = { page: 0, pages: 1, draw: null };
+setInterval(() => { if (RP.draw && RP.pages > 1) { RP.page = (RP.page + 1) % RP.pages; RP.draw(); } }, 8000);
 let audio = null, soundOk = sessionStorage.getItem('lb-sound') === '1';
 
 function setRotation() {
@@ -231,22 +232,9 @@ function render() {
   document.documentElement.classList.toggle('pt', PT);
   // масштаб от эталона 1920×1080 (вертикально 1080×1920): на любом ТВ выглядит одинаково
   $('#app').style.fontSize = PH ? '' : (PT ? Math.min(W * 0.015, HH * 0.00844) : Math.min(HH * 0.015, W * 0.00844)).toFixed(2) + 'px';
-  const C = [['2.2em', '#', ''], ['minmax(0,2.4fr)', 'Менеджер', '']];
-  if (cols.today && !PH) C.push(['minmax(0,1.2fr)', 'Сегодня', 'r']);
-  if (cols.sales) C.push(['minmax(0,1.3fr)', 'Продажи', 'r']);
-  if (cols.count && !PH) C.push(['5em', 'Кол-во', 'cnt']);
-  if (cols.pct && !PH && !PT) C.push(['minmax(0,1.6fr)', '% от продаж', 'r']);
-  if (cols.salary && !PH) C.push(['minmax(0,1.1fr)', 'Зарплата', 'r']);
-  const tmpl = C.map(c => c[0]).join(' ');
 
-  const R = D.rows, SEC = D.sectors || [];
-  const top = [R[0], R[1], R[2]];
-  const tcard = (r, i) => !r ? `<div class="tc p${i + 1} empty">${av({ name: '?' })}<div class="info"><div class="pl">${i + 1} место</div><div class="nm">—</div></div></div>`
-    : `<div class="tc p${i + 1}">${CROWN(CC[i])}${av(r)}<div class="info">
-        <div class="pl">${i + 1} место${r.elite ? ' <span class="badge">★ Элит</span>' : ''}</div>
-        <div class="nm">${esc(r.name)}</div>
-        <div class="v num">${D.board.rankBy === 'count' ? r.cnt + ' прод.' : money(r.sum)}</div>
-        <div class="td num">${esc(r.dep)}${r.dep ? ' · ' : ''}сегодня ${r.daySum ? money(r.daySum) : '—'}</div></div></div>`;
+  const ALL = D.rows, SEC = D.sectors || [], N = Math.max(3, D.topN || 10);
+  const R = ALL.slice(0, N), REST = ALL.slice(N);
 
   const SC = ['#1f6bff', '#cf7cf4', '#f5b400', '#12b76a', '#ff7a45', '#06b6d4'];
   const secCard = (x, i) => `<div class="sc" style="--c:${SC[i % SC.length]}">
@@ -255,18 +243,30 @@ function render() {
       <div class="l2">${x.plan ? bar(x.sum, x.plan) : '<div class="pb"><span class="sub">план не задан</span></div>'}
         <span class="sub num">сегодня <b>${short(x.daySum)}</b>${x.dayPlan ? ' / ' + short(x.dayPlan) : ''} ₸${x.plan ? ' · осталось <b>' + short(Math.max(0, x.plan - x.sum)) + '</b>' : ''}</span></div></div>`;
 
+  const nextHint = r => r.next ? `<em> · ещё ${short(r.next.left)} до ${r.next.pct > r.commPct ? r.next.pct + '%' : 'премии'}</em>` : '';
   const rowHtml = r => {
-    const t = r.place <= 3 && r.sum > 0 ? 't' + r.place : '';
     const up = prev[r.uid] !== undefined && prev[r.uid] < r.sum ? 'up' : '';
-    let h = `<div class="tr row ${t} ${up}"><span class="place num">${r.place}</span>
+    let h = `<div class="tr row ${up}"><span class="place num">${r.place}</span>
       <div class="mg">${av(r)}<div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${esc(r.dep)}</div></div></div>`;
-    if (cols.today && !PH) h += `<span class="r num">${r.daySum ? `<b class="md">${money(r.daySum)}</b>` : '<span class="mu">—</span>'}<small class="s2">${r.dayCnt ? r.dayCnt + ' ' + plural(r.dayCnt, 'продажа', 'продажи', 'продаж') : ''}</small></span>`;
+    if (cols.today && !PH) h += `<span class="r num">${r.daySum ? `<b class="md">${short(r.daySum)}</b>` : '<span class="mu">—</span>'}<small class="s2">${r.dayCnt ? r.dayCnt + ' прод.' : ''}</small></span>`;
     if (cols.sales) h += `<span class="r big num">${money(r.sum)}</span>`;
     if (cols.count && !PH) h += `<span class="cnt num">${r.cnt}</span>`;
-    if (cols.pct && !PH && !PT) h += `<span class="r pct num">${r.comm ? money(r.comm) : '—'}<small>${r.commPct ? (Math.round(r.commPct * 10) / 10) + '%' : ''}${r.next ? `<em> · ${r.next.pct > r.commPct ? 'до ' + r.next.pct + '%' : 'до премии ' + short(r.next.premium)}: ещё ${short(r.next.left)}</em>` : ''}</small></span>`;
+    if (cols.pct && !PH && !PT) h += `<span class="r pct num">${r.comm ? money(r.comm) : '—'}<small>${r.commPct ? (Math.round(r.commPct * 10) / 10) + '%' : ''}${nextHint(r)}</small></span>`;
     if (cols.salary && !PH) h += `<span class="r big num">${money(r.salary)}</span>`;
     return h + '</div>';
   };
+  const restRow = r => `<div class="rr ${prev[r.uid] !== undefined && prev[r.uid] < r.sum ? 'up' : ''}"><span class="place num">${r.place}</span>${av(r)}
+      <div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★</span>' : ''}${esc(r.dep)}</div></div>
+      <span class="rs num"><b>${short(r.sum)}</b><small>${r.cnt} прод.${r.daySum ? ' · сегодня ' + short(r.daySum) : ''}</small></span></div>`;
+
+  // колонки топ-10 (в горизонтальном режиме справа идёт список остальных — таблица уже)
+  const C = [['2.2em', '#', ''], ['minmax(0,2.3fr)', 'Менеджер', '']];
+  if (cols.today && !PH) C.push(['minmax(0,1fr)', 'Сегодня', 'r']);
+  if (cols.sales) C.push(['minmax(0,1.3fr)', 'Продажи', 'r']);
+  if (cols.count && !PH) C.push(['3.6em', 'Кол-во', 'cnt']);
+  if (cols.pct && !PH && !PT) C.push(['minmax(0,1.7fr)', '% от продаж', 'r']);
+  if (cols.salary && !PH) C.push(['minmax(0,1.2fr)', 'Зарплата', 'r']);
+  const tmpl = C.map(c => c[0]).join(' ');
 
   $('#app').innerHTML = `
     <div class="hd">
@@ -280,22 +280,41 @@ function render() {
       <span class="clock num" id="clock"></span>
     </div>
     ${SEC.length ? `<div class="secs" style="--n:${Math.min(SEC.length, PT ? 2 : 4)}">${SEC.map(secCard).join('')}</div>` : ''}
-    <div class="top">${tcard(top[0], 0)}${tcard(top[1], 1)}${tcard(top[2], 2)}</div>
-    <div class="tbl" style="--cols:${tmpl}">
-      <div class="row thd">${C.map(c => `<span class="${c[2]}">${c[1]}</span>`).join('')}<span class="tn">Топ-${(sc.topN || 10)}</span></div>
-      <div class="rows" id="rows"></div>
-    </div>
-`;
+    <div class="main ${REST.length ? '' : 'solo'}">
+      <div class="tbl t10" style="--cols:${tmpl}">
+        <div class="t10h"><span class="t10b">ТОП-${N}</span><span>лучшие менеджеры периода</span></div>
+        <div class="row thd">${C.map(c => `<span class="${c[2]}">${c[1]}</span>`).join('')}</div>
+        <div class="rows" id="rows"></div>
+      </div>
+      ${REST.length ? `<div class="rest"><div class="resth"><b>Все менеджеры</b><span>места ${REST[0].place}–${REST[REST.length - 1].place}</span><span class="pg" id="pg"></span></div><div class="rlist" id="rlist"></div></div>` : ''}
+    </div>`;
   tick();
 
   // топ-N всегда целиком: высота строки подстраивается под экран
   const box = $('#rows'), app = $('#app');
   const fs = parseFloat(getComputedStyle(app).fontSize);
-  const gap = Math.round(fs * .5), n = Math.max(1, R.length);
-  const rh = PH ? Math.round(fs * 3.6) : Math.max(Math.round(fs * 2.9), Math.min(Math.round(fs * 3.8), Math.floor((box.clientHeight - gap * (n - 1)) / n)));
+  const gap = Math.round(fs * .45), n = Math.max(1, R.length);
+  const rh = PH ? Math.round(fs * 3.6) : Math.max(Math.round(fs * 2.7), Math.min(Math.round(fs * 3.8), Math.floor((box.clientHeight - gap * (n - 1)) / n)));
   box.style.setProperty('--gap', gap + 'px'); box.style.setProperty('--rh', rh + 'px');
   box.innerHTML = R.length ? R.map(rowHtml).join('') : `<div class="more" style="justify-content:center">Пока нет продаж за период</div>`;
-  prev = Object.fromEntries(R.map(r => [r.uid, r.sum]));
+
+  // остальные: столько, сколько помещается; если больше — листаем страницы
+  const rl = $('#rlist');
+  if (rl) {
+    const rrh = Math.round(fs * (PH ? 3.2 : 2.55)), rgap = Math.round(fs * .3);
+    rl.style.setProperty('--rrh', rrh + 'px'); rl.style.setProperty('--rgap', rgap + 'px');
+    const colsN = PT ? 2 : 1;
+    const perCol = PH ? REST.length : Math.max(1, Math.floor((rl.clientHeight + rgap) / (rrh + rgap)));
+    const per = perCol * colsN;
+    RP.pages = Math.max(1, Math.ceil(REST.length / per)); if (RP.page >= RP.pages) RP.page = 0;
+    RP.draw = () => {
+      rl.style.setProperty('--rows', perCol);
+      rl.innerHTML = REST.slice(RP.page * per, RP.page * per + per).map(restRow).join('');
+      const pg = $('#pg'); if (pg) pg.innerHTML = RP.pages > 1 ? Array.from({ length: RP.pages }, (_, k) => `<i class="${k === RP.page ? 'on' : ''}"></i>`).join('') : '';
+    };
+    RP.draw();
+  } else RP.draw = null;
+  prev = Object.fromEntries(ALL.map(r => [r.uid, r.sum]));
 }
 const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 10 || h >= 20) ? b : c; };
 
