@@ -144,6 +144,39 @@ html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;le
 .rr.up{animation:flash 1.6s ease 3}
 html.pt .main{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
 html.pt .t10 .rows{flex:none}
+
+/* ===== три колонки: секторы | топ сегодня | топ периода ===== */
+.cols3{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.4em}
+.col{background:var(--panel);border-radius:1.8em;padding:1em 1.1em;display:flex;flex-direction:column;min-height:0}
+.col.cd{background:linear-gradient(170deg,#f6ecff,#f7f9fe 55%)}
+.col.cp{background:linear-gradient(170deg,#e8f0ff,#f7f9fe 55%)}
+.ch{display:flex;align-items:baseline;gap:.7em;padding:.1em .3em .7em}
+.ch b{font-weight:600;font-size:1.2em;text-transform:uppercase;letter-spacing:.02em}
+.cs .ch b{color:var(--ink)}.cd .ch b{color:#a347e0}.cp .ch b{color:var(--blue)}
+.ch span{margin-left:auto;color:var(--muted);font-size:.8em}
+.lst{flex:1;min-height:0;display:flex;flex-direction:column;gap:var(--gap);overflow:hidden}
+.li{height:var(--rh);flex:none;display:flex;align-items:center;gap:.7em;background:#fff;border-radius:1em;padding:0 1em 0 .6em;box-shadow:0 8px 20px -16px rgba(15,18,34,.45);border:1.5px solid transparent;min-width:0}
+.li .pl{width:2em;height:2em;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:.85em;background:var(--soft);color:var(--muted2);flex:none}
+.li .av{width:2.6em;height:2.6em;font-size:.8em;border-radius:50%}
+.li .w{flex:1;min-width:0}
+.li .nm{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .dp{font-size:.75em;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1em}
+.li .sp{display:inline-block;background:#e8f0ff;color:var(--blue);border-radius:99px;padding:0 .6em}
+.li .v{text-align:right;font-weight:600;font-size:1.15em;white-space:nowrap}
+.li .v small{display:block;font-size:.62em;font-weight:400;color:var(--muted)}
+.li.m1{background:linear-gradient(90deg,#fff3c4,#fff);border-color:#f5c542}.li.m1 .pl{background:#f5b400;color:#fff}
+.li.m2{background:linear-gradient(90deg,#e9eef7,#fff);border-color:#c3cad8}.li.m2 .pl{background:#94a3b8;color:#fff}
+.li.m3{background:linear-gradient(90deg,#ffe4d4,#fff);border-color:#f0a46c}.li.m3 .pl{background:#e07b39;color:#fff}
+.li.none{justify-content:center;color:var(--muted);font-size:.9em;background:transparent;box-shadow:none;border:1.5px dashed #d9e0ef}
+.li.up{animation:flash 1.6s ease 3}
+.li.sec .v{font-size:1.3em}
+.li .tag{display:inline-block;background:#fff;border:1px solid #f5c542;color:#a16207;border-radius:99px;padding:0 .55em;font-size:.68em;font-weight:500;vertical-align:middle}
+.mini{height:.3em;border-radius:99px;background:#d5e3ff;margin-top:.35em;overflow:hidden;max-width:14em}
+.mini i{display:block;height:100%;background:var(--blue);border-radius:99px}.mini i.ok{background:var(--green)}
+.cfoot{margin-top:.8em;background:#fff;border-radius:1em;padding:.7em 1em}
+.cfoot span{color:var(--muted2);font-size:.8em}.cfoot b{display:block;font-weight:500;font-size:1.05em;margin:.1em 0 .35em}
+html.pt .cols3{grid-template-columns:1fr;grid-template-rows:auto auto auto}
+html.pt .lst{flex:none}
 /* ===== вертикальный экран (ТВ стоит вертикально или повёрнут) ===== */
 html.pt .hd{flex-wrap:wrap;gap:1em}
 html.pt .ttl{flex-basis:100%}
@@ -154,6 +187,7 @@ html.pt .clock{display:none}
 html.pt .tbl{padding:1em}
 /* ===== телефон ===== */
 @media (max-width:600px){
+  .cols3{grid-template-columns:1fr;gap:12px}.lst{overflow:visible;flex:none}.col{padding:12px}
   html,body{overflow:auto;height:auto}
   #app{position:static;margin:10px;padding:18px 14px 20px;gap:14px;font-size:13px;border-radius:26px}
   .hd{gap:8px}.ttl{flex-basis:100%}.ttl h1{font-size:1.9em;white-space:normal}
@@ -206,8 +240,6 @@ function bar(v, plan, extra = '') {
 }
 
 let D = null, seq = 0, prev = {};
-const RP = { page: 0, pages: 1, draw: null };
-setInterval(() => { if (RP.draw && RP.pages > 1) { RP.page = (RP.page + 1) % RP.pages; RP.draw(); } }, 8000);
 let audio = null, soundOk = sessionStorage.getItem('lb-sound') === '1';
 
 function setRotation() {
@@ -233,87 +265,55 @@ function render() {
   // масштаб от эталона 1920×1080 (вертикально 1080×1920): на любом ТВ выглядит одинаково
   $('#app').style.fontSize = PH ? '' : (PT ? Math.min(W * 0.015, HH * 0.00844) : Math.min(HH * 0.015, W * 0.00844)).toFixed(2) + 'px';
 
-  const ALL = D.rows, SEC = D.sectors || [], N = Math.max(3, D.topN || 10);
-  const R = ALL.slice(0, N), REST = ALL.slice(N);
+  const ALL = D.rows, SEC = (D.sectors || []).slice(), N = Math.max(3, D.topN || 10);
+  const TOPP = ALL.slice(0, N);                                                   // топ периода
+  const TOPD = ALL.filter(r => r.daySum > 0).sort((a, b) => b.daySum - a.daySum || b.dayCnt - a.dayCnt).slice(0, N); // топ сегодня
+  SEC.sort((a, b) => b.daySum - a.daySum || b.sum - a.sum);
+  const MED = ['m1', 'm2', 'm3'];
 
-  const SC = ['#1f6bff', '#cf7cf4', '#f5b400', '#12b76a', '#ff7a45', '#06b6d4'];
-  const secCard = (x, i) => `<div class="sc" style="--c:${SC[i % SC.length]}">
-      <div class="l1"><span class="sn"><i></i>${esc(x.name)}<small>${x.managers} ${plural(x.managers, 'менеджер', 'менеджера', 'менеджеров')}</small></span>
-        <span class="sv num"><b>${money(x.sum)}</b>${x.plan ? ` / ${short(x.plan)} ₸` : ''}</span></div>
-      <div class="l2">${x.plan ? bar(x.sum, x.plan) : '<div class="pb"><span class="sub">план не задан</span></div>'}
-        <span class="sub num">сегодня <b>${short(x.daySum)}</b>${x.dayPlan ? ' / ' + short(x.dayPlan) : ''} ₸${x.plan ? ' · осталось <b>' + short(Math.max(0, x.plan - x.sum)) + '</b>' : ''}</span></div></div>`;
-
-  const nextHint = r => r.next ? `<em> · ещё ${short(r.next.left)} до ${r.next.pct > r.commPct ? r.next.pct + '%' : 'премии'}</em>` : '';
-  const rowHtml = r => {
+  const secRow = (x, i) => `<div class="li sec ${x.daySum ? MED[i] || '' : ''}">
+      <span class="pl num">${i + 1}</span>
+      <div class="w"><div class="nm">${esc(x.name)}${i === 0 && x.daySum ? ' <span class="tag">1 место дня</span>' : ''}</div>
+        <div class="dp num">период ${short(x.sum)}${x.plan ? ' / ' + short(x.plan) + ' ₸' : ' ₸'}</div>
+        ${x.plan ? `<div class="mini"><i style="width:${Math.min(100, x.sum / x.plan * 100).toFixed(1)}%" class="${x.sum >= x.plan ? 'ok' : ''}"></i></div>` : ''}</div>
+      <span class="v num">${money(x.daySum)}</span></div>`;
+  const mgrRow = (r, i, today) => {
     const up = prev[r.uid] !== undefined && prev[r.uid] < r.sum ? 'up' : '';
-    let h = `<div class="tr row ${up}"><span class="place num">${r.place}</span>
-      <div class="mg">${av(r)}<div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${esc(r.dep)}</div></div></div>`;
-    if (cols.today && !PH) h += `<span class="r num">${r.daySum ? `<b class="md">${short(r.daySum)}</b>` : '<span class="mu">—</span>'}<small class="s2">${r.dayCnt ? r.dayCnt + ' прод.' : ''}</small></span>`;
-    if (cols.sales) h += `<span class="r big num">${money(r.sum)}</span>`;
-    if (cols.count && !PH) h += `<span class="cnt num">${r.cnt}</span>`;
-    if (cols.pct && !PH && !PT) h += `<span class="r pct num">${r.comm ? money(r.comm) : '—'}<small>${r.commPct ? (Math.round(r.commPct * 10) / 10) + '%' : ''}${nextHint(r)}</small></span>`;
-    if (cols.salary && !PH) h += `<span class="r big num">${money(r.salary)}</span>`;
-    return h + '</div>';
+    return `<div class="li ${MED[i] || ''} ${up}"><span class="pl num">${i + 1}</span>${av(r)}
+      <div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${r.dep ? `<span class="sp">${esc(r.dep)}</span>` : ''}</div></div>
+      <span class="v num">${money(today ? r.daySum : r.sum)}<small>${today ? r.dayCnt : r.cnt} прод.</small></span></div>`;
   };
-  const restRow = r => `<div class="rr ${prev[r.uid] !== undefined && prev[r.uid] < r.sum ? 'up' : ''}"><span class="place num">${r.place}</span>${av(r)}
-      <div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★</span>' : ''}${esc(r.dep)}</div></div>
-      <span class="rs num"><b>${short(r.sum)}</b><small>${r.cnt} прод.${r.daySum ? ' · сегодня ' + short(r.daySum) : ''}</small></span></div>`;
-
-  // колонки топ-10 (в горизонтальном режиме справа идёт список остальных — таблица уже)
-  const C = [['2.2em', '#', ''], ['minmax(0,2.3fr)', 'Менеджер', '']];
-  if (cols.today && !PH) C.push(['minmax(0,1fr)', 'Сегодня', 'r']);
-  if (cols.sales) C.push(['minmax(0,1.3fr)', 'Продажи', 'r']);
-  if (cols.count && !PH) C.push(['3.6em', 'Кол-во', 'cnt']);
-  if (cols.pct && !PH && !PT) C.push(['minmax(0,1.7fr)', '% от продаж', 'r']);
-  if (cols.salary && !PH) C.push(['minmax(0,1.2fr)', 'Зарплата', 'r']);
-  const tmpl = C.map(c => c[0]).join(' ');
+  const empty = t => `<div class="li none">${t}</div>`;
 
   $('#app').innerHTML = `
     <div class="hd">
       <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>
         <div class="per num">${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : 'обновлено ' + new Date(D.syncedAt).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit' })}</div></div>
-      ${T.plan ? `<div class="stat plan kb"><small>План компании · осталось ${money(T.left)}</small><b class="num">${money(T.sum)}</b>${bar(T.sum, T.plan)}</div>`
-        : `<div class="stat kb"><small>Продажи компании</small><b class="num">${money(T.sum)}</b></div>`}
-      ${T.dayPlan ? `<div class="stat plan kp"><small>План на сегодня · осталось ${money(T.dayLeft)}</small><b class="num">${money(T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
-        : `<div class="stat kp"><small>Сегодня</small><b class="num">${money(T.daySum)}</b></div>`}
-      <div class="stat kw"><small>Всего продаж</small><b class="num">${T.cnt}</b></div>
+      ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · вся компания</small><b class="num">${money(T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
+        : `<div class="stat kp"><small>Касса сегодня · вся компания</small><b class="num">${money(T.daySum)}</b></div>`}
+      ${T.plan ? `<div class="stat plan kb"><small>Касса периода · план ${short(T.plan)} ₸</small><b class="num">${money(T.sum)}</b>${bar(T.sum, T.plan)}</div>`
+        : `<div class="stat kb"><small>Касса периода · вся компания</small><b class="num">${money(T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
     </div>
-    ${SEC.length ? `<div class="secs" style="--n:${Math.min(SEC.length, PT ? 2 : 4)}">${SEC.map(secCard).join('')}</div>` : ''}
-    <div class="main ${REST.length ? '' : 'solo'}">
-      <div class="tbl t10" style="--cols:${tmpl}">
-        <div class="t10h"><span class="t10b">ТОП-${N}</span><span>лучшие менеджеры периода</span></div>
-        <div class="row thd">${C.map(c => `<span class="${c[2]}">${c[1]}</span>`).join('')}</div>
-        <div class="rows" id="rows"></div>
-      </div>
-      ${REST.length ? `<div class="rest"><div class="resth"><b>Все менеджеры</b><span>места ${REST[0].place}–${REST[REST.length - 1].place}</span><span class="pg" id="pg"></span></div><div class="rlist" id="rlist"></div></div>` : ''}
+    <div class="cols3">
+      <div class="col cs"><div class="ch"><b>Рейтинг секторов</b><span>касса дня</span></div>
+        <div class="lst" id="l1">${SEC.length ? SEC.map(secRow).join('') : empty('Секторы появятся после синхронизации с Bitrix24')}</div>
+        ${T.plan ? `<div class="cfoot num"><span>План компании</span><b>${money(T.sum)} / ${short(T.plan)} ₸</b>${bar(T.sum, T.plan)}</div>` : ''}</div>
+      <div class="col cd"><div class="ch"><b>Топ-${N} сегодня</b><span>касса за день</span></div>
+        <div class="lst" id="l2">${TOPD.length ? TOPD.map((r, i) => mgrRow(r, i, true)).join('') : empty('Сегодня продаж пока нет')}</div></div>
+      <div class="col cp"><div class="ch"><b>Топ-${N} периода</b><span>касса за ${fd(P.from).slice(0, 5)}–${fd(P.to).slice(0, 5)}</span></div>
+        <div class="lst" id="l3">${TOPP.length ? TOPP.map((r, i) => mgrRow(r, i, false)).join('') : empty('Пока нет продаж за период')}</div></div>
     </div>`;
   tick();
 
-  // топ-N всегда целиком: высота строки подстраивается под экран
-  const box = $('#rows'), app = $('#app');
-  const fs = parseFloat(getComputedStyle(app).fontSize);
-  const gap = Math.round(fs * .45), n = Math.max(1, R.length);
-  const rh = PH ? Math.round(fs * 3.6) : Math.max(Math.round(fs * 2.7), Math.min(Math.round(fs * 3.8), Math.floor((box.clientHeight - gap * (n - 1)) / n)));
-  box.style.setProperty('--gap', gap + 'px'); box.style.setProperty('--rh', rh + 'px');
-  box.innerHTML = R.length ? R.map(rowHtml).join('') : `<div class="more" style="justify-content:center">Пока нет продаж за период</div>`;
-
-  // остальные: столько, сколько помещается; если больше — листаем страницы
-  const rl = $('#rlist');
-  if (rl) {
-    const rrh = Math.round(fs * (PH ? 3.2 : 2.55)), rgap = Math.round(fs * .3);
-    rl.style.setProperty('--rrh', rrh + 'px'); rl.style.setProperty('--rgap', rgap + 'px');
-    const colsN = PT ? 2 : 1;
-    const perCol = PH ? REST.length : Math.max(1, Math.floor((rl.clientHeight + rgap) / (rrh + rgap)));
-    const per = perCol * colsN;
-    RP.pages = Math.max(1, Math.ceil(REST.length / per)); if (RP.page >= RP.pages) RP.page = 0;
-    RP.draw = () => {
-      rl.style.setProperty('--rows', perCol);
-      rl.innerHTML = REST.slice(RP.page * per, RP.page * per + per).map(restRow).join('');
-      const pg = $('#pg'); if (pg) pg.innerHTML = RP.pages > 1 ? Array.from({ length: RP.pages }, (_, k) => `<i class="${k === RP.page ? 'on' : ''}"></i>`).join('') : '';
-    };
-    RP.draw();
-  } else RP.draw = null;
+  // строки: 10 штук всегда влезают — высота подстраивается под экран
+  const fs = parseFloat(getComputedStyle($('#app')).fontSize);
+  ['#l1', '#l2', '#l3'].forEach(id => {
+    const box = $(id); if (!box) return;
+    const n = id === '#l1' ? Math.max(SEC.length, 3) : N, gap = Math.round(fs * .45);
+    const rh = PH || PT ? Math.round(fs * (PH ? 3.4 : 3.3)) : Math.max(Math.round(fs * 2.6), Math.min(Math.round(fs * (id === '#l1' ? 5 : 4.4)), Math.floor((box.clientHeight - gap * (n - 1)) / n)));
+    box.style.setProperty('--rh', rh + 'px'); box.style.setProperty('--gap', gap + 'px');
+  });
   prev = Object.fromEntries(ALL.map(r => [r.uid, r.sum]));
 }
 const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 10 || h >= 20) ? b : c; };
