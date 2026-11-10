@@ -192,6 +192,43 @@ async function handle(req, res) {
     await store.set('photo:' + m[1], { data, ts: Date.now() });
     return send(res, 200, { ok: true, url: `/photo/${m[1]}?v=${Date.now()}` });
   }
+  // Сверка кассы за день: какие сделки Bitrix24 попали / не попали в рейтинг и почему
+  if (p === '/api/admin/diag') {
+    const S = cfg.settings, date = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get('date') || '') ? url.searchParams.get('date') : C.todayKey(S.tz);
+    const next = C.addDays(date, 1), F = S.dateField;
+    const sel = ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'STAGE_ID', 'CATEGORY_ID', F, 'DATE_CREATE', 'MOVED_TIME', 'CLOSEDATE'];
+    const list = async filter => {
+      const out = []; let start = 0;
+      for (let k = 0; k < 40; k++) {
+        const r = await bx.call('crm.deal.list', { order: { ID: 'DESC' }, filter, select: sel, start });
+        out.push(...(r.result || [])); if (r.next == null) break; start = r.next;
+      }
+      return out;
+    };
+    const [byDate, movedToday, createdToday] = await Promise.all([
+      list({ ['>=' + F]: date, ['<' + F]: next }),
+      list({ '@STAGE_ID': S.stages, '>=MOVED_TIME': date + 'T00:00:00' + S.tzOffset, '<MOVED_TIME': next + 'T00:00:00' + S.tzOffset }).catch(() => []),
+      list({ '>=DATE_CREATE': date + 'T00:00:00' + S.tzOffset, '<DATE_CREATE': next + 'T00:00:00' + S.tzOffset }).catch(() => []),
+    ]);
+    if (!cache.meta && bx.configured()) cache.meta = await bx.meta().catch(() => ({}));
+    const stName = Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x.name + ' · ' + x.category]));
+    const board = cfg.boards.find(b => b.active) || cfg.boards[0];
+    const members = board ? new Set(C.computeBoard(board, ctx()).members) : new Set();
+    const uname = id => (cfg.managers[id] || {}).name || (cache.userMap[id] || {}).name || ('ID ' + id);
+    const row = d => ({ id: String(d.ID), title: d.TITLE, sum: +d.OPPORTUNITY || 0, uid: String(d.ASSIGNED_BY_ID), manager: uname(String(d.ASSIGNED_BY_ID)),
+      stage: d.STAGE_ID, stageName: stName[d.STAGE_ID] || d.STAGE_ID, date: String(d[F] || '').slice(0, 10), moved: String(d.MOVED_TIME || '').slice(0, 16), created: String(d.DATE_CREATE || '').slice(0, 16) });
+    const reason = d => !S.stages.includes(d.stage) ? 'стадия не отмечена' : !d.date ? 'не заполнена дата заказа' : d.date !== date ? 'другая дата заказа' : (cfg.managers[d.uid] || {}).hidden ? 'менеджер скрыт' : board && !members.has(d.uid) ? 'менеджер не на доске' : '';
+    const A = byDate.map(row).map(d => ({ ...d, why: reason(d) }));
+    const counted = A.filter(d => !d.why);
+    const stages = {};
+    A.forEach(d => { const x = stages[d.stage] || (stages[d.stage] = { stage: d.stage, name: d.stageName, cnt: 0, sum: 0, on: S.stages.includes(d.stage) }); x.cnt++; x.sum += d.sum; });
+    const seen = new Set(A.map(d => d.id));
+    const other = [...movedToday, ...createdToday].map(row).filter(d => !seen.has(d.id) && (seen.add(d.id), true)).map(d => ({ ...d, why: reason(d) }));
+    return send(res, 200, {
+      date, dateField: F, counted: { cnt: counted.length, sum: counted.reduce((a, d) => a + d.sum, 0) },
+      stages: Object.values(stages).sort((a, b) => b.sum - a.sum), deals: A, other,
+    });
+  }
   if (p === '/api/admin/resync' && req.method === 'POST') {
     cache.meta = null; await sync(); return send(res, 200, { ok: !cache.error, error: cache.error, syncedAt: cache.syncedAt });
   }

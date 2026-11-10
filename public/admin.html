@@ -45,6 +45,10 @@ main{padding:44px 44px 120px 10px;min-width:0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:18px;box-shadow:var(--sh)}
 .card h3{margin:0 0 4px;font-size:18px;font-weight:500}
 .card .hint{color:var(--muted);font-size:13px;margin:0 0 14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 18px}
+.kpi small{display:block;color:var(--muted);font-size:12.5px}
+.kpi b{display:block;font-size:24px;font-weight:600;margin:4px 0 2px;letter-spacing:-.01em}
+.kpi span{color:var(--muted);font-size:12.5px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:18px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{border:0;background:var(--soft);padding:8px 14px;border-radius:99px;cursor:pointer;color:var(--muted2);font-size:13px}
@@ -578,6 +582,9 @@ pages.settings = () => {
       ${S.syncedAt ? ` · последняя синхронизация ${new Date(S.syncedAt).toLocaleTimeString('ru-RU')}` : ''} · хранилище: <b>${S.store === 'postgres' ? 'Postgres' : 'файл (временное!)'}</b></p>
       ${S.store !== 'postgres' ? '<div class="warn">DATABASE_URL не задан — настройки сохранятся только до перезапуска сервера. Подключите Render Postgres.</div>' : ''}
       <button class="btn l" id="resync">↻ Синхронизировать сейчас</button></div>
+    <div class="card" id="diagCard"><h3>Сверка кассы за день</h3><p class="hint">Показывает все сделки Bitrix24 с выбранной датой заказа — какие попали в рейтинг, а какие нет и почему. Если касса на табло меньше, чем в отчёте Bitrix24, — здесь видно причину.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><input class="in" type="date" id="dgDate" value="${S.today}" style="max-width:200px"><button class="btn" id="dgRun">Проверить</button></div>
+      <div id="dgOut"></div></div>
     <div class="card"><h3>Компания</h3><label class="f"><span>Название (подпись на табло)</span>${inp('settings.company')}</label>
       <label class="f" style="max-width:260px"><span>Опрос Bitrix24, сек (мин. 15)</span>${inp('settings.syncSec', '30', 'number')}</label></div>
     <div class="card"><h3>Что считается продажей</h3><p class="hint">Сделка попадает в рейтинг, когда она в одной из отмеченных стадий. День продажи — по выбранному полю-дате.</p>
@@ -594,6 +601,25 @@ pages.settings = () => {
   document.querySelectorAll('[data-stage]').forEach(el => el.onchange = () => { const x = new Set(s.stages); el.checked ? x.add(el.dataset.stage) : x.delete(el.dataset.stage); s.stages = [...x]; setDirty(); });
   document.querySelectorAll('[data-wd]').forEach(el => el.onclick = () => { const v = +el.dataset.wd; s.workDays = s.workDays.includes(v) ? s.workDays.filter(x => x !== v) : [...s.workDays, v].sort(); setDirty(); route(); });
   $('#hol').oninput = e => { s.holidays = e.target.value.split(/[\s,;]+/).filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x)); setDirty(); };
+  const dgRun = async () => {
+    const out = $('#dgOut'); out.innerHTML = '<div class="empty">Запрашиваю Bitrix24…</div>';
+    let R; try { R = await api('/api/admin/diag?date=' + $('#dgDate').value); } catch (e) { out.innerHTML = `<div class="warn">Ошибка: ${esc(e.message)}</div>`; return; }
+    const all = R.deals.reduce((a, d) => a + d.sum, 0), miss = R.deals.filter(d => d.why), oth = R.other;
+    const tbl = (rows, extra) => `<div class="tw"><table><thead><tr><th>Сделка</th><th>Менеджер</th><th>Стадия</th><th>Дата заказа</th>${extra ? '<th>Изменена / создана</th>' : ''}<th class="r">Сумма</th><th>Почему не в рейтинге</th></tr></thead><tbody>
+      ${rows.map(d => `<tr><td>#${esc(d.id)} ${esc(d.title || '')}</td><td>${esc(d.manager)}</td><td>${esc(d.stageName)}</td><td class="num">${d.date ? fd(d.date) : '<span style="color:var(--red)">пусто</span>'}</td>${extra ? `<td class="num" style="color:var(--muted)">${esc((d.moved || d.created).replace('T', ' '))}</td>` : ''}<td class="r num"><b>${money(d.sum)}</b></td><td>${d.why ? `<span class="pill er">${esc(d.why)}</span>` : '<span class="pill ok">учтена</span>'}</td></tr>`).join('')}</tbody></table></div>`;
+    out.innerHTML = `<div class="grid" style="margin-top:16px">
+        <div class="kpi"><small>В рейтинге (как на табло)</small><b class="num" style="color:var(--green)">${money(R.counted.sum)}</b><span>${R.counted.cnt} сделок</span></div>
+        <div class="kpi"><small>Все сделки с этой датой заказа</small><b class="num">${money(all)}</b><span>${R.deals.length} сделок, все стадии</span></div>
+        <div class="kpi"><small>Не попали</small><b class="num" style="color:var(--red)">${money(all - R.counted.sum)}</b><span>${miss.length} сделок</span></div></div>
+      <h3 style="margin:8px 0 6px;font-size:16px">По стадиям (дата заказа = ${fd(R.date)})</h3>
+      <div class="tw"><table><thead><tr><th>Стадия</th><th class="r">Сделок</th><th class="r">Сумма</th><th>В кассе?</th></tr></thead><tbody>
+      ${R.stages.map(x => `<tr><td>${esc(x.name)} <small style="color:var(--muted)">${esc(x.stage)}</small></td><td class="r num">${x.cnt}</td><td class="r num"><b>${money(x.sum)}</b></td>
+        <td>${x.on ? '<span class="pill ok">учитывается</span>' : `<span class="pill no">не учитывается</span> <button class="btn l s" data-addst="${esc(x.stage)}">Учитывать</button>`}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Сделок с этой датой заказа нет</td></tr>'}</tbody></table></div>
+      ${miss.length ? `<h3 style="margin:18px 0 6px;font-size:16px">Не попали в рейтинг</h3>${tbl(miss)}` : ''}
+      ${oth.length ? `<h3 style="margin:18px 0 6px;font-size:16px">Сделки, изменённые или созданные в этот день, но с другой датой заказа</h3><p class="hint">Если их тоже считают кассой этого дня — значит в Bitrix24 у них не заполнена или иначе заполнена «Дата заказа».</p>${tbl(oth.slice(0, 200), true)}` : ''}`;
+    document.querySelectorAll('[data-addst]').forEach(b => b.onclick = () => { if (!s.stages.includes(b.dataset.addst)) s.stages.push(b.dataset.addst); setDirty(); b.replaceWith(Object.assign(document.createElement('span'), { className: 'pill ok', textContent: 'добавлено — нажмите «Сохранить»' })); });
+  };
+  $('#dgRun').onclick = dgRun;
   $('#resync').onclick = async () => { $('#resync').disabled = true; const r = await api('/api/admin/resync', { method: 'POST' }); await loadState().catch(() => {}); toast(r.ok ? 'Синхронизировано' : 'Ошибка: ' + r.error); route(); };
 };
 
