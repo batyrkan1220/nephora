@@ -240,15 +240,24 @@ html.pt .cs{grid-column:1/-1}
 html.pt .slst{flex-direction:row;flex:none}
 html.pt .scd{flex:1 1 0;max-height:none}
 html.pt .li .dp .el{display:none}
-html.pt .slst.many{flex-direction:column;gap:.5em}
-html.pt .slst.many .scd{flex:none;padding:.6em 1em;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:1em}
-html.pt .slst.many .sbody{display:contents}
-html.pt .slst.many .sh1{grid-column:1}
-html.pt .slst.many .sdat{grid-column:1;display:flex;align-items:baseline;gap:.8em;flex-wrap:wrap}
-html.pt .slst.many .sdat small{display:none}
-html.pt .slst.many .sdat>b{font-size:1.5em;display:inline}
-html.pt .slst.many .sline{margin:0}
-html.pt .slst.many .ring{grid-column:2;grid-row:1/3;width:4.2em;height:4.2em}
+/* много секторов (до 6+): компактные строки — горизонтально при >3, вертикально при >2 */
+.slst.many{flex-direction:column;gap:.5em}
+.slst.many .scd{flex:1 1 0;max-height:7.2em;min-height:4.4em;padding:.55em 1em;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-content:center;align-items:center;column-gap:1em;row-gap:.2em}
+.slst.many .sbody{display:contents}
+.slst.many .sh1{grid-column:1;grid-row:1}
+.slst.many .sh1 b{font-size:1.05em}
+.slst.many .sdat{grid-column:1;grid-row:2;display:flex;align-items:baseline;gap:.7em;min-width:0}
+.slst.many .sdat small{display:none}
+.slst.many .sdat>b{font-size:1.45em;display:inline;flex:none}
+.slst.many .sline{margin:0;font-size:.72em}
+.slst.many .sline+.sline{display:none}
+.slst.many .ring{grid-column:2;grid-row:1/3;width:3.9em;height:3.9em}
+.slst.many .ring span{font-size:.95em}.slst.many .ring small{display:none}
+.slst.many .sr{width:1.5em;height:1.5em;font-size:.72em}
+.slst.many .tag{font-size:.65em}
+html.pt .slst.many{flex-direction:column}
+html.pt .slst.many .scd{flex:none;max-height:none}
+@media (max-width:600px){.slst.many .scd{flex:none;max-height:none}.slst.many .sdat{flex-wrap:wrap}.slst.many .sline{white-space:normal}}
 .scd .sdat>b{white-space:nowrap}
 .scd .sh1 b{flex:0 1 auto}
 /* ===== вертикальный экран (ТВ стоит вертикально или повёрнут) ===== */
@@ -392,7 +401,7 @@ function render() {
     </div>
     <div class="cols3">
       <div class="col cs"><div class="ch"><span class="ci">${ICO.sec}</span><b>Рейтинг секторов</b><span>по кассе дня</span></div>
-        <div class="slst ${SEC.length > 2 ? 'many' : ''}" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
+        <div class="slst ${SEC.length > (PT ? 2 : 3) ? 'many' : ''}" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
         ${T.plan ? `<div class="cfoot num"><div><span>План компании</span><b>${money(T.sum)} <em>/ ${short(T.plan)} ₸</em></b></div>${bar(T.sum, T.plan)}</div>` : ''}</div>
       <div class="col cd"><div class="ch"><span class="ci">${ICO.day}</span><b>Топ-${N} сегодня</b><span>касса за день</span></div>
         <div class="lst" id="l2">${TOPD.map((r, i) => mgrRow(r, i, true, TOPD[0].daySum)).join('')}${Array.from({ length: Math.max(0, N - TOPD.length) }, (_, k) => slot(TOPD.length + k)).join('')}</div></div>
