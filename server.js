@@ -362,6 +362,22 @@ async function handle(req, res) {
       const q = cai.summary(uid => A.has(uid), P.from, P.today, nm);
       if (q.total.n) alerts.ai = { avg: q.total.avg, n: q.total.n };
     } catch (e) { alerts.error = e.message; }
+    // сравнение с прошлым периодом и динамика по месяцам — по базе (дата заказа, стадии факта кассы)
+    const FS = new Set(cfg.settings.stages || []), WD = wh.all('deal').filter(x => x.od && A.has(x.uid));
+    const cash = (from, to) => WD.reduce((a, x) => a + (x.od >= from && x.od <= to && FS.has(x.st) ? x.sum : 0), 0);
+    const cntOf = (from, to) => WD.filter(x => x.od >= from && x.od <= to && FS.has(x.st)).length;
+    const shiftM = (k, n) => { const d = new Date(k.slice(0, 7) + '-01T00:00:00Z'); d.setUTCMonth(d.getUTCMonth() + n); const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+      return d.toISOString().slice(0, 8) + String(Math.min(+k.slice(8, 10), last)).padStart(2, '0'); };
+    const pFrom = shiftM(P.from, -1), pTo = shiftM(P.today, -1), yest = C.addDays(P.today, -1);
+    const cmp = { prevSum: cash(pFrom, pTo), prevCnt: cntOf(pFrom, pTo), yestSum: cash(yest, yest), prevFrom: pFrom, prevTo: pTo };
+    const months = [];
+    for (let i = 6; i >= 0; i--) {
+      const m0 = shiftM(P.from, -i).slice(0, 7), mf = m0 + '-01', mt = C.monthRange(mf).to;
+      const os = WD.filter(x => x.od >= mf && x.od <= mt);
+      months.push({ m: m0, orders: os.reduce((a, x) => a + x.sum, 0), won: os.reduce((a, x) => a + (C.vykupOf(x, cfg.settings) === 'won' ? x.sum : 0), 0), cnt: os.length });
+    }
+    let sources = [];
+    try { sources = AN.sources(c, scope, { from: P.from, to: P.today }).slice(0, 4); } catch {}
     let eff = null;
     try { const E = EF.efficiency(c, scope, f, cfg); eff = { team: E.team, top: E.rows.slice(0, 3).map(r => ({ uid: r.uid, name: r.name, index: r.index })), low: E.rows.filter(r => r.index != null).slice(-3).reverse().map(r => ({ uid: r.uid, name: r.name, index: r.index, weak: r.weak })) }; } catch {}
     return send(res, 200, {
@@ -369,7 +385,7 @@ async function handle(req, res) {
       team: { sum, daySum, cnt, dayCnt, plan, dayPlan, forecast, avg: cnt ? sum / cnt : 0, salary: isOwner ? rows.reduce((a, r) => a + (r.salary || 0), 0) : undefined, managers: rows.length },
       sectors: secs, today: rows.filter(r => r.daySum > 0).sort((x, y) => y.daySum - x.daySum).slice(0, 5).map(r => ({ uid: r.uid, name: r.name, photo: r.photo, sector: r.sectorName, daySum: r.daySum, dayCnt: r.dayCnt })),
       leaders: rows.slice(0, 5).map(r => ({ uid: r.uid, name: r.name, photo: r.photo, sector: r.sectorName, sum: r.sum, cnt: r.cnt })),
-      days, recent, alerts, eff,
+      days, recent, alerts, eff, cmp, months, sources,
     });
   }
   // эффективность менеджеров и касания
