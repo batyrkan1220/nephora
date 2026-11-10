@@ -342,6 +342,19 @@ html.pt .slst.many .scd{flex:none;max-height:none}
 .pop .sm{animation:pulseSum 1.2s ease-in-out infinite 1.6s}
 @keyframes pulseSum{50%{transform:scale(1.06)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* сектор вместо «Новая продажа» — крупно вверху карточки */
+.pop .psec{display:inline-block;max-width:100%;background:#fff;color:var(--blue);border-radius:22px;padding:10px 30px 12px;font-weight:800;
+  font-size:clamp(40px,7vmin,76px);line-height:1.05;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  box-shadow:0 14px 34px -14px rgba(15,18,34,.55);overflow-wrap:anywhere;animation:secIn .7s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes secIn{from{opacity:0;transform:translateY(-30px) scale(.6)}}
+.pop .card{width:min(640px,90vw)}
+@media (max-height:720px){
+  .pop .card{padding:24px 26px 22px;border-radius:28px}
+  .pop .psec{font-size:34px;padding:6px 20px 8px;border-radius:16px}
+  .pop .pav{width:96px;height:96px;margin:12px auto 8px}.pop .pav .av{width:96px;height:96px;font-size:30px;border-radius:26px}
+  .pop .pav::before,.pop .pav::after{border-radius:26px}
+  .pop .nm{font-size:22px}.pop .sm{font-size:40px}.pop .tt{margin-top:2px;font-size:14px}.pop .pl{margin-top:8px;font-size:14px}
+}
 /* кнопка тестовой продажи */
 .tbtn{flex:none;align-self:center;display:flex;align-items:center;gap:.45em;border:0;cursor:pointer;font:inherit;font-size:.85em;font-weight:600;line-height:1.1;text-align:left;
   color:#fff;background:linear-gradient(135deg,#ff8a00,#ff3d8b 55%,#c86df2);border-radius:1em;padding:.7em .95em;box-shadow:0 12px 26px -14px rgba(255,61,139,.95);transition:transform .15s}
@@ -422,7 +435,7 @@ document.addEventListener('click', e => {
   if (D.board.screen.sound && !soundOk) { soundOk = true; try { audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); loadSale(); } catch {} const sn = $('.snd'); if (sn) sn.remove(); }
   const pool = D.rows.slice(0, 10), r = pool[Math.floor(Math.random() * pool.length)] || { name: 'Тестовый менеджер', photo: '' };
   const sum = (10 + Math.floor(Math.random() * 90)) * 5000;
-  popup({ name: r.name, photo: r.photo, place: r.place, total: (r.sum || 0) + sum, sum, title: 'Тестовая продажа' });
+  popup({ name: r.name, photo: r.photo, place: r.place, total: (r.sum || 0) + sum, sum, sector: r.sectorName || '', title: 'Тестовая продажа' });
 });
 let audio = null, soundOk = false; // браузер разрешает звук только после клика на этой странице
 
@@ -577,10 +590,12 @@ function next() {
   const e = queue.shift(); if (!e) { showing = false; return; }
   showing = true;
   const el = document.createElement('div'); el.className = 'pop';
-  el.innerHTML = `<div class="rays"></div><div class="card"><span class="tag">🎉 Новая продажа</span><div class="pav">${av(e)}</div><div class="nm">${esc(e.name)}</div>
+  el.innerHTML = `<div class="rays"></div><div class="card">${e.sector ? `<div class="psec">${esc(e.sector)}</div>` : '<span class="tag">🎉 Новая продажа</span>'}<div class="pav">${av(e)}</div><div class="nm">${esc(e.name)}</div>
     <div class="sm num">+<span id="psum">0 ₸</span></div>${e.title ? `<div class="tt">${esc(e.title)}</div>` : ''}
     ${e.place ? `<div class="pl">${e.place} место · ${money(e.total)} за период</div>` : ''}</div>`;
   document.body.appendChild(el);
+  { const q = el.querySelector('.psec'); // длинное название сектора уменьшаем, пока не влезет
+    if (q) { let f = parseFloat(getComputedStyle(q).fontSize); const fits = () => q.scrollWidth <= q.clientWidth + 1 && q.offsetHeight <= f * 1.05 * 2 + 26; if (q.scrollWidth > q.clientWidth + 1) q.style.whiteSpace = 'normal'; while (!fits() && f > 22) { f -= 2; q.style.fontSize = f + 'px'; } } }
   { const t0 = performance.now(), to = Math.round(e.sum || 0), ps = el.querySelector('#psum');
     const st = n => { const p = Math.min(1, (n - t0) / 1600), v = Math.round(to * (1 - Math.pow(1 - p, 4))); ps.textContent = money(v); if (p < 1) requestAnimationFrame(st); };
     requestAnimationFrame(st); }
