@@ -905,9 +905,34 @@ pages.calls = async () => {
     <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Всего</th><th class="r">Исход.</th><th class="r">Дозвон</th><th class="r">Вход.</th><th class="r">Пропущ.</th><th class="r">Минут</th><th class="r">Заказы</th><th class="r">Звонков/заказ</th><th class="r">Первый звонок по ${LW}</th><th class="r">${DM ? 'Сделок' : 'Лидов'} без звонка</th></tr></thead><tbody>
       ${R.managers.map(x => `<tr><td><div class="who">${av(x.name, uPhoto(x.uid))}<div>${esc(x.name)}<small>${esc(x.sector)}</small></div></div></td><td class="r num"><b>${x.total}</b></td><td class="r num">${x.out}</td><td class="r num">${pct(x.reach)}</td><td class="r num">${x.inc}</td><td class="r num ${x.missed ? 'bad' : ''}">${x.missed || '—'}</td><td class="r num">${x.talkMin}</td><td class="r num">${x.orders}</td><td class="r num">${x.callsPerOrder == null ? '—' : Math.round(x.callsPerOrder * 10) / 10}</td><td class="r num">${mins(x.respMedianMin)}</td><td class="r num ${x.leadsNoCall ? 'bad' : ''}">${x.leadsNoCall || '—'}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Звонков за период нет</td></tr>'}</tbody></table></div></div>
     ${L.noCallList.length ? `<div class="card"><h3>${DM ? 'Новые сделки' : 'Лиды'} без звонка</h3><p class="hint">${DM ? 'Сделки' : 'Лиды'} периода, по которым нет ни одного звонка в Bitrix24.</p><div class="tw"><table><thead><tr><th>${DM ? 'Сделка' : 'Лид'}</th><th>Менеджер</th><th>Создан(а)</th></tr></thead><tbody>
-      ${L.noCallList.map(l => `<tr><td>#${esc(l.id)} ${esc(l.title)}</td><td>${esc(l.manager)}</td><td class="num">${esc(String(l.created).slice(0, 16).replace('T', ' '))}</td></tr>`).join('')}</tbody></table></div></div>` : ''}`;
-  bindFilters();
+      ${L.noCallList.map(l => `<tr><td>#${esc(l.id)} ${esc(l.title)}</td><td>${esc(l.manager)}</td><td class="num">${esc(String(l.created).slice(0, 16).replace('T', ' '))}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
+    <div class="card" id="recs"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><h3 style="flex:1;margin:0">Записи разговоров</h3>
+      <input class="in" id="recQ" placeholder="Поиск по номеру" value="${esc(REC.q)}" style="max-width:220px"><label class="ck"><input type="checkbox" id="recAll" ${REC.all ? 'checked' : ''}> все звонки</label></div>
+      <div id="recBody" class="empty">Загрузка…</div></div>`;
+  bindFilters(); loadRecs();
 };
+const REC = { q: '', all: false, play: '' };
+const dur = s => { s = +s || 0; return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+async function loadRecs() {
+  const box = $('#recBody'); if (!box) return;
+  $('#recQ').onchange = e => { REC.q = e.target.value.trim(); loadRecs(); };
+  $('#recAll').onchange = e => { REC.all = e.target.checked; loadRecs(); };
+  let R; try { R = await api('/api/admin/calls/list?' + qs() + '&q=' + encodeURIComponent(REC.q) + (REC.all ? '&all=1' : '')); } catch (e) { box.textContent = 'Ошибка: ' + e.message; return; }
+  box.className = '';
+  box.innerHTML = `<p class="hint" style="margin:0 0 10px">${REC.all ? 'Звонков' : 'Звонков с записью'} за период: <b>${R.total}</b>${R.total > R.rows.length ? ` · показаны последние ${R.rows.length}` : ''}. Запись загружается из Bitrix24 при нажатии ▶.</p>
+    <div class="tw"><table><thead><tr><th>Время</th><th>Менеджер</th><th>Номер</th><th>Тип</th><th class="r">Длит.</th><th style="min-width:320px">Запись</th></tr></thead><tbody>
+    ${R.rows.map(c => `<tr><td class="num">${esc(String(c.at).slice(0, 16).replace('T', ' '))}</td><td><div class="who">${av(c.name, uPhoto(c.uid))}<div>${esc(c.name)}<small>${esc(c.sector)}</small></div></div></td>
+      <td class="num">${esc(c.phone)}</td><td>${c.dir === 'out' ? '↗ исходящий' : c.dir === 'in' ? '↙ входящий' : '—'}${c.ok ? '' : ' <span class="pill no">не состоялся</span>'}</td><td class="r num">${dur(c.dur)}</td>
+      <td data-rc="${esc(c.id)}">${c.rec ? `<button class="btn l s" data-play="${esc(c.id)}">▶ Слушать</button> <a class="btn l s" href="/api/admin/call-rec/${encodeURIComponent(c.id)}?dl=1">⬇</a>` : '<span style="color:var(--muted)">нет записи</span>'}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Нет звонков с записью за период</td></tr>'}
+    </tbody></table></div>`;
+  box.querySelectorAll('[data-play]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.play, cell = box.querySelector(`[data-rc="${CSS.escape(id)}"]`);
+    box.querySelectorAll('audio').forEach(a => a.pause());
+    const src = '/api/admin/call-rec/' + encodeURIComponent(id);
+    cell.innerHTML = `<audio controls autoplay preload="auto" src="${src}" style="width:300px;height:36px"></audio>`;
+    cell.querySelector('audio').onerror = async () => { const r = await fetch(src, { headers: { Range: 'bytes=0-0' } }); const j = await r.json().catch(() => ({})); cell.innerHTML = `<span class="pill er">${esc(j.error || 'Запись недоступна')}</span>`; };
+  });
+}
 
 /* ===== AI-ассистент ===== */
 const AI = { msgs: JSON.parse(sessionStorage.getItem('ai-msgs') || '[]'), busy: false };

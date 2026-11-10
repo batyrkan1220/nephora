@@ -319,6 +319,48 @@ async function handle(req, res) {
     const fn = { '/api/admin/funnel': AN.funnel, '/api/admin/calls': AN.calls, '/api/admin/sources': AN.sources }[p];
     return send(res, 200, { ...(p === '/api/admin/sources' ? { rows: fn(ctx(), scope, f) } : fn(ctx(), scope, f)), wh: wh.status() });
   }
+  // записи разговоров: список и прослушивание (файл берётся из Bitrix24 через вебхук и отдаётся потоком)
+  if (p === '/api/admin/calls/list') {
+    const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
+    const f = { from: q.get('from') || today, to: q.get('to') || today, sector: q.get('sector') || '', uid: q.get('uid') || '' };
+    return send(res, 200, AN.callList(ctx(), scope, f, { q: q.get('q') || '', rec: q.get('all') !== '1', limit: q.get('limit') }));
+  }
+  if (p === '/api/admin/calls/raw') { // диагностика: какие поля записи отдаёт Bitrix24
+    if (!isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
+    const r = await bx.call('voximplant.statistic.get', { FILTER: { '>CALL_DURATION': 0 }, SORT: 'CALL_START_DATE', ORDER: 'DESC' });
+    const rows = (r.result || []).slice(0, 5).map(c => ({ CALL_ID: c.CALL_ID, CALL_START_DATE: c.CALL_START_DATE, CALL_DURATION: c.CALL_DURATION, RECORD_FILE_ID: c.RECORD_FILE_ID, CALL_RECORD_URL: c.CALL_RECORD_URL ? String(c.CALL_RECORD_URL).replace(/(auth|token)=[^&]+/g, '$1=…') : c.CALL_RECORD_URL, keys: Object.keys(c) }));
+    let disk = null; const withFile = (r.result || []).find(c => c.RECORD_FILE_ID);
+    if (withFile) disk = await bx.call('disk.file.get', { id: withFile.RECORD_FILE_ID }).then(x => ({ ok: true, name: x.result.NAME, size: x.result.SIZE, hasUrl: !!x.result.DOWNLOAD_URL })).catch(e => ({ ok: false, error: e.message }));
+    const all = wh.all('call');
+    return send(res, 200, { total: all.length, withRecord: all.filter(c => c.rec).length, sample: rows, disk });
+  }
+  if ((m = p.match(/^\/api\/admin\/call-rec\/([\w.-]+)$/))) {
+    const c = wh.byId('call', m[1]);
+    if (!c) return send(res, 404, { error: 'Звонок не найден в базе' });
+    if (!AN.allowedUids(ctx(), scope, {}).has(c.uid)) return send(res, 403, { error: 'Нет доступа к этому звонку' });
+    try {
+      const r = await bx.call('voximplant.statistic.get', { FILTER: { CALL_ID: c.id } });
+      const raw = (r.result || [])[0] || {};
+      const urls = []; let why = '';
+      if (raw.RECORD_FILE_ID) {
+        try { const fl = await bx.call('disk.file.get', { id: raw.RECORD_FILE_ID }); if (fl.result && fl.result.DOWNLOAD_URL) urls.push(fl.result.DOWNLOAD_URL); }
+        catch (e) { why = /insufficient|scope|access/i.test(e.message) ? 'У вебхука Bitrix24 нет права «Диск» (disk) — добавьте его в настройках вебхука' : e.message; }
+      }
+      if (raw.CALL_RECORD_URL) urls.push(raw.CALL_RECORD_URL);
+      if (!urls.length) return send(res, 404, { error: why || 'У звонка нет записи' });
+      for (const u of urls) {
+        const up = await fetch(u, { headers: req.headers.range ? { Range: req.headers.range } : {}, redirect: 'follow' });
+        const type = up.headers.get('content-type') || '';
+        if (!up.ok || /json|html/.test(type)) { why = why || `Bitrix24 не отдал файл (HTTP ${up.status})`; continue; }
+        const h = { 'Content-Type': /octet-stream/.test(type) || !type ? 'audio/mpeg' : type, 'Cache-Control': 'private, max-age=3600', 'Accept-Ranges': up.headers.get('accept-ranges') || 'bytes' };
+        for (const k of ['content-length', 'content-range']) if (up.headers.get(k)) h[k] = up.headers.get(k);
+        if (url.searchParams.has('dl')) h['Content-Disposition'] = `attachment; filename="call_${c.id.replace(/[^\w.-]/g, '')}.mp3"`;
+        res.writeHead(up.status, h);
+        return require('stream').Readable.fromWeb(up.body).pipe(res);
+      }
+      return send(res, 502, { error: why || 'Не удалось получить запись' });
+    } catch (e) { return send(res, 502, { error: e.message }); }
+  }
   if (p === '/api/admin/users' && req.method === 'POST') {
     try { return send(res, 200, { ok: true, user: await auth.saveUser(JSON.parse(await readBody(req, 1e5))) }); }
     catch (e) { return send(res, 400, { error: e.message }); }
