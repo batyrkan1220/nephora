@@ -2,15 +2,18 @@
 // • Раз в N секунд забирает сделки из Bitrix24 (вебхук только на сервере)
 // • Отдаёт ТВ-табло по публичной ссылке /b/<ключ> и кабинет руководителя /admin
 // • Настройки (доски, планы, бонусы, фото) хранятся в Postgres (DATABASE_URL)
-// ENV: BITRIX_WEBHOOK, DASH_PASSWORD, DATABASE_URL, PORT
+// • База Safa (сделки, лиды, звонки) + аналитика + AI-ассистент, аккаунты руководителей секторов
+// ENV: BITRIX_WEBHOOK, DASH_PASSWORD, DATABASE_URL, ANTHROPIC_API_KEY, PORT
 const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto');
 const store = require('./lib/store');
 const bx = require('./lib/bitrix');
 const C = require('./lib/calc');
+const auth = require('./lib/auth');
+const wh = require('./lib/warehouse');
+const AN = require('./lib/analytics');
 
 const PORT = process.env.PORT || 3000;
 const PASS = process.env.DASH_PASSWORD || '';
-const TOKEN = crypto.createHash('sha256').update('lb:' + PASS).digest('hex').slice(0, 32);
 const PUB = path.join(__dirname, 'public');
 
 let cfg = null;
@@ -73,6 +76,12 @@ function ctx(deals) {
     managers: cfg.managers, settings: cfg.settings, today: C.todayKey(cfg.settings.tz), photos: photos(), penalties: cfg.penalties,
   };
 }
+function stageNames() { return Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x.name])); }
+async function reportFor({ from, to, sector, boardId }, scope) {
+  const A = AN.allowedUids(ctx(), scope, { sector: sector || '' });
+  const deals = (await dealsFor(from, to)).filter(d => A.has(d.uid));
+  return C.report(cfg, ctx(deals), { from, to, boardId: boardId || '', uid: '' });
+}
 async function dealsFor(from, to) {
   const r = cache.range;
   if (r && from >= r.from && to <= r.to) return cache.deals;
@@ -91,7 +100,6 @@ function readBody(req, limit = 4e6) {
     req.on('end', () => ok(b)); req.on('error', fail);
   });
 }
-const authed = req => !PASS || (req.headers.cookie || '').split(/;\s*/).includes('lb=' + TOKEN);
 const loginPage = err => `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вход · Safa Leaderboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(900px 600px at 0 0,#ffe1ef,transparent 60%),radial-gradient(900px 600px at 100% 100%,#dff3ff,transparent 60%),#fff8f0;font-family:Poppins,system-ui,sans-serif;color:#1f1640}
@@ -99,8 +107,10 @@ form{background:#fff;padding:32px;border-radius:24px;width:min(360px,90vw);displ
 h1{margin:0 0 6px;font-size:22px}h1 b{background:linear-gradient(90deg,#ff3d8b,#a24bff,#22b8f0);-webkit-background-clip:text;color:transparent}
 input{font:inherit;padding:13px 14px;border:1.5px solid #ece4ff;border-radius:12px;outline:none}input:focus{border-color:#a24bff}
 button{font:inherit;font-weight:700;padding:13px;border:0;border-radius:12px;background:linear-gradient(90deg,#ff3d8b,#a24bff);color:#fff;cursor:pointer}.e{color:#be123c;font-size:14px}</style>
-<form method="post" action="/login"><h1>Safa <b>Leaderboard</b></h1>${err ? '<div class="e">Неверный пароль</div>' : ''}
-<input type="password" name="password" placeholder="Пароль" autofocus required><button>Войти</button></form></html>`;
+<form method="post" action="/login"><h1>Safa <b>Leaderboard</b></h1>${err ? '<div class="e">Неверный логин или пароль</div>' : ''}
+<input name="login" placeholder="Логин (руководителю сектора)" autocomplete="username" autocapitalize="none">
+<input type="password" name="password" placeholder="Пароль" autocomplete="current-password" autofocus required><button>Войти</button>
+<div style="font-size:12px;color:#8a83a8">Владелец входит только по паролю</div></form></html>`;
 
 function csv(rows) {
   return '﻿' + rows.map(r => r.map(v => {
@@ -146,18 +156,25 @@ async function handle(req, res) {
 
   // --- вход ---
   if (p === '/login' && req.method === 'POST') {
-    const pw = new URLSearchParams(await readBody(req, 1e4)).get('password');
-    if (!PASS || pw !== PASS) return send(res, 401, loginPage(true), 'text/html; charset=utf-8');
-    res.writeHead(302, { 'Set-Cookie': `lb=${TOKEN}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000`, Location: '/admin' });
+    const q = new URLSearchParams(await readBody(req, 1e4));
+    const u = auth.login(q.get('login'), q.get('password'));
+    if (!u) { await new Promise(r => setTimeout(r, 600)); return send(res, 401, loginPage(true), 'text/html; charset=utf-8'); }
+    res.writeHead(302, { 'Set-Cookie': [auth.cookieFor(u), 'lb=; Path=/; Max-Age=0'], Location: '/admin' });
     return res.end();
   }
   if (p === '/logout') {
-    res.writeHead(302, { 'Set-Cookie': 'lb=; Path=/; Max-Age=0', Location: '/admin' }); return res.end();
+    res.writeHead(302, { 'Set-Cookie': ['lb=; Path=/; Max-Age=0', 'sid=; Path=/; Max-Age=0'], Location: '/admin' }); return res.end();
   }
-  if (!authed(req)) {
+  const user = auth.fromReq(req);
+  if (!user) {
     if (p.startsWith('/api/')) return send(res, 401, { error: 'unauthorized' });
     return send(res, 200, loginPage(false), 'text/html; charset=utf-8');
   }
+  const scope = auth.scopeOf(user), isOwner = user.role === 'owner';
+  // только владелец: настройки, фото, сверка, пересинхронизация, аккаунты, база
+  const ownerOnly = (p === '/api/admin/config' && req.method !== 'GET') || p.startsWith('/api/admin/photo/') || p === '/api/admin/diag' ||
+    p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/');
+  if (ownerOnly && !isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
 
   // --- кабинет ---
   if (p === '/' || p === '/index.html') { res.writeHead(302, { Location: '/admin' }); return res.end(); }
@@ -174,13 +191,15 @@ async function handle(req, res) {
       syncedAt: cache.syncedAt, error: cache.error, today: C.todayKey(cfg.settings.tz),
       boards: cfg.boards.map(b => ({ id: b.id, members: C.computeBoard(b, ctx()).members })),
       dealUids: [...new Set(cache.deals.map(d => d.uid))],
+      secOf: C.sectorMap(ctx()), me: auth.publicUser(user), sectors: C.sectorsOf(cache.deps).map(d => ({ id: d.id, name: d.name })),
+      accounts: isOwner ? auth.list() : undefined, wh: wh.status(), ai: !!process.env.ANTHROPIC_API_KEY,
     });
   }
   if (p === '/api/admin/config' && req.method === 'PUT') {
     const body = JSON.parse(await readBody(req));
     const prevStages = JSON.stringify([cfg.settings.stages, cfg.settings.dateField]);
     cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, penalties: body.penalties || [], sectorBoards: cfg.sectorBoards || [], presetV: cfg.presetV, oneBoardV2: cfg.oneBoardV2, brandV3: cfg.brandV3 });
-    await store.set('config', cfg);
+    await store.set('config', cfg); wh.setCfg(cfg);
     if (JSON.stringify([cfg.settings.stages, cfg.settings.dateField]) !== prevStages) seen = null;
     sync().then(loop);
     return send(res, 200, { ok: true, cfg });
@@ -245,6 +264,7 @@ async function handle(req, res) {
     const deals = await dealsFor(mr.from, mr.to);
     const r = C.payouts(cfg, ctx(deals), { month, boardId: q.get('board') || '' });
     if (!r) return send(res, 404, { error: 'not found' });
+    { const A = AN.allowedUids(ctx(), scope, { sector: q.get('sector') || '' }); r.rows = r.rows.filter(x => A.has(x.uid)); }
     if (q.get('format') === 'csv') {
       const hd = ['Менеджер', 'Касса', '% сетки', 'Процент', 'Премия уровня', 'Бонусы', 'Штрафы', 'Итого',
         ...r.weeks.map(w => `Выплата ${w.from.slice(8)}.${w.from.slice(5, 7)}–${w.to.slice(8)}.${w.to.slice(5, 7)}`)];
@@ -253,10 +273,31 @@ async function handle(req, res) {
     }
     return send(res, 200, r);
   }
+  /* ===== аналитика по базе ===== */
+  if (p === '/api/admin/funnel' || p === '/api/admin/calls' || p === '/api/admin/sources') {
+    const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
+    const f = { from: q.get('from') || C.monthRange(today).from, to: q.get('to') || today, sector: q.get('sector') || '', uid: q.get('uid') || '', stageNames: stageNames() };
+    const fn = { '/api/admin/funnel': AN.funnel, '/api/admin/calls': AN.calls, '/api/admin/sources': AN.sources }[p];
+    return send(res, 200, { ...(p === '/api/admin/sources' ? { rows: fn(ctx(), scope, f) } : fn(ctx(), scope, f)), wh: wh.status() });
+  }
+  if (p === '/api/admin/users' && req.method === 'POST') {
+    try { return send(res, 200, { ok: true, user: await auth.saveUser(JSON.parse(await readBody(req, 1e5))) }); }
+    catch (e) { return send(res, 400, { error: e.message }); }
+  }
+  if ((m = p.match(/^\/api\/admin\/users\/(\w+)$/)) && req.method === 'DELETE') { await auth.deleteUser(m[1]); return send(res, 200, { ok: true }); }
+  if (p === '/api/admin/wh/sync' && req.method === 'POST') { await wh.sync(); return send(res, 200, wh.status()); }
+  if (p === '/api/admin/wh/rebuild' && req.method === 'POST') { wh.resetAndResync(); return send(res, 200, { ok: true }); }
+  if (p === '/api/ai/chat' && req.method === 'POST') {
+    const ai = require('./lib/ai');
+    const body = JSON.parse(await readBody(req, 2e5));
+    try { return send(res, 200, await ai.chat({ messages: body.messages || [], user, scope, cfg, ctx, stageNames: stageNames(), report: (f) => reportFor(f, scope) })); }
+    catch (e) { return send(res, e.status || 500, { error: e.message }); }
+  }
   if (p === '/api/admin/report') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
     const from = q.get('from') || C.monthRange(today).from, to = q.get('to') || today;
-    const deals = await dealsFor(from, to);
+    const A = AN.allowedUids(ctx(), scope, { sector: q.get('sector') || '' });
+    const deals = (await dealsFor(from, to)).filter(d => A.has(d.uid));
     const r = C.report(cfg, ctx(deals), { from, to, boardId: q.get('board') || '', uid: q.get('uid') || '' });
     if (!r) return send(res, 404, { error: 'not found' });
     if (q.get('format') === 'csv') {
@@ -302,5 +343,6 @@ async function handle(req, res) {
   http.createServer((req, res) => handle(req, res).catch(e => {
     console.error(e); if (!res.headersSent) send(res, 500, { error: String(e.message || e) });
   })).listen(PORT, () => console.log('Leaderboard on :' + PORT));
-  sync().then(loop);
+  sync().then(async () => { loop(); if (!cache.meta && bx.configured()) cache.meta = await bx.meta().catch(() => null); });
+  wh.start(cfg);
 })();

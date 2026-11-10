@@ -45,6 +45,37 @@ main{padding:44px 44px 120px 10px;min-width:0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:18px;box-shadow:var(--sh)}
 .card h3{margin:0 0 4px;font-size:18px;font-weight:500}
 .card .hint{color:var(--muted);font-size:13px;margin:0 0 14px}
+.navl.own{}
+body.head [data-own],body.head .navl.own{display:none!important}
+.me{font-size:12.5px;color:var(--muted);padding:6px 4px 2px;line-height:1.35}.me b{display:block;color:var(--ink);font-weight:500;font-size:13.5px}
+.fbar{display:flex;flex-direction:column;align-items:stretch;gap:0}
+.fun{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px}
+.fun div{display:flex;align-items:center;gap:12px}
+.fun i{display:block;height:34px;border-radius:10px;background:linear-gradient(90deg,#3d86ff,#c86df2);min-width:6px;transition:width .8s}
+.fun span{white-space:nowrap;font-size:13.5px}.fun b{font-weight:600}
+.hrs{display:flex;align-items:flex-end;gap:4px;height:120px;margin-top:8px}.hrs div{flex:1;background:linear-gradient(180deg,#3d86ff,#9cc0ff);border-radius:5px 5px 2px 2px;min-height:2px}
+.hrl{display:flex;gap:4px;font-size:10px;color:var(--muted);margin-top:4px}.hrl span{flex:1;text-align:center}
+.good{color:var(--green)}.bad{color:var(--red)}
+/* AI-чат */
+.chat{display:flex;flex-direction:column;height:calc(100vh - 210px);min-height:480px;background:var(--panel);border-radius:26px;overflow:hidden;border:1px solid var(--line)}
+.msgs{flex:1;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:14px}
+.cm{display:block;max-width:min(820px,92%);padding:13px 17px;border-radius:18px;line-height:1.55;font-size:14.5px;box-shadow:0 8px 20px -18px rgba(15,18,34,.5)}
+.cm.u{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:6px;white-space:pre-wrap}
+.cm.a{align-self:flex-start;background:#fff;border-bottom-left-radius:6px}
+.cm.a p{margin:0 0 8px}.cm.a p:last-child{margin:0}.cm.a ul,.cm.a ol{margin:4px 0 8px;padding-left:20px}.cm.a h4{margin:8px 0 4px;font-size:15px}
+.cm.a table{margin:6px 0 10px;font-size:13px}.cm.a th,.cm.a td{padding:6px 9px}
+.cm.a code{background:var(--soft);padding:1px 5px;border-radius:5px}
+.cm .tl{margin-top:8px;font-size:11.5px;color:var(--muted)}
+.cm.wait{color:var(--muted)}.cm.wait i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--blue);margin-right:4px;animation:dots 1s infinite}
+.cm.wait i:nth-child(2){animation-delay:.15s}.cm.wait i:nth-child(3){animation-delay:.3s}
+@keyframes dots{50%{opacity:.25;transform:translateY(-3px)}}
+.cin{display:flex;gap:10px;padding:14px;background:#fff;border-top:1px solid var(--line)}
+.cin textarea{flex:1;resize:none;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;font:inherit;outline:none;max-height:140px}
+.cin textarea:focus{border-color:var(--blue)}
+.sugg{display:flex;gap:8px;flex-wrap:wrap;padding:0 22px 14px}
+.sugg button{border:1px solid #dfe6f5;background:#fff;border-radius:99px;padding:8px 14px;cursor:pointer;color:var(--muted2);font-size:13px}
+.sugg button:hover{border-color:var(--blue);color:var(--blue)}
+.hello{margin:auto;text-align:center;color:var(--muted2);max-width:520px}.hello b{display:block;font-size:22px;color:var(--ink);font-weight:500;margin-bottom:6px}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 18px}
 .kpi small{display:block;color:var(--muted);font-size:12.5px}
 .kpi b{display:block;font-size:24px;font-weight:600;margin:4px 0 2px;letter-spacing:-.01em}
@@ -206,14 +237,21 @@ tfoot td{font-weight:600;border-top:2px solid var(--line)}
   <aside>
     <div class="logo"><i><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2L5 13.5h6L10 22l9-12.5h-6.2z"/></svg></i>Safa</div>
     <a href="#/" data-r="home"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg></span>Главная</a>
-    <a href="#/boards" data-r="boards"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 12l3-3 3 2 4-4"/></svg></span>Лидерборды</a>
+    <a href="#/boards" data-r="boards" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 12l3-3 3 2 4-4"/></svg></span>Лидерборды</a>
     <a href="#/sales" data-r="sales"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 15v-3M12 15V9M15 15v-5"/></svg></span>Продажи</a>
     <a href="#/payouts" data-r="payouts"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x='3' y='6' width='18' height='13' rx='3'/><path d='M3 10h18M7 15h3'/></svg></span>Выплаты</a>
-    <div class="navl">Управление</div>
-    <a href="#/managers" data-r="managers"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.2c2.6.3 4.5 2.6 4.5 5.3"/></svg></span>Менеджеры</a>
-    <a href="#/penalties" data-r="penalties"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx='12' cy='12' r='8.5'/><path d='M12 7.5v5l3 2'/></svg></span>Штрафы</a>
-    <a href="#/settings" data-r="settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5V2.5h6v1M9 10h6M9 14h4"/></svg></span>Настройки</a>
+    <div class="navl">Аналитика</div>
+    <a href="#/funnel" data-r="funnel"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M3 4h18l-7 8v6l-4 2v-8z'/></svg></span>Воронка и выкуп</a>
+    <a href="#/calls" data-r="calls"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2'/></svg></span>Звонки</a>
+    <a href="#/ai" data-r="ai"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M12 3l1.8 4.6L18 9.5l-4.2 1.9L12 16l-1.8-4.6L6 9.5l4.2-1.9z'/><path d='M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z'/></svg></span>AI-ассистент</a>
+    <div class="navl own">Управление</div>
+
+    <a href="#/managers" data-r="managers" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.2c2.6.3 4.5 2.6 4.5 5.3"/></svg></span>Менеджеры</a>
+    <a href="#/penalties" data-r="penalties" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx='12' cy='12' r='8.5'/><path d='M12 7.5v5l3 2'/></svg></span>Штрафы</a>
+    <a href="#/users" data-r="users" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx='12' cy='8' r='3.5'/><path d='M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7'/><path d='M19 4v4M17 6h4'/></svg></span>Пользователи</a>
+    <a href="#/settings" data-r="settings" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 3.5V2.5h6v1M9 10h6M9 14h4"/></svg></span>Настройки</a>
     <div class="sp"></div>
+    <div class="me" id="me"></div>
     <a href="/logout" class="out"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg></span>Выйти</a>
   </aside>
   <main id="main"><div class="empty">Загрузка…</div></main>
@@ -253,6 +291,9 @@ const uPhoto = id => { const u = S.users.find(x => x.id === id); return u ? u.ph
 async function loadState() {
   S = await api('/api/admin/state');
   cfg = JSON.parse(JSON.stringify(S.cfg)); saved = JSON.stringify(cfg); setDirty();
+  document.body.classList.toggle('head', S.me.role !== 'owner');
+  const secN = S.me.sectors ? mySectors().map(x => x.name).join(', ') || 'секторы не назначены' : 'все секторы';
+  $('#me').innerHTML = `<b>${esc(S.me.name)}</b>${S.me.role === 'owner' ? 'Владелец' : 'Руководитель'} · ${esc(secN)}`;
 }
 function setDirty() { dirty = JSON.stringify(cfg) !== saved; $('#save').classList.toggle('on', dirty); }
 $('#saveBtn').onclick = async () => {
@@ -293,23 +334,27 @@ function presets(today) {
     prev: ['Прошлый месяц', pms, addD(ms, -1)], custom: ['Произвольный'],
   };
 }
-const F = { p: 'month', from: '', to: '', board: '', uid: '' };
+const F = { p: 'month', from: '', to: '', board: '', uid: '', sector: '' };
+const mySectors = () => (S.sectors || []).filter(x => !S.me.sectors || S.me.sectors.includes(x.id));
+const uidsFor = () => [...new Set([...S.dealUids, ...Object.keys(cfg.managers)])].filter(id => (!S.me.sectors || S.me.sectors.includes(S.secOf[id])) && (!F.sector || S.secOf[id] === F.sector) && !(cfg.managers[id] || {}).hidden);
+const secSelect = (id, all) => `<select class="in" id="${id}"><option value="">${all}</option>${mySectors().map(x => `<option value="${x.id}" ${F.sector === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>`;
 function filters() {
   const P = presets(S.today);
   if (F.p !== 'custom') { F.from = P[F.p][1]; F.to = P[F.p][2]; }
   return `<div class="card"><div class="chips">${Object.entries(P).map(([k, v]) => `<button class="chip ${F.p === k ? 'on' : ''}" data-p="${k}">${v[0]}</button>`).join('')}</div>
     ${F.p === 'custom' ? `<div class="row2" style="margin-top:12px"><label class="f"><span>С</span><input class="in" type="date" id="fFrom" value="${F.from}"></label><label class="f"><span>По</span><input class="in" type="date" id="fTo" value="${F.to}"></label></div>` : ''}
     <div class="row2" style="margin-top:12px">
-      <label class="f"><span>Лидерборд</span><select class="in" id="fBoard"><option value="">Все</option>${cfg.boards.map(b => `<option value="${b.id}" ${F.board === b.id ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select></label>
-      <label class="f"><span>Менеджер</span><select class="in" id="fUid"><option value="">Все</option>${[...new Set([...S.dealUids, ...Object.keys(cfg.managers)])].sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}" ${F.uid === id ? 'selected' : ''}>${esc(uName(id))}</option>`).join('')}</select></label>
+      <label class="f"><span>Сектор</span>${secSelect('fSec', S.me.sectors ? 'Все мои секторы' : 'Все секторы')}</label>
+      <label class="f"><span>Менеджер</span><select class="in" id="fUid"><option value="">Все</option>${uidsFor().sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}" ${F.uid === id ? 'selected' : ''}>${esc(uName(id))}</option>`).join('')}</select></label>
     </div></div>`;
 }
 function bindFilters() {
   document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { F.p = b.dataset.p; route(); });
   const on = (id, k) => { const el = $('#' + id); if (el) el.onchange = () => { F[k] = el.value; route(); }; };
   on('fFrom', 'from'); on('fTo', 'to'); on('fBoard', 'board'); on('fUid', 'uid');
+  const sc = $('#fSec'); if (sc) sc.onchange = () => { F.sector = sc.value; F.uid = ''; route(); };
 }
-const qs = extra => new URLSearchParams({ from: F.from, to: F.to, board: F.board, uid: F.uid, ...extra }).toString();
+const qs = extra => new URLSearchParams({ from: F.from, to: F.to, board: F.board, uid: F.uid, sector: F.sector, ...extra }).toString();
 
 /* ===== страницы ===== */
 const pages = {};
@@ -343,8 +388,8 @@ pages.home = async () => {
   if (F.p !== 'custom') { F.from = P[F.p][1]; F.to = P[F.p][2]; }
   const filt = `<div class="flt"><div class="chips">${Object.entries(P).map(([k, v]) => `<button class="chip ${F.p === k ? 'on' : ''}" data-p="${k}">${v[0]}</button>`).join('')}</div>
     ${F.p === 'custom' ? `<div class="row2"><input class="in" type="date" id="fFrom" value="${F.from}"><input class="in" type="date" id="fTo" value="${F.to}"></div>` : ''}
-    <div class="row2"><select class="in" id="fBoard"><option value="">Все лидерборды</option>${cfg.boards.map(b => `<option value="${b.id}" ${F.board === b.id ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select>
-    <select class="in" id="fUid"><option value="">Все менеджеры</option>${[...new Set([...S.dealUids, ...Object.keys(cfg.managers)])].sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}" ${F.uid === id ? 'selected' : ''}>${esc(uName(id))}</option>`).join('')}</select></div></div>`;
+    <div class="row2">${secSelect('fSec', S.me.sectors ? 'Все мои секторы' : 'Все секторы')}
+    <select class="in" id="fUid"><option value="">Все менеджеры</option>${uidsFor().sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}" ${F.uid === id ? 'selected' : ''}>${esc(uName(id))}</option>`).join('')}</select></div></div>`;
   const head = `<div class="ph"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><div style="flex:1"><h1>Главная</h1><p>${agoText(S.syncedAt)}</p></div>
     <a class="ibtn" id="csv" title="Скачать CSV">${ICO.dl}</a></div>`;
   $('#main').innerHTML = `<div class="dash"><div class="pnl">${head}${filt}<div class="empty">Считаем…</div></div><div></div></div>`; bindFilters();
@@ -582,6 +627,11 @@ pages.settings = () => {
       ${S.syncedAt ? ` · последняя синхронизация ${new Date(S.syncedAt).toLocaleTimeString('ru-RU')}` : ''} · хранилище: <b>${S.store === 'postgres' ? 'Postgres' : 'файл (временное!)'}</b></p>
       ${S.store !== 'postgres' ? '<div class="warn">DATABASE_URL не задан — настройки сохранятся только до перезапуска сервера. Подключите Render Postgres.</div>' : ''}
       <button class="btn l" id="resync">↻ Синхронизировать сейчас</button></div>
+    <div class="card"><h3>База Safa (копия CRM)</h3><p class="hint">Сделки, лиды и звонки из Bitrix24 копируются в базу для воронки, выкупа, звонков и AI-ассистента. Обновляется каждые 2 минуты — только изменения.</p>
+      <p>${S.wh.error ? `<span class="pill er">Ошибка</span> ${esc(S.wh.error)}` : S.wh.lastRun ? '<span class="pill ok">Работает</span>' : '<span class="pill">Первая загрузка…</span>'} · ${S.wh.counts.deal} сделок · ${S.wh.counts.lead} лидов · ${S.wh.counts.call} звонков · ${S.wh.persisted ? 'хранится в Postgres' : '<b>без Postgres — только в памяти</b>'}</p>
+      ${S.wh.callsError ? `<div class="warn">${esc(S.wh.callsError)}</div>` : ''}
+      <label class="f" style="max-width:320px"><span>Загружать историю за последние, дней</span>${inp('settings.whDays', '120', 'number')}</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn l" id="whSync">↻ Обновить сейчас</button><button class="btn l" id="whRebuild">Пересобрать базу заново</button></div></div>
     <div class="card" id="diagCard"><h3>Сверка кассы за день</h3><p class="hint">Показывает все сделки Bitrix24 с выбранной датой заказа — какие попали в рейтинг, а какие нет и почему. Если касса на табло меньше, чем в отчёте Bitrix24, — здесь видно причину.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><input class="in" type="date" id="dgDate" value="${S.today}" style="max-width:200px"><button class="btn" id="dgRun">Проверить</button></div>
       <div id="dgOut"></div></div>
@@ -620,6 +670,8 @@ pages.settings = () => {
     document.querySelectorAll('[data-addst]').forEach(b => b.onclick = () => { if (!s.stages.includes(b.dataset.addst)) s.stages.push(b.dataset.addst); setDirty(); b.replaceWith(Object.assign(document.createElement('span'), { className: 'pill ok', textContent: 'добавлено — нажмите «Сохранить»' })); });
   };
   $('#dgRun').onclick = dgRun;
+  $('#whSync').onclick = async () => { $('#whSync').disabled = true; await api('/api/admin/wh/sync', { method: 'POST' }); await loadState(); route(); toast('База обновлена'); };
+  $('#whRebuild').onclick = async () => { if (!confirm('Очистить копию и загрузить заново из Bitrix24? Это займёт несколько минут.')) return; await api('/api/admin/wh/rebuild', { method: 'POST' }); toast('Загрузка началась — обновите страницу через пару минут'); };
   $('#resync').onclick = async () => { $('#resync').disabled = true; const r = await api('/api/admin/resync', { method: 'POST' }); await loadState().catch(() => {}); toast(r.ok ? 'Синхронизировано' : 'Ошибка: ' + r.error); route(); };
 };
 
@@ -632,7 +684,7 @@ pages.payouts = async () => {
   const months = []; { const d = new Date(S.today.slice(0, 7) + '-01T00:00:00Z'); for (let i = 0; i < 12; i++) { months.push(d.toISOString().slice(0, 7)); d.setUTCMonth(d.getUTCMonth() - 1); } }
   const MN = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
   const mName = m => MN[+m.slice(5) - 1] + ' ' + m.slice(0, 4);
-  const q = `month=${PO.month}&board=${PO.board}`;
+  const q = `month=${PO.month}&board=${PO.board}&sector=${F.sector}`;
   const head = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Выплаты</h1><a class="btn l" href="/api/admin/payouts?${q}&format=csv">⬇ CSV</a>
     <div class="sub">Зарплата выплачивается еженедельно. Выплата недели = начислено на конец недели минус уже выплачено, поэтому переход на следующую ступень сетки доплачивается автоматически.</div></div>
     <div class="card"><div class="row2"><label class="f"><span>Месяц</span><select class="in" id="poM">${months.map(m => `<option value="${m}" ${m === PO.month ? 'selected' : ''}>${mName(m)}</option>`).join('')}</select></label>
@@ -693,6 +745,150 @@ pages.penalties = () => {
   document.querySelectorAll('[data-rmp]').forEach(el => el.onclick = () => { cfg.penalties = cfg.penalties.filter(p => p.id !== el.dataset.rmp); setDirty(); route(); });
 };
 
+/* ===== общие помощники аналитики ===== */
+const pct = v => v == null ? '—' : (Math.round(v * 10) / 10) + '%';
+const whNote = w => w ? `База: ${w.counts.deal} сделок · ${w.counts.lead} лидов · ${w.counts.call} звонков · с ${fd(w.from)}${w.lastRun ? ' · синхр. ' + new Date(w.lastRun).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : ' · идёт первая загрузка…'}` : '';
+const head = (title, sub, extra = '') => `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>${title}</h1>${extra}<div class="sub">${sub}</div></div>`;
+
+/* ===== воронка и выкуп ===== */
+pages.funnel = async () => {
+  $('#main').innerHTML = head('Воронка и выкуп', 'Загрузка…') + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
+  let R; try { R = await api('/api/admin/funnel?' + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  const T = R.total, mx = Math.max(1, T.leads, T.deals, T.orders);
+  const bar = (label, v, sub) => `<div><i style="width:${Math.max(1, v / mx * 70)}%"></i><span><b class="num">${v}</b> ${label}${sub ? ` <span style="color:var(--muted)">${sub}</span>` : ''}</span></div>`;
+  const vk = v => v == null ? '—' : `<b class="${v >= 80 ? 'good' : v < 60 ? 'bad' : ''}">${pct(v)}</b>`;
+  $('#main').innerHTML = head('Воронка и выкуп', whNote(R.wh)) + filters() + `
+    ${R.wh && R.wh.error ? `<div class="warn">База: ${esc(R.wh.error)}</div>` : ''}
+    <div class="grid">
+      <div class="kpi"><small>Лиды</small><b class="num">${T.leads}</b><span>${T.leadsWon} сконвертировано</span></div>
+      <div class="kpi"><small>Заказы (по дате заказа)</small><b class="num">${T.orders}</b><span>${money(T.ordersSum)}</span></div>
+      <div class="kpi"><small>Конверсия лидов</small><b class="num">${pct(T.conv)}</b><span>ср. чек ${money(T.avg)}</span></div>
+      <div class="kpi"><small>Выкуп</small><b class="num ${T.vykup >= 80 ? 'good' : T.vykup < 60 ? 'bad' : ''}">${pct(T.vykup)}</b><span>по сумме ${pct(T.vykupSum)}</span></div>
+      <div class="kpi"><small>Выкуплено</small><b class="num good">${money(T.wonSum)}</b><span>${T.won} заказов</span></div>
+      <div class="kpi"><small>Отказ / возврат</small><b class="num bad">${money(T.lostSum)}</b><span>${T.lost} заказов · в работе ${T.open} на ${money(T.openSum)}</span></div>
+    </div>
+    <div class="card"><h3>Воронка периода</h3><div class="fun">${bar('лидов', T.leads)}${bar('сделок создано', T.deals)}${bar('заказов', T.orders, money(T.ordersSum))}${bar('выкуплено', T.won, money(T.wonSum))}</div></div>
+    <div class="card"><h3>По секторам</h3><div class="tw"><table><thead><tr><th>Сектор</th><th class="r">Лиды</th><th class="r">Заказы</th><th class="r">Сумма</th><th class="r">Конверсия</th><th class="r">Выкуп</th><th class="r">Отказ</th><th class="r">В работе</th></tr></thead><tbody>
+      ${R.sectors.map(x => `<tr><td><b>${esc(x.name)}</b></td><td class="r num">${x.leads}</td><td class="r num">${x.orders}</td><td class="r num"><b>${money(x.ordersSum)}</b></td><td class="r num">${pct(x.conv)}</td><td class="r num">${vk(x.vykup)}</td><td class="r num bad">${x.lostSum ? money(x.lostSum) : '—'}</td><td class="r num">${x.openSum ? money(x.openSum) : '—'}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Нет данных</td></tr>'}</tbody></table></div></div>
+    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Лиды</th><th class="r">Заказы</th><th class="r">Сумма</th><th class="r">Конверсия</th><th class="r">Выкуп</th><th class="r">Выкуплено</th><th class="r">Отказ</th><th class="r">В работе</th></tr></thead><tbody>
+      ${R.managers.map(x => `<tr><td><div class="who">${av(x.name, uPhoto(x.uid))}<div>${esc(x.name)}<small>${esc(x.sector)}</small></div></div></td><td class="r num">${x.leads}</td><td class="r num">${x.orders}</td><td class="r num"><b>${money(x.ordersSum)}</b></td><td class="r num">${pct(x.conv)}</td><td class="r num">${vk(x.vykup)}</td><td class="r num">${x.wonSum ? money(x.wonSum) : '—'}</td><td class="r num bad">${x.lostSum ? money(x.lostSum) : '—'}</td><td class="r num">${x.openSum ? money(x.openSum) : '—'}</td></tr>`).join('') || '<tr><td colspan="9" class="empty">Нет данных</td></tr>'}</tbody></table></div></div>
+    <div class="card"><h3>Зависшие заказы</h3><p class="hint">Заказы, которые ещё не выкуплены и не отменены, — по стадиям. «Дней в стадии» — сколько сделка стоит без движения.</p><div class="tw"><table><thead><tr><th>Стадия</th><th class="r">Сделок</th><th class="r">Сумма</th><th class="r">Ср. дней в стадии</th><th class="r">Больше 7 дней</th></tr></thead><tbody>
+      ${R.stuck.map(x => `<tr><td>${esc(x.name)}</td><td class="r num">${x.cnt}</td><td class="r num"><b>${money(x.sum)}</b></td><td class="r num">${x.avgDays == null ? '—' : Math.round(x.avgDays)}</td><td class="r num ${x.over7 ? 'bad' : ''}">${x.over7 || '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Зависших нет</td></tr>'}</tbody></table></div>
+      ${R.oldest.length ? `<h3 style="margin:18px 0 6px;font-size:15px">Дольше всех без движения</h3><div class="tw"><table><thead><tr><th>Сделка</th><th>Менеджер</th><th>Стадия</th><th class="r">Дней</th><th class="r">Сумма</th></tr></thead><tbody>
+        ${R.oldest.map(d => `<tr><td>#${esc(d.id)} ${esc(d.title)}</td><td>${esc(d.manager)}</td><td>${esc(d.stageName)}</td><td class="r num ${d.days > 7 ? 'bad' : ''}">${d.days}</td><td class="r num">${money(d.sum)}</td></tr>`).join('')}</tbody></table></div>` : ''}</div>`;
+  bindFilters();
+};
+
+/* ===== звонки ===== */
+pages.calls = async () => {
+  $('#main').innerHTML = head('Звонки', 'Загрузка…') + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
+  let R; try { R = await api('/api/admin/calls?' + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  const T = R.total, L = R.leadResponse, mh = Math.max(1, ...R.hours), mins = v => v == null ? '—' : v < 1 ? '<1 мин' : v < 60 ? Math.round(v) + ' мин' : (Math.round(v / 6) / 10) + ' ч';
+  $('#main').innerHTML = head('Звонки', whNote(R.wh)) + filters() + `
+    ${R.wh && R.wh.callsError ? `<div class="warn">${esc(R.wh.callsError)}</div>` : ''}
+    <div class="grid">
+      <div class="kpi"><small>Звонков</small><b class="num">${T.total}</b><span>${T.unique} уникальных номеров</span></div>
+      <div class="kpi"><small>Исходящие</small><b class="num">${T.out}</b><span>дозвон ${pct(T.reach)}</span></div>
+      <div class="kpi"><small>Входящие</small><b class="num">${T.inc}</b><span class="${T.missed ? 'bad' : ''}">пропущено ${T.missed}</span></div>
+      <div class="kpi"><small>Разговоров</small><b class="num">${T.talkMin} мин</b><span>в среднем ${Math.round(T.avgTalkSec / 6) / 10} мин</span></div>
+      <div class="kpi"><small>Звонков на 1 заказ</small><b class="num">${T.callsPerOrder == null ? '—' : Math.round(T.callsPerOrder * 10) / 10}</b><span>${T.orders} заказов</span></div>
+      <div class="kpi"><small>Первый звонок по лиду</small><b class="num ${L.medianMin != null && L.medianMin <= 5 ? 'good' : L.medianMin > 30 ? 'bad' : ''}">${mins(L.medianMin)}</b><span>медиана · до 5 мин: ${L.within5} из ${L.called} · без звонка: <b class="${L.noCall ? 'bad' : ''}">${L.noCall}</b></span></div>
+    </div>
+    <div class="card"><h3>Звонки по часам</h3><div class="hrs">${R.hours.map((v, h) => `<div style="height:${(v / mh * 100).toFixed(1)}%" title="${h}:00 — ${v}"></div>`).join('')}</div><div class="hrl">${R.hours.map((v, h) => `<span>${h % 2 ? '' : h}</span>`).join('')}</div></div>
+    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Всего</th><th class="r">Исход.</th><th class="r">Дозвон</th><th class="r">Вход.</th><th class="r">Пропущ.</th><th class="r">Минут</th><th class="r">Заказы</th><th class="r">Звонков/заказ</th><th class="r">Первый звонок по лиду</th><th class="r">Лидов без звонка</th></tr></thead><tbody>
+      ${R.managers.map(x => `<tr><td><div class="who">${av(x.name, uPhoto(x.uid))}<div>${esc(x.name)}<small>${esc(x.sector)}</small></div></div></td><td class="r num"><b>${x.total}</b></td><td class="r num">${x.out}</td><td class="r num">${pct(x.reach)}</td><td class="r num">${x.inc}</td><td class="r num ${x.missed ? 'bad' : ''}">${x.missed || '—'}</td><td class="r num">${x.talkMin}</td><td class="r num">${x.orders}</td><td class="r num">${x.callsPerOrder == null ? '—' : Math.round(x.callsPerOrder * 10) / 10}</td><td class="r num">${mins(x.respMedianMin)}</td><td class="r num ${x.leadsNoCall ? 'bad' : ''}">${x.leadsNoCall || '—'}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Звонков за период нет</td></tr>'}</tbody></table></div></div>
+    ${L.noCallList.length ? `<div class="card"><h3>Лиды без звонка</h3><p class="hint">Новые лиды периода, по которым нет ни одного звонка в Bitrix24.</p><div class="tw"><table><thead><tr><th>Лид</th><th>Менеджер</th><th>Создан</th></tr></thead><tbody>
+      ${L.noCallList.map(l => `<tr><td>#${esc(l.id)} ${esc(l.title)}</td><td>${esc(l.manager)}</td><td class="num">${esc(String(l.created).slice(0, 16).replace('T', ' '))}</td></tr>`).join('')}</tbody></table></div></div>` : ''}`;
+  bindFilters();
+};
+
+/* ===== AI-ассистент ===== */
+const AI = { msgs: JSON.parse(sessionStorage.getItem('ai-msgs') || '[]'), busy: false };
+function md(t) {
+  const e = esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
+  const lines = e.split('\n'), out = []; let list = null, table = [];
+  const flushT = () => { if (!table.length) return; const rows = table.filter(r => !/^\|?\s*:?-{2,}/.test(r.replace(/\|/g, '').trim() ? r.split('|')[1] || '' : r));
+    const cells = r => r.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+    out.push(`<div class="tw"><table><thead><tr>${cells(rows[0]).map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${rows.slice(1).map(r => `<tr>${cells(r).map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`); table = []; };
+  const flushL = () => { if (list) { out.push(`<${list.t}>${list.i.map(x => `<li>${x}</li>`).join('')}</${list.t}>`); list = null; } };
+  for (const l of lines) {
+    if (/^\s*\|.*\|\s*$/.test(l)) { flushL(); if (!/^\s*\|?[\s:|-]+\|?\s*$/.test(l)) table.push(l.trim()); continue; } else flushT();
+    let m;
+    if ((m = l.match(/^\s*[-*•]\s+(.*)/))) { if (!list || list.t !== 'ul') { flushL(); list = { t: 'ul', i: [] }; } list.i.push(m[1]); continue; }
+    if ((m = l.match(/^\s*\d+[.)]\s+(.*)/))) { if (!list || list.t !== 'ol') { flushL(); list = { t: 'ol', i: [] }; } list.i.push(m[1]); continue; }
+    flushL();
+    if ((m = l.match(/^#{1,4}\s+(.*)/))) out.push(`<h4>${m[1]}</h4>`); else if (l.trim()) out.push(`<p>${l}</p>`);
+  }
+  flushT(); flushL(); return out.join('');
+}
+pages.ai = () => {
+  const TL = { get_board_today: 'табло', get_sales_report: 'продажи', get_funnel: 'воронка', get_calls: 'звонки', find_deals: 'сделки', get_sources: 'источники', get_payouts: 'зарплата', list_people: 'сотрудники' };
+  const sug = ['Бүгін қалай? Жоспар орындала ма?', 'Кто лучший менеджер за неделю и почему?', 'Где мы теряем выкуп в этом месяце?', 'Кто медленно звонит по новым лидам?', 'Сравни секторы за месяц', 'Какие заказы зависли дольше всего?'];
+  $('#main').innerHTML = head('AI-ассистент', `Отвечает по данным базы Safa${S.me.sectors ? ' — только по вашим секторам' : ''}. Цифры берёт из CRM, не выдумывает.`,
+    AI.msgs.length ? '<button class="btn l s" id="aiClear">Новый диалог</button>' : '') + `
+    ${S.ai ? '' : '<div class="warn">AI ещё не подключён: владельцу нужно добавить ключ <b>ANTHROPIC_API_KEY</b> в переменные окружения сервиса на Render.</div>'}
+    <div class="chat"><div class="msgs" id="msgs">${AI.msgs.length ? '' : `<div class="hello"><b>Спросите что угодно о продажах</b>Касса, выкуп, звонки, зарплата, сравнение менеджеров и секторов — на казахском или русском.</div>`}</div>
+      ${AI.msgs.length ? '' : `<div class="sugg">${sug.map(x => `<button>${esc(x)}</button>`).join('')}</div>`}
+      <div class="cin"><textarea id="aiIn" rows="1" placeholder="Например: почему Gold отстаёт на этой неделе?"></textarea><button class="btn" id="aiSend">Отправить</button></div></div>`;
+  const box = $('#msgs');
+  const draw = () => {
+    box.innerHTML = AI.msgs.map(m => m.role === 'user' ? `<div class="cm u">${esc(m.content)}</div>`
+      : `<div class="cm a ${m.error ? 'bad' : ''}">${md(m.content)}${m.tools && m.tools.length ? `<div class="tl">Данные: ${[...new Set(m.tools)].map(t => TL[t] || t).join(', ')}</div>` : ''}</div>`).join('') +
+      (AI.busy ? '<div class="cm a wait"><i></i><i></i><i></i> смотрю данные…</div>' : '');
+    box.scrollTop = box.scrollHeight;
+  };
+  if (AI.msgs.length) draw();
+  const send = async text => {
+    text = (text || '').trim(); if (!text || AI.busy) return;
+    AI.msgs.push({ role: 'user', content: text }); AI.busy = true;
+    if ($('.sugg')) $('.sugg').remove(); if ($('.hello')) $('.hello').remove();
+    draw(); $('#aiIn').value = '';
+    try {
+      const r = await api('/api/ai/chat', { method: 'POST', body: JSON.stringify({ messages: AI.msgs.filter(m => !m.error).map(m => ({ role: m.role, content: m.content })) }) });
+      AI.msgs.push({ role: 'assistant', content: r.text || '(пустой ответ)', tools: r.tools });
+    } catch (e) { AI.msgs.push({ role: 'assistant', content: 'Ошибка: ' + e.message, error: true }); }
+    AI.busy = false; sessionStorage.setItem('ai-msgs', JSON.stringify(AI.msgs.slice(-30))); draw();
+  };
+  $('#aiSend').onclick = () => send($('#aiIn').value);
+  $('#aiIn').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e.target.value); } };
+  $('#aiIn').oninput = e => { e.target.style.height = 'auto'; e.target.style.height = Math.min(140, e.target.scrollHeight) + 'px'; };
+  document.querySelectorAll('.sugg button').forEach(b => b.onclick = () => send(b.textContent));
+  const cl = $('#aiClear'); if (cl) cl.onclick = () => { AI.msgs = []; sessionStorage.removeItem('ai-msgs'); route(); };
+};
+
+/* ===== пользователи (владелец) ===== */
+const UE = { edit: null };
+pages.users = () => {
+  const list = S.accounts || [], secName = id => (S.sectors.find(x => x.id === id) || { name: id }).name;
+  const u = UE.edit;
+  $('#main').innerHTML = head(`Пользователи <span class="pill">${list.length}</span>`, 'Руководители секторов входят со своим логином и паролем и видят только свои секторы: главная, продажи, выплаты, воронка, звонки и AI-ассистент. Настройки, лидерборд и штрафы доступны только владельцу.',
+    '<button class="btn g" id="uAdd">+ Добавить руководителя</button>') + `
+    ${u ? `<div class="card"><h3>${u.id ? 'Изменить' : 'Новый'} аккаунт</h3>
+      <div class="row2"><label class="f"><span>Имя</span><input class="in" id="uName" value="${esc(u.name || '')}" placeholder="Айгерим — руководитель Gold"></label>
+        <label class="f"><span>Логин</span><input class="in" id="uLogin" value="${esc(u.login || '')}" placeholder="gold.head" autocapitalize="none"></label>
+        <label class="f"><span>${u.id ? 'Новый пароль (пусто — не менять)' : 'Пароль'}</span><input class="in" id="uPass" type="text" placeholder="минимум 6 символов"></label></div>
+      <label class="f"><span>Секторы, которые видит</span></label><div class="chips" style="margin-bottom:14px">${S.sectors.map(x => `<button class="chip ${(u.sectors || []).includes(x.id) ? 'on' : ''}" data-us="${x.id}">${esc(x.name)}</button>`).join('') || '<span class="hint">Секторы появятся после синхронизации с Bitrix24</span>'}</div>
+      <label class="ck"><input type="checkbox" id="uAct" ${u.active !== false ? 'checked' : ''}> Активен (может входить)</label>
+      <div style="display:flex;gap:10px;margin-top:12px"><button class="btn" id="uSave">Сохранить</button><button class="btn l" id="uCancel">Отмена</button>${u.id ? '<button class="btn d" id="uDel" style="margin-left:auto">Удалить</button>' : ''}</div></div>` : ''}
+    <div class="card"><div class="tw"><table><thead><tr><th>Имя</th><th>Логин</th><th>Роль</th><th>Секторы</th><th>Статус</th><th></th></tr></thead><tbody>
+      <tr><td><b>Владелец</b></td><td>— (только пароль)</td><td>Владелец</td><td>все</td><td><span class="pill ok">активен</span></td><td></td></tr>
+      ${list.map(x => `<tr><td><b>${esc(x.name)}</b></td><td><code>${esc(x.login)}</code></td><td>Руководитель сектора</td><td>${(x.sectors || []).map(id => `<span class="pill">${esc(secName(id))}</span>`).join(' ') || '<span class="bad">не назначены</span>'}</td>
+        <td>${x.active ? '<span class="pill ok">активен</span>' : '<span class="pill no">отключён</span>'}</td><td class="r"><button class="btn l s" data-ue="${x.id}">Изменить</button></td></tr>`).join('')}</tbody></table></div>
+      <p class="hint" style="margin:12px 0 0">Вход: ${esc(location.origin)}/admin → логин и пароль. Пароль хранится в зашифрованном виде — если забыли, задайте новый.</p></div>`;
+  $('#uAdd').onclick = () => { UE.edit = { sectors: [] }; route(); };
+  document.querySelectorAll('[data-ue]').forEach(b => b.onclick = () => { UE.edit = JSON.parse(JSON.stringify(list.find(x => x.id === b.dataset.ue))); route(); });
+  if (!u) return;
+  document.querySelectorAll('[data-us]').forEach(b => b.onclick = () => { const s2 = new Set(u.sectors || []); s2.has(b.dataset.us) ? s2.delete(b.dataset.us) : s2.add(b.dataset.us); u.sectors = [...s2]; b.classList.toggle('on'); });
+  $('#uCancel').onclick = () => { UE.edit = null; route(); };
+  $('#uSave').onclick = async () => {
+    try {
+      await api('/api/admin/users', { method: 'POST', body: JSON.stringify({ id: u.id, name: $('#uName').value, login: $('#uLogin').value, password: $('#uPass').value, sectors: u.sectors, active: $('#uAct').checked }) });
+      UE.edit = null; await loadState(); route(); toast('Сохранено');
+    } catch (e) { toast('Ошибка: ' + e.message); }
+  };
+  const del = $('#uDel'); if (del) del.onclick = async () => { if (!confirm('Удалить аккаунт «' + u.name + '»?')) return; await api('/api/admin/users/' + u.id, { method: 'DELETE' }); UE.edit = null; await loadState(); route(); toast('Удалено'); };
+};
+
 /* ===== роутер ===== */
 function route() {
   if (!S) return;
@@ -700,6 +896,8 @@ function route() {
   const [, r = '', a, b] = location.hash.split('/');
   const name = r || 'home';
   document.querySelectorAll('aside a[data-r]').forEach(x => x.classList.toggle('on', x.dataset.r === name || (name === 'board' && x.dataset.r === 'boards')));
+  const OWN = ['boards', 'board', 'managers', 'penalties', 'settings', 'users'];
+  if (S.me.role !== 'owner' && OWN.includes(name)) { location.hash = '#/'; return; }
   (pages[name] || pages.home)(a, b);
 }
 addEventListener('hashchange', route);
