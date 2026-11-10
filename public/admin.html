@@ -259,6 +259,7 @@ ol.steps{margin:6px 0 0;padding-left:20px;line-height:1.7;font-size:14px}
     <a href="#/att" data-r="att"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x='6' y='2.5' width='12' height='19' rx='3'/><circle cx='12' cy='9' r='2.6'/><path d='M8.5 16c.6-1.8 2-2.8 3.5-2.8s2.9 1 3.5 2.8'/></svg></span>Посещаемость</a>
     <div class="navl">Аналитика</div>
     <a href="#/funnel" data-r="funnel"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M3 4h18l-7 8v6l-4 2v-8z'/></svg></span>Воронка и выкуп</a>
+    <a href="#/eff" data-r="eff"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M4 19V9M10 19V5M16 19v-7M22 19H2'/></svg></span>Эффективность</a>
     <a href="#/calls" data-r="calls"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2'/></svg></span>Звонки</a>
     <a href="#/ai" data-r="ai"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M12 3l1.8 4.6L18 9.5l-4.2 1.9L12 16l-1.8-4.6L6 9.5l4.2-1.9z'/><path d='M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z'/></svg></span>AI-ассистент</a>
     <div class="navl own">Управление</div>
@@ -996,6 +997,77 @@ async function loadRecs() {
     cell.innerHTML = `<audio controls autoplay preload="auto" src="${src}" style="width:300px;height:36px"></audio>`;
     cell.querySelector('audio').onerror = async () => { const r = await fetch(src, { headers: { Range: 'bytes=0-0' } }); const j = await r.json().catch(() => ({})); cell.innerHTML = `<span class="pill er">${esc(j.error || 'Запись недоступна')}</span>`; };
   });
+}
+
+/* ===== эффективность и касания ===== */
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.ovl').forEach(o => o.remove()); });
+const EFV = { tab: 'index' };
+const GN = { result: 'Результат', conv: 'Конверсия и выкуп', activity: 'Активность', speed: 'Скорость реакции', quality: 'Качество разговоров', discipline: 'Дисциплина' };
+const num1 = v => v == null ? '—' : (Math.round(v * 10) / 10).toLocaleString('ru-RU');
+const minsF = v => v == null ? '—' : v < 60 ? Math.round(v) + ' мин' : (Math.round(v / 6) / 10) + ' ч';
+const gsc = v => v == null ? '<span style="color:var(--muted)">—</span>' : `<b style="color:${v >= 70 ? '#0f7a48' : v >= 45 ? '#a85800' : '#c0281b'}">${v}</b>`;
+pages.eff = async () => {
+  const tabs = `<div class="tabs"><a href="javascript:void 0" data-et="index" class="${EFV.tab === 'index' ? 'on' : ''}">Индекс эффективности</a><a href="javascript:void 0" data-et="touch" class="${EFV.tab === 'touch' ? 'on' : ''}">Касания</a></div>`;
+  const bindT = () => document.querySelectorAll('[data-et]').forEach(el => el.onclick = () => { EFV.tab = el.dataset.et; route(); });
+  $('#main').innerHTML = head('Эффективность менеджеров', 'Загрузка…') + tabs + filters() + '<div class="empty">Считаем…</div>'; bindFilters(); bindT();
+  let R; try { R = await api((EFV.tab === 'index' ? '/api/admin/eff?' : '/api/admin/touches?') + qs()); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  if (EFV.tab === 'index') {
+    const own = S.me.role === 'owner', top = R.rows[0], low = R.rows.filter(r => r.index != null).slice(-1)[0];
+    $('#main').innerHTML = head('Эффективность менеджеров', 'Индекс 0–100: место менеджера среди коллег по каждому направлению с учётом весов. Нажмите на строку — карточка за 3 месяца.') + tabs + filters() + `
+      <div class="grid">
+        <div class="kpi"><small>Средний индекс команды</small><b class="num">${R.team ?? '—'}</b><span>${R.rows.length} менеджеров</span></div>
+        <div class="kpi"><small>Лидер</small><b class="num good" style="font-size:24px">${top ? esc(top.name) : '—'}</b><span>${top ? 'индекс ' + top.index : ''}</span></div>
+        <div class="kpi"><small>Нужна помощь</small><b class="num bad" style="font-size:24px">${low && low !== top ? esc(low.name) : '—'}</b><span>${low && low !== top ? 'индекс ' + low.index + ' · слабее всего: ' + (GN[low.weak] || '—') : ''}</span></div>
+      </div>
+      <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Менеджер</th><th class="r">Индекс</th>${R.groups.filter(g => g.w).map(g => `<th class="r" title="${g.name} · вес ${g.w}%">${g.short}</th>`).join('')}<th class="r">Касса</th><th class="r">Конверсия</th><th class="r">Звонков/день</th><th class="r">Первый звонок</th><th class="r">AI</th><th class="r">Опозд.</th><th>Слабое место</th></tr></thead><tbody>
+      ${R.rows.map((r, i) => `<tr data-card="${r.uid}" style="cursor:pointer"><td class="num">${i + 1}</td><td><div class="who">${av(r.name, uPhoto(r.uid))}<div>${esc(r.name)}<small>${esc(r.sector)}</small></div></div></td>
+        <td class="r">${r.index == null ? '—' : `<span class="sc ${scCls(r.index)}">${r.index}</span>`}</td>${R.groups.filter(g => g.w).map(g => `<td class="r num">${gsc(r.groups[g.key])}</td>`).join('')}
+        <td class="r num">${money(r.cash)}</td><td class="r num">${pct(r.conv)}</td><td class="r num">${num1(r.callsDay)}</td><td class="r num">${minsF(r.resp)}</td><td class="r num">${r.ai ?? '—'}</td><td class="r num">${r.late == null ? '—' : r.late + (r.absent ? ' / ' + r.absent + ' пр.' : '')}</td>
+        <td style="color:var(--red);font-size:13px">${GN[r.weak] || '—'}</td></tr>`).join('') || '<tr><td colspan="16" class="empty">Нет данных за период</td></tr>'}</tbody></table></div>
+        <p class="hint" style="margin:12px 0 0">Цифры в направлениях — 0–100: насколько менеджер лучше коллег (результат, конверсия, активность, скорость первого звонка). «Качество» — средняя AI-оценка разговоров, «Дисциплина» — по терминалу (−8 за опоздание, −20 за пропуск). Нет данных по направлению — оно не учитывается.</p></div>
+      ${own ? `<div class="card"><h3>Веса направлений, %</h3><div class="row2" style="grid-template-columns:repeat(6,1fr)">${R.groups.map(g => `<label class="f"><span>${g.name}</span>${inp('settings.eff.weights.' + g.key, String(g.w), 'number')}</label>`).join('')}</div>
+        <label class="f" style="max-width:340px"><span>«Забытый клиент» — нет касания, дней</span>${inp('settings.eff.forgetDays', '3', 'number')}</label><p class="hint">Веса не обязаны давать 100 — индекс нормируется. 0 — направление не учитывается. Нажмите «Сохранить».</p></div>` : ''}`;
+    bindFilters(); bindT();
+    document.querySelectorAll('[data-card]').forEach(el => el.onclick = () => openEffCard(el.dataset.card));
+    return;
+  }
+  const T = R.total, O = R.byOutcome, mxo = Math.max(0.1, ...Object.values(O).map(x => x.avg || 0));
+  const ob = (k, label) => `<div class="cr" style="grid-template-columns:150px 1fr 120px"><b style="font-size:14px">${label}</b><div class="bar"><i style="width:${(O[k].avg || 0) / mxo * 100}%"></i></div><span class="num">${num1(O[k].avg)} · ${O[k].deals} сд.</span></div>`;
+  $('#main').innerHTML = head('Эффективность менеджеров', 'Касание — звонок по сделке (к самой сделке, её контакту или лиду). Считаются сделки, созданные в выбранный период.') + tabs + filters() + `
+    <div class="grid">
+      <div class="kpi"><small>Касаний на сделку</small><b class="num">${num1(T.avgTouches)}</b><span>из них разговоров: ${num1(T.avgOk)}</span></div>
+      <div class="kpi"><small>Касаний до заказа</small><b class="num">${num1(T.touchesToOrder)}</b><span>дней до заказа (медиана): ${num1(T.daysToOrder)}</span></div>
+      <div class="kpi"><small>Сделки без единого звонка</small><b class="num ${T.zero ? 'bad' : ''}">${T.zero}</b><span>из ${T.deals} новых</span></div>
+      <div class="kpi"><small>Отказ после ≤1 разговора</small><b class="num ${T.lostLow ? 'bad' : ''}">${T.lostLow}</b><span>из ${T.lost} отказов — недоработка</span></div>
+      <div class="kpi"><small>Забытые клиенты</small><b class="num ${T.forgotten ? 'bad' : ''}">${T.forgotten}</b><span>открыты, без касания ≥ ${R.forgetDays} дн.</span></div>
+    </div>
+    <div class="row2" style="grid-template-columns:1fr 1fr">
+      <div class="card"><h3>Касаний на сделку по итогу</h3>${ob('won', 'Выкуплено')}${ob('order', 'Заказ в работе')}${ob('lost', 'Отказ')}${ob('open', 'Ещё открыта')}<p class="hint" style="margin-top:10px">Если у отказов касаний заметно меньше, чем у выкупленных, — клиентов отпускают слишком рано.</p></div>
+      <div class="card"><h3>Сколько касаний было</h3><div class="tw"><table><thead><tr><th>Касаний</th><th class="r">Заказы</th><th class="r">Отказы</th></tr></thead><tbody>${R.dist.buckets.map((b, i) => `<tr><td>${b}</td><td class="r num">${R.dist.order[i]}</td><td class="r num">${R.dist.lost[i]}</td></tr>`).join('')}</tbody></table></div></div>
+    </div>
+    <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Новых сделок</th><th class="r">Касаний/сделку</th><th class="r">Разговоров/сделку</th><th class="r">Касаний до заказа</th><th class="r">Дней до заказа</th><th class="r">Первый звонок</th><th class="r">Без звонка</th><th class="r">Отказ ≤1 разг.</th><th class="r">Забытые</th></tr></thead><tbody>
+    ${R.managers.map(m => `<tr><td><div class="who">${av(m.name, uPhoto(m.uid))}<div>${esc(m.name)}<small>${esc(m.sector)}</small></div></div></td><td class="r num">${m.deals}</td><td class="r num"><b>${num1(m.avgTouches)}</b></td><td class="r num">${num1(m.avgOk)}</td><td class="r num">${num1(m.touchesToOrder)}</td><td class="r num">${num1(m.daysToOrder)}</td><td class="r num">${minsF(m.firstMin)}</td>
+      <td class="r num ${m.zero ? 'bad' : ''}">${m.zero || '—'}</td><td class="r num ${m.lostLow ? 'bad' : ''}">${m.lostLow ? m.lostLow + ' из ' + m.lost : '—'}</td><td class="r num ${m.forgotten ? 'bad' : ''}">${m.forgotten || '—'}</td></tr>`).join('') || '<tr><td colspan="10" class="empty">Нет сделок за период</td></tr>'}</tbody></table></div></div>
+    <div class="card"><h3>Забытые клиенты</h3><p class="hint">Открытые сделки без заказа (созданы за последние 90 дней), где последнее касание было ${R.forgetDays}+ дней назад. Позвоните им в первую очередь.</p><div class="tw"><table><thead><tr><th>Сделка</th><th>Менеджер</th><th>Этап</th><th class="r">Сумма</th><th class="r">Касаний</th><th>Последнее касание</th><th class="r">Дней</th></tr></thead><tbody>
+    ${R.forgotten.map(d => `<tr><td>#${esc(d.id)} ${esc(d.title)}</td><td>${esc(d.manager)}</td><td>${esc(d.stage)}</td><td class="r num">${money(d.sum)}</td><td class="r num">${d.touches}</td><td class="num">${d.last ? esc(new Date(d.last).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })) : 'не было'}</td><td class="r num bad"><b>${d.days}</b></td></tr>`).join('') || '<tr><td colspan="7" class="empty">Забытых клиентов нет 👍</td></tr>'}</tbody></table></div></div>`;
+  bindFilters(); bindT();
+};
+async function openEffCard(uid) {
+  const o = document.createElement('div'); o.className = 'ovl'; o.innerHTML = '<div class="pane"><div class="empty">Загрузка…</div></div>';
+  o.onclick = e => { if (e.target === o) o.remove(); }; document.body.appendChild(o); window.addEventListener('hashchange', () => o.remove(), { once: true });
+  const P = o.querySelector('.pane');
+  let R; try { R = await api('/api/admin/eff/card/' + uid); } catch (e) { P.innerHTML = `<div class="warn">${esc(e.message)}</div>`; return; }
+  const M = R.months, mn = m => new Date(m + '-01T00:00:00Z').toLocaleString('ru-RU', { month: 'long', timeZone: 'UTC' });
+  const row = (label, f) => `<tr><td>${label}</td>${M.map(m => `<td class="r num">${m.uid ? f(m) : '—'}</td>`).join('')}</tr>`;
+  P.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:start"><div class="who" style="font-size:20px">${av(R.name, uPhoto(uid))}<b>${esc(R.name)}</b></div><button class="x" id="ovX" style="font-size:22px">×</button></div>
+    <div class="tw" style="margin-top:16px"><table><thead><tr><th></th>${M.map(m => `<th class="r">${mn(m.month)}</th>`).join('')}</tr></thead><tbody>
+    ${row('<b>Индекс</b>', m => m.index == null ? '—' : `<span class="sc ${scCls(m.index)}">${m.index}</span>`)}
+    ${Object.keys(GN).map(k => row(GN[k], m => gsc(m.groups ? m.groups[k] : null))).join('')}
+    ${row('Касса', m => money(m.cash))}${row('Заказы', m => m.orders)}${row('Средний чек', m => m.avgCheck ? money(m.avgCheck) : '—')}${row('Конверсия в заказ', m => pct(m.conv))}${row('Выкуп', m => pct(m.vykup))}
+    ${row('Звонков в день', m => num1(m.callsDay))}${row('Минут разговора в день', m => num1(m.talkDay))}${row('Дозвон', m => pct(m.reach))}${row('Первый звонок (медиана)', m => minsF(m.resp))}
+    ${row('Касаний до заказа', m => num1(m.touchesToOrder))}${row('AI-оценка разговоров', m => m.ai == null ? '—' : m.ai + ' (' + m.aiN + ')')}${row('Опоздания / пропуски', m => m.late == null ? '—' : m.late + ' / ' + m.absent)}
+    </tbody></table></div><p class="hint" style="margin-top:12px">Индекс каждого месяца считается среди коллег за тот же месяц.</p>`;
+  $('#ovX').onclick = () => o.remove();
 }
 
 /* ===== AI-ассистент ===== */

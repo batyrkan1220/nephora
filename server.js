@@ -13,6 +13,7 @@ const wh = require('./lib/warehouse');
 const AN = require('./lib/analytics');
 const att = require('./lib/attendance');
 const cai = require('./lib/callai');
+const EF = require('./lib/efficiency');
 
 const PORT = process.env.PORT || 3000;
 const PASS = process.env.DASH_PASSWORD || '';
@@ -328,6 +329,17 @@ async function handle(req, res) {
     out.rows.forEach(r => { const x = cai.get(r.id); if (x) r.ai = x.skip ? { skip: true } : { score: x.score, outcome: x.outcome }; });
     out.callai = { on: cai.status().settings.on, ready: cai.status().ready };
     return send(res, 200, out);
+  }
+  // эффективность менеджеров и касания
+  if (p === '/api/admin/eff' || p === '/api/admin/touches') {
+    const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
+    const f = { from: q.get('from') || C.monthRange(today).from, to: q.get('to') || today, sector: q.get('sector') || '', uid: q.get('uid') || '', stageNames: stageNames() };
+    return send(res, 200, p === '/api/admin/eff' ? EF.efficiency(ctx(), scope, f, cfg) : EF.touches(ctx(), scope, f, cfg));
+  }
+  if ((m = p.match(/^\/api\/admin\/eff\/card\/(\w+)$/))) {
+    const c = ctx();
+    if (!AN.allowedUids(c, scope, {}).has(m[1])) return send(res, 403, { error: 'Нет доступа' });
+    return send(res, 200, EF.card(c, scope, m[1], cfg));
   }
   // AI-разбор звонков
   if (p === '/api/admin/callai/summary') {
