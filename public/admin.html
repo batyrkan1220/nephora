@@ -628,7 +628,7 @@ pages.settings = () => {
       ${S.store !== 'postgres' ? '<div class="warn">DATABASE_URL не задан — настройки сохранятся только до перезапуска сервера. Подключите Render Postgres.</div>' : ''}
       <button class="btn l" id="resync">↻ Синхронизировать сейчас</button></div>
     <div class="card"><h3>База Safa (копия CRM)</h3><p class="hint">Сделки, лиды и звонки из Bitrix24 копируются в базу для воронки, выкупа, звонков и AI-ассистента. Обновляется каждые 2 минуты — только изменения.</p>
-      <p>${S.wh.error ? `<span class="pill er">Ошибка</span> ${esc(S.wh.error)}` : S.wh.lastRun ? '<span class="pill ok">Работает</span>' : '<span class="pill">Первая загрузка…</span>'} · ${S.wh.counts.deal} сделок · ${S.wh.counts.lead} лидов · ${S.wh.counts.call} звонков · ${S.wh.persisted ? 'хранится в Postgres' : '<b>без Postgres — только в памяти</b>'}</p>
+      <p>${S.wh.error ? `<span class="pill er">Ошибка</span> ${esc(S.wh.error)}` : S.wh.lastRun ? '<span class="pill ok">Работает</span>' : '<span class="pill">Первая загрузка…</span>'}${S.wh.progress ? ' · ' + esc(S.wh.progress) : ''} · ${S.wh.counts.deal} сделок · ${S.wh.counts.lead} лидов · ${S.wh.counts.call} звонков · ${S.wh.persisted ? 'хранится в Postgres' : '<b>без Postgres — только в памяти</b>'}</p>
       ${S.wh.callsError ? `<div class="warn">${esc(S.wh.callsError)}</div>` : ''}
       <label class="f" style="max-width:320px"><span>Загружать историю за последние, дней</span>${inp('settings.whDays', '120', 'number')}</label>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn l" id="whSync">↻ Обновить сейчас</button><button class="btn l" id="whRebuild">Пересобрать базу заново</button></div></div>
@@ -747,7 +747,7 @@ pages.penalties = () => {
 
 /* ===== общие помощники аналитики ===== */
 const pct = v => v == null ? '—' : (Math.round(v * 10) / 10) + '%';
-const whNote = w => w ? `База: ${w.counts.deal} сделок · ${w.counts.lead} лидов · ${w.counts.call} звонков · с ${fd(w.from)}${w.lastRun ? ' · синхр. ' + new Date(w.lastRun).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : ' · идёт первая загрузка…'}` : '';
+const whNote = w => w ? `База: ${w.counts.deal} сделок · ${w.counts.lead} лидов · ${w.counts.call} звонков · с ${fd(w.from)}${w.lastRun ? ' · синхр. ' + new Date(w.lastRun).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : ' · идёт первая загрузка…'}${w.progress ? ' (' + w.progress + ')' : ''}` : '';
 const head = (title, sub, extra = '') => `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>${title}</h1>${extra}<div class="sub">${sub}</div></div>`;
 
 /* ===== воронка и выкуп ===== */
