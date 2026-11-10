@@ -108,6 +108,33 @@ html.rot #app{width:calc(100vh - 3.2vw);height:calc(100vw - 3.2vh);inset:auto;le
 .center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:clamp(14px,2.4vh,26px);color:var(--muted2);padding:2em}
 .center b{display:block;color:var(--ink);font-size:1.6em;font-weight:500;margin-bottom:.3em}
 
+
+/* ===== секторы ===== */
+.secs{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1.2em}
+.sc{background:var(--panel);border-radius:1.2em;padding:.7em 1.2em .75em;border-left:.3em solid var(--c)}
+.sc .l1,.sc .l2{display:flex;align-items:center;gap:1em}
+.sc .l2{margin-top:.35em}
+.sc .sn{display:flex;align-items:center;gap:.5em;font-weight:500;font-size:1.05em;min-width:0;white-space:nowrap}
+.sc .sn i{width:.7em;height:.7em;border-radius:.25em;background:var(--c);flex:none}
+.sc .sn small{font-size:.72em;color:var(--muted);font-weight:400}
+.sc .sv{margin-left:auto;color:var(--muted2);font-size:.95em;white-space:nowrap}
+.sc .sv b{font-size:1.4em;font-weight:500;color:var(--ink);letter-spacing:-.01em}
+.sc .l2 .pb{flex:1;min-width:6em}
+.sc .l2 .sub{margin:0}
+.sc .pb .tr i{background:var(--c)}
+.sc .pb.ok .tr i{background:var(--green)}
+.thd{position:relative}.thd .tn{position:absolute;right:0;top:-1.6em;font-size:.85em;color:var(--blue);display:none}
+.md{font-weight:500;font-size:1.05em}.mu{color:var(--muted)}
+.s2{display:block;color:var(--muted);font-size:.75em}
+/* компактнее по высоте, чтобы топ-10 помещался целиком */
+#app{gap:1.4vh}
+.tc{min-height:5.8em;padding:.7em 1.3em}
+.per .err{color:#dc2626}
+.tc .av{width:4.2em;height:4.2em}
+.tc .v{font-size:1.9em}
+.tc .nm{font-size:1.25em}
+.tbl{padding:.8em 1.2em 1em}
+.tr .s2,.pct small{line-height:1.25}
 /* ===== вертикальный экран (ТВ стоит вертикально или повёрнут) ===== */
 html.pt .hd{flex-wrap:wrap;gap:1em}
 html.pt .ttl{flex-basis:100%}
@@ -205,31 +232,37 @@ function render() {
   // масштаб от эталона 1920×1080 (вертикально 1080×1920): на любом ТВ выглядит одинаково
   $('#app').style.fontSize = PH ? '' : (PT ? Math.min(W * 0.015, HH * 0.00844) : Math.min(HH * 0.015, W * 0.00844)).toFixed(2) + 'px';
   const C = [['2.2em', '#', ''], ['minmax(0,2.4fr)', 'Менеджер', '']];
-  if (cols.today && !PH && !PT) C.push(['minmax(0,1.6fr)', 'Сегодня', '']);
-  if (cols.sales) C.push(['minmax(0,1.9fr)', 'Продажи', '']);
-  if (cols.count) C.push(['5em', 'Кол-во', 'cnt']);
-  if (cols.pct && !PH && !PT) C.push(['minmax(0,1.5fr)', '% от продаж', 'r']);
+  if (cols.today && !PH) C.push(['minmax(0,1.2fr)', 'Сегодня', 'r']);
+  if (cols.sales) C.push(['minmax(0,1.3fr)', 'Продажи', 'r']);
+  if (cols.count && !PH) C.push(['5em', 'Кол-во', 'cnt']);
+  if (cols.pct && !PH && !PT) C.push(['minmax(0,1.6fr)', '% от продаж', 'r']);
   if (cols.salary && !PH) C.push(['minmax(0,1.1fr)', 'Зарплата', 'r']);
   const tmpl = C.map(c => c[0]).join(' ');
 
-  const R = D.rows;
+  const R = D.rows, SEC = D.sectors || [];
   const top = [R[0], R[1], R[2]];
   const tcard = (r, i) => !r ? `<div class="tc p${i + 1} empty">${av({ name: '?' })}<div class="info"><div class="pl">${i + 1} место</div><div class="nm">—</div></div></div>`
     : `<div class="tc p${i + 1}">${CROWN(CC[i])}${av(r)}<div class="info">
-        <div class="pl">${i + 1} место ${r.planPct >= 100 ? '<span class="badge">✓ План</span>' : ''}</div>
+        <div class="pl">${i + 1} место${r.elite ? ' <span class="badge">★ Элит</span>' : ''}</div>
         <div class="nm">${esc(r.name)}</div>
         <div class="v num">${D.board.rankBy === 'count' ? r.cnt + ' прод.' : money(r.sum)}</div>
-        <div class="td num">сегодня ${r.daySum ? money(r.daySum) : '—'}${r.plan ? ' · план ' + Math.floor(r.planPct) + '%' : ''}</div></div></div>`;
+        <div class="td num">${esc(r.dep)}${r.dep ? ' · ' : ''}сегодня ${r.daySum ? money(r.daySum) : '—'}</div></div></div>`;
+
+  const SC = ['#1f6bff', '#cf7cf4', '#f5b400', '#12b76a', '#ff7a45', '#06b6d4'];
+  const secCard = (x, i) => `<div class="sc" style="--c:${SC[i % SC.length]}">
+      <div class="l1"><span class="sn"><i></i>${esc(x.name)}<small>${x.managers} ${plural(x.managers, 'менеджер', 'менеджера', 'менеджеров')}</small></span>
+        <span class="sv num"><b>${money(x.sum)}</b>${x.plan ? ` / ${short(x.plan)} ₸` : ''}</span></div>
+      <div class="l2">${x.plan ? bar(x.sum, x.plan) : '<div class="pb"><span class="sub">план не задан</span></div>'}
+        <span class="sub num">сегодня <b>${short(x.daySum)}</b>${x.dayPlan ? ' / ' + short(x.dayPlan) : ''} ₸${x.plan ? ' · осталось <b>' + short(Math.max(0, x.plan - x.sum)) + '</b>' : ''}</span></div></div>`;
 
   const rowHtml = r => {
     const t = r.place <= 3 && r.sum > 0 ? 't' + r.place : '';
-    const lose = sc.losers && R.length > 6 && r.place > R.length - 3 ? 'lose' : '';
     const up = prev[r.uid] !== undefined && prev[r.uid] < r.sum ? 'up' : '';
-    let h = `<div class="tr row ${t} ${lose} ${up}"><span class="place num">${r.place}</span>
-      <div class="mg">${t ? CROWN(CC[r.place - 1], 'cr') : ''}${av(r)}<div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${esc(r.dep)}</div></div></div>`;
-    if (cols.today && !PH && !PT) h += `<div>${bar(r.daySum, r.dayPlan, `<div class="sub num"><b>${short(r.daySum)}</b>${r.dayPlan ? ' / ' + short(r.dayPlan) + ' ₸' : ' ₸'}</div>`)}</div>`;
-    if (cols.sales) h += `<div>${bar(r.sum, r.plan, `<div class="sub num"><b>${short(r.sum)}</b>${r.plan ? ' / ' + short(r.plan) + ' ₸' : ' ₸'}</div>`)}</div>`;
-    if (cols.count) h += `<span class="cnt num">${r.cnt}</span>`;
+    let h = `<div class="tr row ${t} ${up}"><span class="place num">${r.place}</span>
+      <div class="mg">${av(r)}<div class="w"><div class="nm">${esc(r.name)}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${esc(r.dep)}</div></div></div>`;
+    if (cols.today && !PH) h += `<span class="r num">${r.daySum ? `<b class="md">${money(r.daySum)}</b>` : '<span class="mu">—</span>'}<small class="s2">${r.dayCnt ? r.dayCnt + ' ' + plural(r.dayCnt, 'продажа', 'продажи', 'продаж') : ''}</small></span>`;
+    if (cols.sales) h += `<span class="r big num">${money(r.sum)}</span>`;
+    if (cols.count && !PH) h += `<span class="cnt num">${r.cnt}</span>`;
     if (cols.pct && !PH && !PT) h += `<span class="r pct num">${r.comm ? money(r.comm) : '—'}<small>${r.commPct ? (Math.round(r.commPct * 10) / 10) + '%' : ''}${r.next ? `<em> · ${r.next.pct > r.commPct ? 'до ' + r.next.pct + '%' : 'до премии ' + short(r.next.premium)}: ещё ${short(r.next.left)}</em>` : ''}</small></span>`;
     if (cols.salary && !PH) h += `<span class="r big num">${money(r.salary)}</span>`;
     return h + '</div>';
@@ -238,37 +271,30 @@ function render() {
   $('#app').innerHTML = `
     <div class="hd">
       <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>
-        <div class="per num">${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft}</div></div>
-      ${T.plan ? `<div class="stat plan kb"><small>План отдела · осталось ${money(T.left)}</small><b class="num">${money(T.sum)}</b>${bar(T.sum, T.plan)}</div>` : ''}
+        <div class="per num">${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : 'обновлено ' + new Date(D.syncedAt).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit' })}</div></div>
+      ${T.plan ? `<div class="stat plan kb"><small>План компании · осталось ${money(T.left)}</small><b class="num">${money(T.sum)}</b>${bar(T.sum, T.plan)}</div>`
+        : `<div class="stat kb"><small>Продажи компании</small><b class="num">${money(T.sum)}</b></div>`}
       ${T.dayPlan ? `<div class="stat plan kp"><small>План на сегодня · осталось ${money(T.dayLeft)}</small><b class="num">${money(T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
         : `<div class="stat kp"><small>Сегодня</small><b class="num">${money(T.daySum)}</b></div>`}
       <div class="stat kw"><small>Всего продаж</small><b class="num">${T.cnt}</b></div>
       <span class="clock num" id="clock"></span>
     </div>
+    ${SEC.length ? `<div class="secs" style="--n:${Math.min(SEC.length, PT ? 2 : 4)}">${SEC.map(secCard).join('')}</div>` : ''}
     <div class="top">${tcard(top[0], 0)}${tcard(top[1], 1)}${tcard(top[2], 2)}</div>
     <div class="tbl" style="--cols:${tmpl}">
-      <div class="row thd">${C.map(c => `<span class="${c[2]}">${c[1]}</span>`).join('')}</div>
+      <div class="row thd">${C.map(c => `<span class="${c[2]}">${c[1]}</span>`).join('')}<span class="tn">Топ-${(sc.topN || 10)}</span></div>
       <div class="rows" id="rows"></div>
     </div>
-    <div class="foot"><span>${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : 'Обновлено ' + new Date(D.syncedAt).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit' })}</span><span>Nephora Leaderboard</span></div>`;
+`;
   tick();
 
-  // строки: сколько помещается
+  // топ-N всегда целиком: высота строки подстраивается под экран
   const box = $('#rows'), app = $('#app');
   const fs = parseFloat(getComputedStyle(app).fontSize);
-  const gap = Math.round(fs * .55), rh = Math.round(fs * 3.6);
+  const gap = Math.round(fs * .5), n = Math.max(1, R.length);
+  const rh = PH ? Math.round(fs * 3.6) : Math.max(Math.round(fs * 2.9), Math.min(Math.round(fs * 3.8), Math.floor((box.clientHeight - gap * (n - 1)) / n)));
   box.style.setProperty('--gap', gap + 'px'); box.style.setProperty('--rh', rh + 'px');
-  const cap = Math.max(4, Math.floor((box.clientHeight + gap) / (rh + gap)));
-  let html;
-  if (!R.length) html = `<div class="more" style="justify-content:center">Пока нет участников и продаж за период</div>`;
-  else if (PH || R.length <= cap) html = R.map(rowHtml).join('');
-  else {
-    const head = R.slice(0, cap - 4), tail = R.slice(-3), mid = R.slice(cap - 4, R.length - 3);
-    html = head.map(rowHtml).join('') +
-      `<div class="more"><div class="avs">${mid.slice(0, 4).map(r => av(r)).join('')}</div>Ещё ${mid.length} ${plural(mid.length, 'менеджер', 'менеджера', 'менеджеров')}<span class="rng">места ${mid[0].place}–${mid[mid.length - 1].place}</span></div>` +
-      tail.map(rowHtml).join('');
-  }
-  box.innerHTML = html;
+  box.innerHTML = R.length ? R.map(rowHtml).join('') : `<div class="more" style="justify-content:center">Пока нет продаж за период</div>`;
   prev = Object.fromEntries(R.map(r => [r.uid, r.sum]));
 }
 const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 10 || h >= 20) ? b : c; };

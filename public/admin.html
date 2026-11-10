@@ -233,6 +233,8 @@ const api = async (url, opt = {}) => {
 };
 
 let S = null, cfg = null, saved = '', dirty = false;
+const sectors = () => { const root = S.deps.find(d => !d.parent); return root ? S.deps.filter(d => d.parent === root.id) : []; };
+const companyPlan = b => Object.values((b && b.sectorPlans) || {}).reduce((a, v) => a + (+v || 0), 0);
 const PRESET = {
   commissionMode: 'total', eliteFrom: 800000,
   commission: [{ from: 0, to: 500000, pct: 10, premium: 0 }, { from: 500000, to: 800000, pct: 12, premium: 0 }, { from: 800000, to: 1500000, pct: 14, premium: 10000 },
@@ -347,7 +349,7 @@ pages.home = async () => {
 
   // план: если выбрана доска — личные планы
   const bsel = cfg.boards.find(b => b.id === F.board);
-  const planOf = id => bsel ? (+(bsel.plans || {})[id] || +bsel.defaultPlan || 0) : 0;
+  const planOf = () => 0;
   const top = R.rows[0] ? R.rows[0].sum : 1;
   const per = 3, pages_ = Math.max(1, Math.ceil(R.rows.length / per)); if (H.page >= pages_) H.page = 0;
   const pr = R.rows.slice(H.page * per, H.page * per + per);
@@ -358,7 +360,7 @@ pages.home = async () => {
       <a href="javascript:void 0" data-uid="${r.uid}">${pl ? Math.floor(pct) + '% плана' : 'Подробнее'} ${ICO.arrow}</a></div></div>`; };
   const recent = R.deals.slice(0, 4);
   const shareTop = R.rows.slice(0, 3).map(r => T.sum ? r.sum / T.sum : 0);
-  const planTot = bsel ? (+bsel.plan || R.rows.reduce((a, r) => a + planOf(r.uid), 0)) : 0;
+  const planTot = companyPlan(bsel || cfg.boards[0]);
   const center = planTot ? Math.round(T.sum / planTot * 1000) / 10 + '%' : (shareTop[0] ? Math.round(shareTop[0] * 1000) / 10 + '%' : '—');
   const colors = ['url(#dgP)', 'url(#dgB)', 'url(#dgY)'], sw = ['#d68bf7', '#1f6bff', '#fcd94a'];
 
@@ -413,22 +415,17 @@ pages.sales = async () => {
 };
 
 pages.boards = () => {
-  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Лидерборды <span class="pill">${cfg.boards.length}</span></h1><button class="btn l" id="secs" title="Создать доски для секторов, у которых их нет">⟳ По секторам</button><button class="btn g" id="add">+ Добавить</button>
+  $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Лидерборды <span class="pill">${cfg.boards.length}</span></h1><button class="btn g" id="add">+ Добавить</button>
     <div class="sub">У каждой доски своя ссылка для телевизора, свой состав, план и бонусы.</div></div>
-    <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Название</th><th>Период</th><th class="r">Общий план</th><th class="r">Менеджеры</th><th>Статус</th><th></th></tr></thead><tbody>
+    <div class="card"><div class="tw"><table><thead><tr><th>#</th><th>Название</th><th>Период</th><th class="r">План компании</th><th class="r">Менеджеры</th><th>Статус</th><th></th></tr></thead><tbody>
     ${cfg.boards.map((b, i) => { const st = S.boards.find(x => x.id === b.id); return `<tr><td>${i + 1}</td><td><a href="#/board/${b.id}"><b>${esc(b.name)}</b></a><div style="color:var(--muted);font-size:12.5px">${b.departments.length ? 'Сектор: ' + esc(b.departments.map(id => (S.deps.find(d => d.id === id) || { name: id }).name).join(', ')) : (b.members.length ? 'Выбранные менеджеры' : 'Все отделы')}</div></td>
-      <td>${b.auto ? 'Текущий месяц' : fd(b.from) + ' — ' + fd(b.to)}</td><td class="r num">${b.plan ? money(b.plan) : '—'}</td><td class="r">${st ? st.members.length : '—'}</td>
+      <td>${b.auto ? 'Текущий месяц' : fd(b.from) + ' — ' + fd(b.to)}</td><td class="r num">${companyPlan(b) ? money(companyPlan(b)) : '—'}</td><td class="r">${st ? st.members.length : '—'}</td>
       <td>${b.active ? '<span class="pill ok">Активный</span>' : '<span class="pill no">Пауза</span>'}</td>
       <td class="r" style="white-space:nowrap"><a class="btn l s" href="/b/${b.key}" target="_blank">Открыть ТВ ↗</a> <a class="btn s" href="#/board/${b.id}">Настроить</a></td></tr>`; }).join('')}
     </tbody></table></div></div>`;
-  $('#secs').onclick = async () => {
-    if (dirty) return toast('Сначала сохраните изменения');
-    const r = await api('/api/admin/sector-boards', { method: 'POST' });
-    await loadState(); route(); toast(r.created ? `Создано досок: ${r.created}` : 'Для всех секторов доски уже есть');
-  };
   $('#add').onclick = () => {
     const b = JSON.parse(JSON.stringify(cfg.boards[0] || {}));
-    Object.assign(b, { id: uid(), key: '', name: 'Новый лидерборд', departments: [], members: [], exclude: [], plans: {}, plan: 0 });
+    Object.assign(b, { id: uid(), key: '', name: 'Новый лидерборд', departments: [], members: [], exclude: [], sectorPlans: {} });
     cfg.boards.push(b); setDirty(); location.hash = '#/board/' + b.id;
   };
 };
@@ -451,10 +448,10 @@ pages.board = (id, tab = 'main') => {
       <div class="card"><h3>Рейтинг</h3><p class="hint">По чему менеджеры занимают места.</p>
         <label class="ck"><input type="radio" name="rk" ${b.rankBy !== 'count' ? 'checked' : ''} onchange="cfg.boards[${i}].rankBy='sum';setDirty()"> <b>По выручке</b> — выше тот, кто продал на большую сумму</label>
         <label class="ck"><input type="radio" name="rk" ${b.rankBy === 'count' ? 'checked' : ''} onchange="cfg.boards[${i}].rankBy='count';setDirty()"> <b>По количеству продаж</b> — выше тот, у кого больше сделок</label></div>
-      <div class="card"><h3>План</h3><p class="hint">План отдела — для шкалы команды на табло (если пусто — сумма личных планов). Дневной план = план ÷ рабочие дни периода.</p>
-        <div class="row2"><label class="f"><span>План отдела (₸)</span>${inp(K + '.plan', '0', 'number')}</label>
-        <label class="f"><span>Личный план по умолчанию (₸)</span>${inp(K + '.defaultPlan', '0', 'number')}</label></div>
-        <p class="hint" style="margin:0">Личный план каждого менеджера — во вкладке «Участники».</p></div>
+      <div class="card"><h3>План по секторам</h3><p class="hint">Сектор — отдел первого уровня в Bitrix24. План компании = сумма планов секторов. Дневной план = план ÷ рабочие дни периода. Личных планов у менеджеров нет.</p>
+        ${sectors().length ? `<div class="tw"><table><thead><tr><th>Сектор</th><th style="width:260px">План за период (₸)</th></tr></thead><tbody>
+          ${sectors().map(d => `<tr><td><b>${esc(d.name)}</b></td><td><input class="in sm" type="number" step="any" data-sp="${d.id}" value="${esc((b.sectorPlans || {})[d.id] ?? '')}" placeholder="0"></td></tr>`).join('')}</tbody>
+          <tfoot><tr><td>План компании</td><td class="num" id="cpTot">${money(companyPlan(b))}</td></tr></tfoot></table></div>` : '<div class="warn">Bitrix24 не вернул отделы — секторы появятся после синхронизации.</div>'}</div>
       <div class="card"><h3>Сетка заработной платы</h3><p class="hint">Процент зависит от кассы менеджера. Пустое «До» = без верхней границы. «Премия уровня» — фиксированная доплата за ступень (элит).</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"><button class="btn g s" id="preset">★ Заполнить по «Условиям менеджера отдела продаж»</button></div>
         <div class="chips" style="margin-bottom:14px">${[['total', '% от всей кассы за период'], ['deal', '% от каждой сделки']].map(([v, n]) => `<button class="chip ${(b.commissionMode || 'total') === v ? 'on' : ''}" data-set="${K}.commissionMode" data-v="${v}">${n}</button>`).join('')}</div>
@@ -482,10 +479,9 @@ pages.board = (id, tab = 'main') => {
       <div class="card"><h3>Ориентация экрана</h3>
         <div class="chips">${[['horizontal', 'Горизонтальный'], ['vertical', 'Вертикальный']].map(([v, n]) => `<button class="chip ${b.screen.orientation === v ? 'on' : ''}" data-set="${K}.screen.orientation" data-v="${v}">${n}</button>`).join('')}</div>
         <p class="hint" style="margin-top:10px">Вертикальный — для телевизора, повёрнутого на 90°: картинка разворачивается сама. На телефоне поворота нет.</p></div>
-      <div class="card"><h3>Колонки таблицы</h3>
-        ${[['today', 'Сегодня', 'Продажи за сегодня и полоса к дневному плану'], ['sales', 'Продажи', 'Сумма за период и полоса к личному плану'], ['count', 'Количество', 'Сколько продаж за период'], ['pct', '% от продаж', 'Процент по сетке и сколько осталось до следующей ступени'], ['salary', 'Зарплата (итого)', 'Процент + премия уровня + бонусы − штрафы']]
-          .map(([k, n, d]) => `<label class="ck">${sw(`${K}.screen.cols.${k}`)} <span><b>${n}</b> <span style="color:var(--muted)">— ${d}</span></span></label>`).join('')}
-        <label class="ck">${sw(K + '.screen.losers')} <span><b>Подсветить последних трёх</b> <span style="color:var(--muted)">— красным, если в рейтинге больше 6 человек</span></span></label></div>
+      <div class="card"><h3>Таблица</h3><label class="f" style="max-width:260px"><span>Сколько менеджеров показывать (топ)</span>${inp(K + '.screen.topN', '10', 'number')}</label>
+        ${[['today', 'Сегодня', 'Касса менеджера за сегодня'], ['sales', 'Продажи', 'Касса за период'], ['count', 'Количество', 'Сколько продаж за период'], ['pct', '% от продаж', 'Процент по сетке и сколько осталось до следующей ступени'], ['salary', 'Зарплата (итого)', 'Процент + премия уровня + бонусы − штрафы']]
+          .map(([k, n, d]) => `<label class="ck">${sw(`${K}.screen.cols.${k}`)} <span><b>${n}</b> <span style="color:var(--muted)">— ${d}</span></span></label>`).join('')}</div>
       <div class="card"><h3>Продажа на экране</h3>
         <label class="ck">${sw(K + '.screen.popup')} Показывать попап новой продажи (фото, сумма, конфетти)</label>
         <label class="ck">${sw(K + '.screen.sound')} Звук продажи</label>
@@ -502,10 +498,10 @@ pages.board = (id, tab = 'main') => {
         <div class="dept">${tree('', 0) || '<div class="empty">Нет данных об отделах</div>'}</div></div>
       <div class="card"><h3>Добавить вручную</h3><div style="display:flex;gap:8px"><select class="in" id="addU"><option value="">Выберите сотрудника…</option>${pool.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select><button class="btn" id="addUB">Добавить</button></div>
         ${b.members.length ? `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${b.members.map(id => `<span class="pill">${esc(uName(id))} <a href="javascript:void 0" data-rmm="${id}" style="color:var(--red)">×</a></span>`).join('')}</div>` : ''}</div>
-      <div class="card"><h3>Состав и личные планы <span class="pill">${mem.length}</span></h3><p class="hint">План — сумма в тенге за период. Пусто — берётся «Личный план по умолчанию». Список обновляется после сохранения.</p>
-        <div class="tw"><table><thead><tr><th>Менеджер</th><th style="width:220px">План за период (₸)</th><th></th></tr></thead><tbody>
+      <div class="card"><h3>Состав <span class="pill">${mem.length}</span></h3><p class="hint">На табло показывается топ-${b.screen.topN || 10} из них. Список обновляется после сохранения.</p>
+        <div class="tw"><table><thead><tr><th>Менеджер</th><th></th></tr></thead><tbody>
         ${mem.map(id => `<tr><td><div class="who">${av(uName(id), uPhoto(id))}<div>${esc(uName(id))}<small>${esc((cfg.managers[id] || {}).category || '')}</small></div></div></td>
-          <td>${inp(`${K}.plans.${id}`, b.defaultPlan ? String(b.defaultPlan) : '0', 'number', 'sm')}</td><td class="r"><button class="btn d s" data-ex="${id}">Убрать</button></td></tr>`).join('') || '<tr><td colspan="3" class="empty">Пока никого</td></tr>'}
+          <td class="r"><button class="btn d s" data-ex="${id}">Убрать</button></td></tr>`).join('') || '<tr><td colspan="2" class="empty">Пока никого</td></tr>'}
         </tbody></table></div>
         ${b.exclude.length ? `<p class="hint" style="margin-top:12px">Убраны с доски: ${b.exclude.map(id => `<span class="pill">${esc(uName(id))} <a href="javascript:void 0" data-unex="${id}" style="color:#15803d">вернуть</a></span>`).join(' ')}</p>` : ''}</div>`;
   }
@@ -525,6 +521,7 @@ pages.board = (id, tab = 'main') => {
   on('#copy', () => { navigator.clipboard.writeText(location.origin + '/b/' + b.key); toast('Ссылка скопирована'); });
   on('#rekey', () => { if (confirm('Старая ссылка перестанет работать на всех телевизорах. Сменить?')) { b.key = ''; setDirty(); toast('Нажмите «Сохранить» — появится новая ссылка'); route(); } });
   on('#test', async () => { if (dirty) return toast('Сначала сохраните изменения'); await api(`/api/admin/board/${b.id}/test-sale`, { method: 'POST' }); toast('Тестовая продажа появится на табло в течение 5 секунд'); });
+  document.querySelectorAll('[data-sp]').forEach(el => el.oninput = () => { b.sectorPlans = b.sectorPlans || {}; if (el.value === '') delete b.sectorPlans[el.dataset.sp]; else b.sectorPlans[el.dataset.sp] = +el.value; setDirty(); const t = $('#cpTot'); if (t) t.textContent = money(companyPlan(b)); });
   on('#preset', () => {
     if ((b.commission.length || b.bonuses.length) && !confirm('Заменить сетку и бонусы этой доски условиями отдела продаж?')) return;
     Object.assign(b, JSON.parse(JSON.stringify(PRESET)));
