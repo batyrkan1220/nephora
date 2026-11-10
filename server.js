@@ -75,7 +75,6 @@ async function ensureSectorBoards(force) {
     b.departments = [sec.id];
     b.commission = JSON.parse(JSON.stringify(base.commission || []));
     b.commissionMode = base.commissionMode || 'total'; b.eliteFrom = base.eliteFrom || 0;
-    b.base = JSON.parse(JSON.stringify(base.base || b.base));
     b.bonuses = JSON.parse(JSON.stringify(base.bonuses || []));
     b.screen = JSON.parse(JSON.stringify(base.screen || b.screen));
     b.defaultPlan = base.defaultPlan || 0;
@@ -240,9 +239,9 @@ async function handle(req, res) {
     const r = C.payouts(cfg, ctx(deals), { month, boardId: q.get('board') || '' });
     if (!r) return send(res, 404, { error: 'not found' });
     if (q.get('format') === 'csv') {
-      const hd = ['Менеджер', 'Касса', '% сетки', 'Процент', 'Премия уровня', 'Оклад', 'Бонусы', 'Штрафы', 'Итого',
+      const hd = ['Менеджер', 'Касса', '% сетки', 'Процент', 'Премия уровня', 'Бонусы', 'Штрафы', 'Итого',
         ...r.weeks.map(w => `Выплата ${w.from.slice(8)}.${w.from.slice(5, 7)}–${w.to.slice(8)}.${w.to.slice(5, 7)}`)];
-      const body = csv([hd, ...r.rows.map(x => [x.name, Math.round(x.sum), x.commPct, Math.round(x.comm), x.premium, x.base, x.bonus, x.pen, Math.round(x.salary), ...x.weeks.map(w => Math.round(w.pay))])]);
+      const body = csv([hd, ...r.rows.map(x => [x.name, Math.round(x.sum), x.commPct, Math.round(x.comm), x.premium, x.bonus, x.pen, Math.round(x.salary), ...x.weeks.map(w => Math.round(w.pay))])]);
       return send(res, 200, body, 'text/csv; charset=utf-8', { 'Content-Disposition': `attachment; filename="nephora_payouts_${month}.csv"` });
     }
     return send(res, 200, r);
@@ -257,9 +256,9 @@ async function handle(req, res) {
       const name = `nephora_${q.get('kind') === 'deals' ? 'sales' : 'report'}_${from}_${to}.csv`;
       const body = q.get('kind') === 'deals'
         ? csv([['ID сделки', 'Дата', 'Менеджер', 'Сделка', 'Сумма'], ...r.deals.map(d => [d.id, d.dk, d.name, d.title, Math.round(d.sum)])])
-        : csv([['Менеджер', 'Отдел', 'Продаж', 'Выручка', 'Ср. чек', '% сетки', 'Процент', 'Премия уровня', 'Оклад', 'Бонусы', 'Штрафы', 'Зарплата'],
-          ...r.rows.map(x => [x.name, x.dep, x.cnt, Math.round(x.sum), Math.round(x.avg), x.commPct, Math.round(x.comm), x.premium, x.base, Math.round(x.bonus), x.pen, Math.round(x.salary)]),
-          ['Итого', '', r.totals.cnt, Math.round(r.totals.sum), Math.round(r.totals.avg), '', Math.round(r.totals.comm), r.totals.premium, r.totals.base, Math.round(r.totals.bonus), r.totals.pen, Math.round(r.totals.salary)]]);
+        : csv([['Менеджер', 'Отдел', 'Продаж', 'Выручка', 'Ср. чек', '% сетки', 'Процент', 'Премия уровня', 'Бонусы', 'Штрафы', 'Зарплата'],
+          ...r.rows.map(x => [x.name, x.dep, x.cnt, Math.round(x.sum), Math.round(x.avg), x.commPct, Math.round(x.comm), x.premium, Math.round(x.bonus), x.pen, Math.round(x.salary)]),
+          ['Итого', '', r.totals.cnt, Math.round(r.totals.sum), Math.round(r.totals.avg), '', Math.round(r.totals.comm), r.totals.premium, Math.round(r.totals.bonus), r.totals.pen, Math.round(r.totals.salary)]]);
       return send(res, 200, body, 'text/csv; charset=utf-8', { 'Content-Disposition': `attachment; filename="${name}"` });
     }
     return send(res, 200, r);
@@ -270,7 +269,7 @@ async function handle(req, res) {
 (async () => {
   await store.init();
   cfg = C.normalize(store.get('config'));
-  // v1: условия отдела продаж (сетка, элит, оклад, ежедневная премия, график 6/1 с выходным в понедельник)
+  // v1: условия отдела продаж (сетка, элит, ежедневная премия, график 6/1 с выходным в понедельник)
   if (cfg.presetV !== 1) {
     for (const b of cfg.boards) {
       if ((b.commission || []).length || (b.bonuses || []).length) continue;

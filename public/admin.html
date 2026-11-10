@@ -234,7 +234,7 @@ const api = async (url, opt = {}) => {
 
 let S = null, cfg = null, saved = '', dirty = false;
 const PRESET = {
-  commissionMode: 'total', eliteFrom: 800000, base: { amount: 80000, minSum: 1000000 },
+  commissionMode: 'total', eliteFrom: 800000,
   commission: [{ from: 0, to: 500000, pct: 10, premium: 0 }, { from: 500000, to: 800000, pct: 12, premium: 0 }, { from: 800000, to: 1500000, pct: 14, premium: 10000 },
     { from: 1500000, to: 1800000, pct: 15, premium: 20000 }, { from: 1800000, to: 2500000, pct: 15, premium: 30000 }, { from: 2500000, to: '', pct: 15, premium: 40000 }],
   bonuses: [{ id: 'daily', name: 'Ежедневная премия', period: 'day', metric: 'sum', tiers: [{ min: 200000, amount: 2000 }, { min: 300000, amount: 3000 }, { min: 400000, amount: 4000 },
@@ -388,10 +388,10 @@ pages.home = async () => {
         <div class="cx">${R.days.map((d, i) => `<span>${R.days.length <= 31 || i % Math.ceil(R.days.length / 31) === 0 ? d.dk.slice(8, 10) : ''}</span>`).join('')}</div></div></div>
     </div></div>
       <div class="card" style="margin-top:40px"><h3>По менеджерам</h3><div class="tw"><table>
-        <thead><tr><th>Менеджер</th><th class="r">Продаж</th><th class="r">Выручка</th><th class="r">Ср. чек</th><th class="r">% сетки</th><th class="r">Премия + оклад</th><th class="r">Бонусы</th><th class="r">Штрафы</th><th class="r">Зарплата</th></tr></thead>
+        <thead><tr><th>Менеджер</th><th class="r">Продаж</th><th class="r">Выручка</th><th class="r">Ср. чек</th><th class="r">% сетки</th><th class="r">Премия уровня</th><th class="r">Бонусы</th><th class="r">Штрафы</th><th class="r">Зарплата</th></tr></thead>
         <tbody>${R.rows.map(r => `<tr><td><div class="who">${av(r.name, r.photo)}<div>${esc(r.name)}<small>${esc(r.dep || r.board)}</small></div></div></td>
-          <td class="r num">${r.cnt}</td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${money(r.avg)}</td><td class="r num">${r.comm ? money(r.comm) + `<small style="display:block;color:var(--muted)">${+r.commPct.toFixed(1)}%${r.elite ? ' · ★ Элит' : ''}</small>` : '—'}</td><td class="r num">${r.premium + r.base ? money(r.premium + r.base) : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td><td class="r num" style="color:var(--red)">${r.pen ? '−' + money(r.pen) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td></tr>`).join('') || '<tr><td colspan="9" class="empty">Продаж за период нет</td></tr>'}</tbody>
-        ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${T.cnt}</td><td class="r num">${money(T.sum)}</td><td class="r num">${money(T.avg)}</td><td class="r num">${money(T.comm)}</td><td class="r num">${money(T.premium + T.base)}</td><td class="r num">${money(T.bonus)}</td><td class="r num">${T.pen ? '−' + money(T.pen) : '—'}</td><td class="r num">${money(T.salary)}</td></tr></tfoot>` : ''}
+          <td class="r num">${r.cnt}</td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${money(r.avg)}</td><td class="r num">${r.comm ? money(r.comm) + `<small style="display:block;color:var(--muted)">${+r.commPct.toFixed(1)}%${r.elite ? ' · ★ Элит' : ''}</small>` : '—'}</td><td class="r num">${r.premium ? money(r.premium) : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td><td class="r num" style="color:var(--red)">${r.pen ? '−' + money(r.pen) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td></tr>`).join('') || '<tr><td colspan="9" class="empty">Продаж за период нет</td></tr>'}</tbody>
+        ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${T.cnt}</td><td class="r num">${money(T.sum)}</td><td class="r num">${money(T.avg)}</td><td class="r num">${money(T.comm)}</td><td class="r num">${money(T.premium)}</td><td class="r num">${money(T.bonus)}</td><td class="r num">${T.pen ? '−' + money(T.pen) : '—'}</td><td class="r num">${money(T.salary)}</td></tr></tfoot>` : ''}
       </table></div></div>`;
   bindFilters();
   const csv = '/api/admin/report?' + qs({ format: 'csv' }); $('#csv').href = csv; $('#csv2').href = csv;
@@ -462,8 +462,6 @@ pages.board = (id, tab = 'main') => {
         ${b.commission.map((t, j) => `<div class="tier g4">${inp(`${K}.commission.${j}.from`, '0', 'number', 'sm')}${inp(`${K}.commission.${j}.to`, '∞', 'number', 'sm')}${inp(`${K}.commission.${j}.pct`, '%', 'number', 'sm')}${inp(`${K}.commission.${j}.premium`, '0', 'number', 'sm')}<button class="x" data-del="${K}.commission.${j}">×</button></div>`).join('')}
         <button class="btn l s" data-add="${K}.commission">+ Добавить ступень</button>
         <label class="f" style="max-width:320px;margin-top:16px"><span>«Элит менеджер» — с кассы (₸), 0 = не показывать</span>${inp(K + '.eliteFrom', '0', 'number')}</label></div>
-      <div class="card"><h3>Фиксированный оклад</h3><p class="hint">Выплачивается, если касса за период не меньше порога, и только тем, кто работает на постоянном графике (отметка в «Менеджерах»).</p>
-        <div class="row2"><label class="f"><span>Оклад (₸)</span>${inp(K + '.base.amount', '0', 'number')}</label><label class="f"><span>Касса за период от (₸)</span>${inp(K + '.base.minSum', '0', 'number')}</label></div></div>
       <div class="card"><h3>Бонусы</h3><p class="hint">Доплата, если менеджер набрал порог за день, неделю или весь период. Берётся самая высокая достигнутая ступень. Считается отдельно от комиссии.</p>
         ${b.bonuses.map((x, j) => { const BK = `${K}.bonuses.${j}`; return `<div class="bonus"><div class="row2">
           <label class="f"><span>Название</span>${inp(BK + '.name', 'Бонус недели')}</label>
@@ -485,7 +483,7 @@ pages.board = (id, tab = 'main') => {
         <div class="chips">${[['horizontal', 'Горизонтальный'], ['vertical', 'Вертикальный']].map(([v, n]) => `<button class="chip ${b.screen.orientation === v ? 'on' : ''}" data-set="${K}.screen.orientation" data-v="${v}">${n}</button>`).join('')}</div>
         <p class="hint" style="margin-top:10px">Вертикальный — для телевизора, повёрнутого на 90°: картинка разворачивается сама. На телефоне поворота нет.</p></div>
       <div class="card"><h3>Колонки таблицы</h3>
-        ${[['today', 'Сегодня', 'Продажи за сегодня и полоса к дневному плану'], ['sales', 'Продажи', 'Сумма за период и полоса к личному плану'], ['count', 'Количество', 'Сколько продаж за период'], ['pct', '% от продаж', 'Процент по сетке и сколько осталось до следующей ступени'], ['salary', 'Зарплата (итого)', 'Процент + премия уровня + оклад + бонусы − штрафы']]
+        ${[['today', 'Сегодня', 'Продажи за сегодня и полоса к дневному плану'], ['sales', 'Продажи', 'Сумма за период и полоса к личному плану'], ['count', 'Количество', 'Сколько продаж за период'], ['pct', '% от продаж', 'Процент по сетке и сколько осталось до следующей ступени'], ['salary', 'Зарплата (итого)', 'Процент + премия уровня + бонусы − штрафы']]
           .map(([k, n, d]) => `<label class="ck">${sw(`${K}.screen.cols.${k}`)} <span><b>${n}</b> <span style="color:var(--muted)">— ${d}</span></span></label>`).join('')}
         <label class="ck">${sw(K + '.screen.losers')} <span><b>Подсветить последних трёх</b> <span style="color:var(--muted)">— красным, если в рейтинге больше 6 человек</span></span></label></div>
       <div class="card"><h3>Продажа на экране</h3>
@@ -528,7 +526,7 @@ pages.board = (id, tab = 'main') => {
   on('#rekey', () => { if (confirm('Старая ссылка перестанет работать на всех телевизорах. Сменить?')) { b.key = ''; setDirty(); toast('Нажмите «Сохранить» — появится новая ссылка'); route(); } });
   on('#test', async () => { if (dirty) return toast('Сначала сохраните изменения'); await api(`/api/admin/board/${b.id}/test-sale`, { method: 'POST' }); toast('Тестовая продажа появится на табло в течение 5 секунд'); });
   on('#preset', () => {
-    if ((b.commission.length || b.bonuses.length) && !confirm('Заменить сетку, оклад и бонусы этой доски условиями отдела продаж?')) return;
+    if ((b.commission.length || b.bonuses.length) && !confirm('Заменить сетку и бонусы этой доски условиями отдела продаж?')) return;
     Object.assign(b, JSON.parse(JSON.stringify(PRESET)));
     if (cfg.settings.workDays.includes(1)) cfg.settings.workDays = [2, 3, 4, 5, 6, 7]; // график 6/1, понедельник выходной
     setDirty(); route(); toast('Условия подставлены — нажмите «Сохранить»');
@@ -545,16 +543,14 @@ pages.managers = () => {
   $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Менеджеры <span class="pill">${list.length}</span></h1>
     <input class="in" id="q" placeholder="Поиск…" style="max-width:260px" value="${esc(pages.managers.q || '')}">
     <div class="sub">Сотрудники приходят из Bitrix24. Здесь можно заменить фото, имя на табло, подпись (категорию) и скрыть человека со всех досок.</div></div>
-    <div class="card"><div class="tw"><table><thead><tr><th>Фото</th><th>Сотрудник Bitrix24</th><th>Имя на табло</th><th>Подпись / категория</th><th>Лидерборды</th><th title="Оклад платится только постоянному графику">Пост. график</th><th>Скрыть</th></tr></thead><tbody>
+    <div class="card"><div class="tw"><table><thead><tr><th>Фото</th><th>Сотрудник Bitrix24</th><th>Имя на табло</th><th>Подпись / категория</th><th>Лидерборды</th><th>Скрыть</th></tr></thead><tbody>
     ${list.map(u => { const K = `managers.${u.id}`; return `<tr>
       <td>${av(uName(u.id), u.photoUrl, 'big" data-ph="' + u.id)}${S.users.find(x => x.id === u.id).photoUrl && String(u.photoUrl).startsWith('/photo') ? `<div><a href="javascript:void 0" data-rmph="${u.id}" style="font-size:11px;color:var(--red)">сбросить</a></div>` : ''}</td>
       <td><b>${esc(u.name)}</b><div style="color:var(--muted);font-size:12px">${esc(u.position)}${S.dealUids.includes(u.id) ? ' · есть продажи' : ''}</div></td>
       <td>${inp(K + '.name', u.name, 'text', 'sm')}</td><td>${inp(K + '.category', 'напр. Премиум', 'text', 'sm')}</td>
       <td>${inBoards(u.id).map(n => `<span class="pill">${esc(n)}</span>`).join(' ') || '<span style="color:var(--muted)">—</span>'}</td>
-      <td><span class="sw"><input type="checkbox" data-perm="${u.id}" ${(cfg.managers[u.id] || {}).temp ? '' : 'checked'}><i></i></span></td>
       <td>${sw(K + '.hidden')}</td></tr>`; }).join('')}
     </tbody></table></div></div>`;
-  document.querySelectorAll('[data-perm]').forEach(el => el.onchange = () => { const m = cfg.managers[el.dataset.perm] = cfg.managers[el.dataset.perm] || {}; if (el.checked) delete m.temp; else m.temp = true; setDirty(); });
   $('#q').oninput = e => { pages.managers.q = e.target.value; clearTimeout(pages.managers.t); pages.managers.t = setTimeout(() => { route(); const el = $('#q'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }, 250); };
   document.querySelectorAll('[data-ph]').forEach(el => el.onclick = () => { const f = $('#file'); f.value = ''; f.onchange = () => upload(el.dataset.ph, f.files[0]); f.click(); });
   document.querySelectorAll('[data-rmph]').forEach(el => el.onclick = async () => { await api('/api/admin/photo/' + el.dataset.rmph, { method: 'DELETE' }); await refreshUsers(); toast('Фото сброшено'); });
@@ -625,13 +621,13 @@ pages.payouts = async () => {
   const wl = w => `${w.from.slice(8)}.${w.from.slice(5, 7)}–${w.to.slice(8)}.${w.to.slice(5, 7)}`;
   const tot = k => R.rows.reduce((a, r) => a + (+r[k] || 0), 0);
   $('#main').innerHTML = head + `<div class="card"><div class="tw"><table>
-    <thead><tr><th>Менеджер</th><th class="r">Касса</th><th class="r">% сетки</th><th class="r">Процент</th><th class="r">Премия</th><th class="r">Оклад</th><th class="r">Бонусы</th><th class="r">Штрафы</th><th class="r">Итого</th>${R.weeks.map(w => `<th class="r">Неделя<br>${wl(w)}</th>`).join('')}</tr></thead>
+    <thead><tr><th>Менеджер</th><th class="r">Касса</th><th class="r">% сетки</th><th class="r">Процент</th><th class="r">Премия</th><th class="r">Бонусы</th><th class="r">Штрафы</th><th class="r">Итого</th>${R.weeks.map(w => `<th class="r">Неделя<br>${wl(w)}</th>`).join('')}</tr></thead>
     <tbody>${R.rows.map(r => `<tr><td><div class="who">${av(r.name, r.photo)}<div>${esc(r.name)}<small>${r.elite ? '★ Элит' : esc(r.dep)}</small></div></div></td>
       <td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${r.commPct ? +r.commPct.toFixed(1) + '%' : '—'}</td><td class="r num">${money(r.comm)}</td><td class="r num">${r.premium ? money(r.premium) : '—'}</td>
-      <td class="r num">${r.base ? money(r.base) : (cfg.managers[r.uid] || {}).temp ? '<span style="color:var(--muted)">не пост.</span>' : '—'}</td><td class="r num">${r.bonus ? money(r.bonus) : '—'}</td>
+      <td class="r num">${r.bonus ? money(r.bonus) : '—'}</td>
       <td class="r num" style="color:var(--red)">${r.pen ? '−' + money(r.pen) : '—'}</td><td class="r num"><b>${money(r.salary)}</b></td>
       ${r.weeks.map(w => `<td class="r num" title="Касса недели ${money(w.sum)}">${w.pay ? money(w.pay) : '—'}<small style="display:block;color:var(--muted)">${w.sum ? short(w.sum) : ''}</small></td>`).join('')}</tr>`).join('') || '<tr><td colspan="20" class="empty">Нет участников</td></tr>'}</tbody>
-    ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${money(tot('sum'))}</td><td></td><td class="r num">${money(tot('comm'))}</td><td class="r num">${money(tot('premium'))}</td><td class="r num">${money(tot('base'))}</td><td class="r num">${money(tot('bonus'))}</td><td class="r num">${tot('pen') ? '−' + money(tot('pen')) : '—'}</td><td class="r num">${money(tot('salary'))}</td>
+    ${R.rows.length ? `<tfoot><tr><td>Итого</td><td class="r num">${money(tot('sum'))}</td><td></td><td class="r num">${money(tot('comm'))}</td><td class="r num">${money(tot('premium'))}</td><td class="r num">${money(tot('bonus'))}</td><td class="r num">${tot('pen') ? '−' + money(tot('pen')) : '—'}</td><td class="r num">${money(tot('salary'))}</td>
       ${R.weeks.map((w, i) => `<td class="r num">${money(R.rows.reduce((a, r) => a + r.weeks[i].pay, 0))}</td>`).join('')}</tr></tfoot>` : ''}
     </table></div><p class="hint" style="margin:12px 0 0">Под суммой выплаты — касса менеджера за эту неделю. Ежедневная премия начисляется за день и выплачивается на следующий день; здесь она входит в неделю, в которой заработана.</p></div>`;
   bind();
