@@ -632,6 +632,11 @@ pages.settings = () => {
       ${S.wh.callsError ? `<div class="warn">${esc(S.wh.callsError)}</div>` : ''}
       <label class="f" style="max-width:320px"><span>Загружать историю за последние, дней</span>${inp('settings.whDays', '120', 'number')}</label>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn l" id="whSync">↻ Обновить сейчас</button><button class="btn l" id="whRebuild">Пересобрать базу заново</button></div></div>
+    <div class="card" id="vkCard"><h3>Выкуп и отказ</h3><p class="hint">Заказ — сделка с заполненной «Датой заказа»; выкуп % считается по заказам выбранного периода (по дате заказа). Отметьте, какая стадия означает, что клиент <b>выкупил</b> заказ, а какая — <b>отказ</b>. Остальные — «в работе». Провальные стадии Bitrix24 без отметки считаются отказом. Справа — сколько заказов сейчас в стадии (за 90 дней).</p>
+      <div id="vkList" class="stg">${(() => { const v = s.vykup || { won: [], lost: [] }, cats = {}; (M.stages || []).forEach(x => { (cats[x.category] = cats[x.category] || []).push(x); });
+        return Object.entries(cats).map(([c, list]) => `<h4>${esc(c)}</h4>` + list.map(x => `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;break-inside:avoid"><select class="in sm" data-vk="${esc(x.id)}" style="width:120px;flex:none">
+          <option value="">в работе</option><option value="won" ${v.won.includes(x.id) ? 'selected' : ''}>✅ выкуп</option><option value="lost" ${v.lost.includes(x.id) ? 'selected' : ''}>❌ отказ</option></select>
+          <span style="flex:1">${esc(x.name)}</span><small class="num" data-vkc="${esc(x.id)}" style="color:var(--muted)"></small></div>`).join('')).join(''); })()}</div></div>
     <div class="card" id="caiCard"><h3>AI-разбор звонков</h3><p class="hint">После разговора запись расшифровывается (казахский и русский) и Claude оценивает менеджера по критериям ниже. Нужен ключ сервиса расшифровки: <b>ElevenLabs</b> (рекомендуем, Scribe v2, ≈$0,22 за час записи) или <b>OpenAI</b>.</p>
       <div id="caiSt" class="hint">Загрузка…</div>
       <label class="ck" style="display:flex;gap:10px;align-items:center;margin:10px 0">${sw('settings.callai.on')} Автоматически разбирать новые звонки с записью</label>
@@ -679,6 +684,9 @@ pages.settings = () => {
     document.querySelectorAll('[data-addst]').forEach(b => b.onclick = () => { if (!s.stages.includes(b.dataset.addst)) s.stages.push(b.dataset.addst); setDirty(); b.replaceWith(Object.assign(document.createElement('span'), { className: 'pill ok', textContent: 'добавлено — нажмите «Сохранить»' })); });
   };
   $('#dgRun').onclick = dgRun;
+  document.querySelectorAll('[data-vk]').forEach(el => el.onchange = () => { const id = el.dataset.vk, v = s.vykup || (s.vykup = { won: [], lost: [] });
+    v.won = v.won.filter(x => x !== id); v.lost = v.lost.filter(x => x !== id); if (el.value) v[el.value].push(id); setDirty(); });
+  api('/api/admin/funnel?from=' + addD(S.today, -90) + '&to=' + S.today).then(R => (R.byStage || []).forEach(x => { const el = document.querySelector(`[data-vkc="${CSS.escape(x.stage)}"]`); if (el) el.textContent = x.cnt + ' зак.'; })).catch(() => {});
   $('#caiCrit').oninput = e => { s.callai.criteria = e.target.value.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 12); setDirty(); };
   $('#caiScript').oninput = e => { s.callai.script = e.target.value; setDirty(); };
   const caiSt = async (R) => { R = R || await api('/api/admin/callai/settings').catch(e => ({ err: e.message })); const el = $('#caiSt'); if (!el) return; if (R.err) { el.textContent = R.err; return; }
