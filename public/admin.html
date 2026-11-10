@@ -685,8 +685,8 @@ pages.settings = () => {
   $('#view').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Настройки</h1></div>
     <div class="card"><h3>Bitrix24</h3>
       <p>${S.bitrix ? (S.error ? `<span class="pill er">Ошибка</span> ${esc(S.error)}` : '<span class="pill ok">Подключено</span>') : '<span class="pill er">BITRIX_WEBHOOK не задан в Render</span>'}
-      ${S.syncedAt ? ` · последняя синхронизация ${new Date(S.syncedAt).toLocaleTimeString('ru-RU')}` : ''} · хранилище: <b>${S.store === 'postgres' ? 'Postgres' : 'файл (временное!)'}</b></p>
-      ${S.store !== 'postgres' ? '<div class="warn">DATABASE_URL не задан — настройки сохранятся только до перезапуска сервера. Подключите Render Postgres.</div>' : ''}
+      ${S.syncedAt ? ` · последняя синхронизация ${new Date(S.syncedAt).toLocaleTimeString('ru-RU')}` : ''} · хранилище: <b>${S.store === 'supabase' ? 'Supabase' : S.store === 'postgres' ? 'Postgres' : 'файл (временное!)'}</b></p>
+      ${S.store === 'file' ? '<div class="warn">База не подключена — настройки сохранятся только до перезапуска сервера. Добавьте SUPABASE_DB_URL в переменные Render.</div>' : ''}
       <button class="btn l" id="resync">↻ Синхронизировать сейчас</button></div>
     <div class="card"><h3>База Safa (копия CRM)</h3><p class="hint">Сделки, лиды и звонки из Bitrix24 копируются в базу для воронки, выкупа, звонков и AI-ассистента. Обновляется каждые 2 минуты — только изменения.</p>
       <p>${S.wh.error ? `<span class="pill er">Ошибка</span> ${esc(S.wh.error)}` : S.wh.lastRun ? '<span class="pill ok">Работает</span>' : '<span class="pill">Первая загрузка…</span>'}${S.wh.progress ? ' · ' + esc(S.wh.progress) : ''} · ${S.wh.counts.deal} сделок · ${S.wh.counts.lead} лидов · ${S.wh.counts.call} звонков · ${S.wh.persisted ? 'хранится в Postgres' : '<b>без Postgres — только в памяти</b>'}</p>
