@@ -230,6 +230,15 @@ tfoot td{font-weight:600;border-top:2px solid var(--line)}
 .donut .c b{display:block;font-size:22px;font-weight:500}.donut .c small{font-size:13px;font-weight:500}
 .geo .gh{display:flex;align-items:flex-start;gap:12px}
 .geo .gh div{flex:1}
+.amx{border-collapse:separate;border-spacing:3px;font-size:11.5px}
+.amx td,.amx th{padding:0;text-align:center;min-width:34px}
+.amx td.n{text-align:left;min-width:170px;padding-right:8px;font-size:13px}
+.amx th{color:var(--muted);font-weight:500}.amx th.we{color:#c3c7d4}
+.amx i{display:block;font-style:normal;border-radius:7px;padding:5px 2px;background:#f4f5f9;color:#9aa0b2}
+.amx i.ok{background:#e7f8ef;color:#0f9a5a}.amx i.late{background:#fff3e0;color:#c76a00;font-weight:600}.amx i.absent{background:#ffecec;color:#d92d20;font-weight:600}
+.amx i.off{background:transparent;color:#d5d8e2}.amx i.extra{background:#eaf1ff;color:#1f6bff}.amx i.dis{text-decoration:line-through;opacity:.6}
+.code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--soft);padding:10px 12px;border-radius:10px;word-break:break-all;user-select:all}
+ol.steps{margin:6px 0 0;padding-left:20px;line-height:1.7;font-size:14px}
 </style>
 </head>
 <body>
@@ -240,6 +249,7 @@ tfoot td{font-weight:600;border-top:2px solid var(--line)}
     <a href="#/boards" data-r="boards" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 12l3-3 3 2 4-4"/></svg></span>Лидерборды</a>
     <a href="#/sales" data-r="sales"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 15v-3M12 15V9M15 15v-5"/></svg></span>Продажи</a>
     <a href="#/payouts" data-r="payouts"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x='3' y='6' width='18' height='13' rx='3'/><path d='M3 10h18M7 15h3'/></svg></span>Выплаты</a>
+    <a href="#/att" data-r="att"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x='6' y='2.5' width='12' height='19' rx='3'/><circle cx='12' cy='9' r='2.6'/><path d='M8.5 16c.6-1.8 2-2.8 3.5-2.8s2.9 1 3.5 2.8'/></svg></span>Посещаемость</a>
     <div class="navl">Аналитика</div>
     <a href="#/funnel" data-r="funnel"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M3 4h18l-7 8v6l-4 2v-8z'/></svg></span>Воронка и выкуп</a>
     <a href="#/calls" data-r="calls"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d='M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2'/></svg></span>Звонки</a>
@@ -715,10 +725,10 @@ pages.penalties = () => {
   const K = { late: 'Опоздание', absent: 'Пропуск без предупреждения', other: 'Другое' };
   const amt = k => k === 'late' ? +cfg.settings.penalty.late || 0 : k === 'absent' ? +cfg.settings.penalty.absent || 0 : '';
   const people = [...new Set([...S.boards.flatMap(b => b.members), ...S.dealUids])].filter(id => !(cfg.managers[id] || {}).hidden).sort((a, b) => uName(a).localeCompare(uName(b), 'ru'));
-  const list = cfg.penalties.filter(p => p.date.startsWith(PN.month)).sort((a, b) => b.date.localeCompare(a.date));
+  const list = [...cfg.penalties, ...(S.attPen || [])].filter(p => p.date.startsWith(PN.month)).sort((a, b) => b.date.localeCompare(a.date));
   const by = {}; list.forEach(p => { by[p.uid] = (by[p.uid] || 0) + (+p.amount || 0); });
   $('#main').innerHTML = `<div class="top"><button class="burger" onclick="document.body.classList.toggle('menu')">☰</button><h1>Штрафы</h1>
-    <div class="sub">Опоздание (10:00–13:00) и пропуск дня без предупреждения. Штрафы вычитаются из зарплаты за период и из выплаты недели.</div></div>
+    <div class="sub">Опоздание и пропуск дня — вручную или автоматически с терминала Hikvision (см. «Посещаемость»). Штрафы вычитаются из зарплаты за период и из выплаты недели.</div></div>
     <div class="card"><h3>Добавить штраф</h3>
       <div class="row2">
         <label class="f"><span>Менеджер</span><select class="in" id="pU"><option value="">Выберите…</option>${people.map(id => `<option value="${id}">${esc(uName(id))}</option>`).join('')}</select></label>
@@ -731,8 +741,8 @@ pages.penalties = () => {
     <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><h3 style="flex:1">За месяц</h3><input class="in" type="month" id="pM" value="${PN.month}" style="max-width:200px"></div>
       ${Object.keys(by).length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${Object.entries(by).map(([id, v]) => `<span class="pill er">${esc(uName(id))}: −${money(v)}</span>`).join('')}</div>` : ''}
       <div class="tw"><table><thead><tr><th>Дата</th><th>Менеджер</th><th>Причина</th><th>Комментарий</th><th class="r">Сумма</th><th></th></tr></thead><tbody>
-      ${list.map(p => `<tr><td class="num">${fd(p.date)}</td><td><div class="who">${av(uName(p.uid), uPhoto(p.uid))}${esc(uName(p.uid))}</div></td><td>${K[p.kind] || esc(p.kind)}</td><td style="color:var(--muted)">${esc(p.note || '')}</td>
-        <td class="r num" style="color:var(--red)"><b>−${money(p.amount)}</b></td><td class="r"><button class="x" data-rmp="${p.id}">×</button></td></tr>`).join('') || '<tr><td colspan="6" class="empty">Штрафов нет</td></tr>'}
+      ${list.map(p => `<tr><td class="num">${fd(p.date)}</td><td><div class="who">${av(uName(p.uid), uPhoto(p.uid))}${esc(uName(p.uid))}</div></td><td>${K[p.kind] || esc(p.kind)}${p.auto ? ' <span class="pill no">терминал</span>' : ''}</td><td style="color:var(--muted)">${esc(p.note || '')}</td>
+        <td class="r num" style="color:var(--red)"><b>−${money(p.amount)}</b></td><td class="r">${p.auto ? `<button class="btn l s" data-dis="${p.id}" title="Авто-штраф с терминала: снять (уважительная причина)">Снять</button>` : `<button class="x" data-rmp="${p.id}">×</button>`}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Штрафов нет</td></tr>'}
       </tbody></table></div></div>`;
   $('#pK').onchange = e => { const v = amt(e.target.value); if (v !== '') $('#pA').value = v; };
   $('#pM').onchange = e => { PN.month = e.target.value || S.today.slice(0, 7); route(); };
@@ -743,7 +753,102 @@ pages.penalties = () => {
     PN.month = date.slice(0, 7); setDirty(); route(); toast('Добавлено — нажмите «Сохранить»');
   };
   document.querySelectorAll('[data-rmp]').forEach(el => el.onclick = () => { cfg.penalties = cfg.penalties.filter(p => p.id !== el.dataset.rmp); setDirty(); route(); });
+  document.querySelectorAll('[data-dis]').forEach(el => el.onclick = async () => { await api('/api/admin/att/dismiss', { method: 'POST', body: JSON.stringify({ id: el.dataset.dis, on: true }) }); S.attPen = (S.attPen || []).filter(p => p.id !== el.dataset.dis); toast('Штраф снят'); route(); });
 };
+
+/* ===== посещаемость (терминал Hikvision) ===== */
+const AT = { view: 'day', date: '', month: '' };
+const AST = { ok: ['ok', 'Вовремя'], late: ['er', 'Опоздал'], absent: ['er', 'Нет / пропуск'], wait: ['no', 'Ещё не пришёл'], off: ['no', 'Выходной'], none: ['no', 'Нет данных'], extra: ['ok', 'Вышел в выходной'] };
+pages.att = async () => {
+  if (!AT.date) AT.date = S.today; if (!AT.month) AT.month = S.today.slice(0, 7);
+  const own = S.me.role === 'owner';
+  const top = sub => head('Посещаемость', sub) + `<div class="tabs"><a href="javascript:void 0" data-av="day" class="${AT.view === 'day' ? 'on' : ''}">День</a><a href="javascript:void 0" data-av="month" class="${AT.view === 'month' ? 'on' : ''}">Месяц</a>${own ? `<a href="javascript:void 0" data-av="setup" class="${AT.view === 'setup' ? 'on' : ''}">Терминал и правила</a>` : ''}</div>`;
+  const bindTop = () => document.querySelectorAll('[data-av]').forEach(el => el.onclick = () => { AT.view = el.dataset.av; route(); });
+  $('#main').innerHTML = top('Загрузка…') + '<div class="empty">Загрузка…</div>'; bindTop();
+  if (AT.view === 'setup' && own) return attSetup(top, bindTop);
+  const q = (AT.view === 'month' ? 'month=' + AT.month : 'date=' + AT.date) + '&sector=' + encodeURIComponent(F.sector || '');
+  let R; try { R = await api('/api/admin/att?' + q); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  const sub = `Рабочий день с ${R.settings.start}${+R.settings.grace ? ' (допуск ' + R.settings.grace + ' мин)' : ''}, опоздание до ${R.settings.lateUntil}, позже — пропуск. Данные с терминала Hikvision.`;
+  const ctl = AT.view === 'month' ? `<input class="in" type="month" id="aM" value="${AT.month}" style="max-width:190px">` : `<input class="in" type="date" id="aD" value="${AT.date}" style="max-width:190px">`;
+  const bar = `<div class="card" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap"><label class="f" style="margin:0"><span>${AT.view === 'month' ? 'Месяц' : 'Дата'}</span>${ctl}</label><label class="f" style="margin:0;min-width:220px"><span>Сектор</span>${secSelect('aSec', S.me.sectors ? 'Все мои секторы' : 'Все секторы')}</label></div>`;
+  const noMap = !R.rows.length ? `<div class="warn">Пока нет сопоставленных сотрудников. ${own ? 'Откройте вкладку «Терминал и правила»: подключите терминал и выберите, кто есть кто в Bitrix24.' : 'Попросите владельца подключить терминал.'}</div>` : '';
+  const dis = (r, label) => own && r.penId ? `<button class="btn l s" data-dis="${r.penId}" data-on="${r.dismissed ? '' : '1'}" title="${r.dismissed ? 'Вернуть штраф' : 'Уважительная причина — снять штраф'}">${r.dismissed ? 'Вернуть' : label}</button>` : '';
+  if (AT.view === 'day') {
+    const c = k => R.rows.filter(r => r.st === k).length, came = R.rows.filter(r => r.in).length;
+    $('#main').innerHTML = top(sub) + bar + noMap + (R.rows.length ? `
+      <div class="grid">
+        <div class="kpi"><small>Пришли</small><b class="num">${came} / ${R.rows.length}</b><span>${R.work ? 'рабочий день' : 'выходной по графику'}</span></div>
+        <div class="kpi"><small>Вовремя</small><b class="num good">${c('ok')}</b><span>до ${R.settings.start}</span></div>
+        <div class="kpi"><small>Опоздали</small><b class="num ${c('late') ? 'bad' : ''}">${c('late')}</b><span>${R.rows.reduce((a, r) => a + (r.st === 'late' ? r.lateMin : 0), 0)} мин суммарно</span></div>
+        <div class="kpi"><small>Нет на работе</small><b class="num ${c('absent') ? 'bad' : ''}">${c('absent')}</b><span>${c('wait') ? 'ещё ждём: ' + c('wait') : 'пропуск / после ' + R.settings.lateUntil}</span></div>
+      </div>
+      <div class="card"><div class="tw"><table><thead><tr><th>Сотрудник</th><th>Сектор</th><th class="r">Пришёл</th><th class="r">Ушёл</th><th class="r">На работе</th><th>Статус</th><th class="r">Штраф</th>${own ? '<th></th>' : ''}</tr></thead><tbody>
+      ${R.rows.map(r => { const [cl, t] = AST[r.st] || ['no', r.st]; return `<tr><td><div class="who">${av(r.name, uPhoto(r.uid))}${esc(r.name)}</div></td><td style="color:var(--muted)">${esc(r.sector)}</td>
+        <td class="r num"><b>${r.in || '—'}</b></td><td class="r num">${r.out || '—'}</td><td class="r num">${r.hours ? (Math.round(r.hours * 10) / 10) + ' ч' : '—'}</td>
+        <td><span class="pill ${cl}">${t}${r.lateMin ? ' +' + r.lateMin + ' мин' : ''}</span></td>
+        <td class="r num" style="color:var(--red)">${r.pen ? '−' + money(r.pen) : r.dismissed ? '<s style="color:var(--muted)">снят</s>' : '—'}</td>${own ? `<td class="r">${dis(r, 'Снять')}</td>` : ''}</tr>`; }).join('')}
+      </tbody></table></div></div>` : '');
+  } else {
+    const wd = d => new Date(d + 'T00:00:00Z').getUTCDay() || 7;
+    $('#main').innerHTML = top(sub) + bar + noMap + (R.rows.length ? `
+      <div class="card"><div class="tw"><table class="amx"><thead><tr><th></th>${R.days.map(d => `<th class="${(cfg.settings.workDays || []).includes(wd(d)) ? '' : 'we'}">${+d.slice(8)}</th>`).join('')}<th>Опозд.</th><th>Мин</th><th>Пропуск</th><th>Штрафы</th></tr></thead><tbody>
+      ${R.rows.map(r => `<tr><td class="n"><b>${esc(r.name)}</b><br><small style="color:var(--muted)">${esc(r.sector)}</small></td>${r.cells.map((x, i) => `<td><i class="${x.st}${x.dismissed ? ' dis' : ''}" title="${fd(R.days[i])}: ${(AST[x.st] || [, x.st])[1]}${x.in ? ' · ' + x.in + (x.out ? '–' + x.out : '') : ''}${x.lateMin ? ' (+' + x.lateMin + ' мин)' : ''}${x.pen ? ' · штраф ' + money(x.pen) : ''}">${x.in || (x.st === 'absent' ? '✕' : x.st === 'off' ? '·' : '')}</i></td>`).join('')}
+        <td class="num ${r.late ? 'bad' : ''}"><b>${r.late}</b></td><td class="num">${r.lateMin}</td><td class="num ${r.absent ? 'bad' : ''}"><b>${r.absent}</b></td><td class="num" style="color:var(--red)">${r.pen ? '−' + money(r.pen) : '—'}</td></tr>`).join('')}
+      </tbody></table></div><p class="hint" style="margin:12px 0 0">В клетке — время прихода. <span class="pill ok">вовремя</span> <span class="pill" style="background:#fff3e0;color:#c76a00">опоздание</span> <span class="pill er">пропуск</span> — наведите на клетку, чтобы увидеть уход и штраф.</p></div>` : '');
+  }
+  bindTop();
+  const d = $('#aD'); if (d) d.onchange = e => { AT.date = e.target.value || S.today; route(); };
+  const mo = $('#aM'); if (mo) mo.onchange = e => { AT.month = e.target.value || S.today.slice(0, 7); route(); };
+  $('#aSec').onchange = e => { F.sector = e.target.value; route(); };
+  document.querySelectorAll('[data-dis]').forEach(el => el.onclick = async () => {
+    await api('/api/admin/att/dismiss', { method: 'POST', body: JSON.stringify({ id: el.dataset.dis, on: !!el.dataset.on }) });
+    toast(el.dataset.on ? 'Штраф снят' : 'Штраф возвращён'); route();
+  });
+};
+async function attSetup(top, bindTop) {
+  let R; try { R = await api('/api/admin/att/setup'); } catch (e) { $('#main .empty').textContent = 'Ошибка: ' + e.message; return; }
+  const st = R.status, ago = st && st.lastAt ? Math.round((Date.now() - st.lastAt) / 60000) : null;
+  const people = [...new Set([...S.boards.flatMap(b => b.members), ...S.dealUids, ...Object.keys(cfg.managers)])].filter(id => !(cfg.managers[id] || {}).hidden).sort((a, b) => uName(a).localeCompare(uName(b), 'ru'));
+  const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е').split(/\s+/).filter(Boolean).sort().join(' ');
+  const guess = n => { const k = norm(n); if (!k) return ''; const f = people.filter(id => norm(uName(id)) === k || (k.split(' ').length > 1 && norm(uName(id)).includes(k))); return f.length === 1 ? f[0] : ''; };
+  const used = Object.values(cfg.settings.att.map || {});
+  $('#main').innerHTML = top('Подключение терминала Hikvision DS-K1T343M (и других терминалов доступа Hikvision) и правила учёта') + `
+    <div class="card"><h3>Состояние</h3>
+      ${st && st.lastAt ? `<p><span class="pill ${ago < 24 * 60 ? 'ok' : 'er'}">${ago < 24 * 60 ? 'Подключено' : 'Давно нет событий'}</span> Последнее событие: ${new Date(st.lastAt).toLocaleString('ru-RU')} (${ago} мин назад) · источник: ${st.lastFrom === 'bridge' ? 'мост' : 'терминал напрямую'} · всего принято ${st.total}</p>` : '<p><span class="pill no">Ещё нет событий</span> Подключите терминал одним из способов ниже и пройдите по лицу — запись появится здесь.</p>'}
+    </div>
+    <div class="card"><h3>Способ 1 — терминал отправляет события сам (рекомендуем)</h3>
+      <ol class="steps"><li>Откройте веб-интерфейс терминала (IP терминала в браузере) → войдите как admin.</li>
+      <li><b>Configuration → Network → Advanced → HTTP Listening</b> (в некоторых прошивках: <i>Event Alarm Upload / Прослушивание HTTP</i>).</li>
+      <li>Включите, укажите адрес ниже. Протокол <b>HTTPS</b>, порт <b>443</b>. Если поле разбито на части: IP/домен — <b>${esc(location.host)}</b>, URL — путь после домена.</li>
+      <li>Сохраните и пройдите по лицу — в «Состоянии» появится событие.</li></ol>
+      <p style="margin:12px 0 6px">Адрес для терминала:</p><div class="code">${esc(R.url)}</div>
+      <p class="hint">Адрес содержит секретный ключ — не публикуйте его. <a href="javascript:void 0" id="aTok">Сменить ключ</a> (после смены терминал/мост нужно перенастроить).</p></div>
+    <div class="card"><h3>Способ 2 — мост в офисе (если терминал не умеет HTTPS)</h3>
+      <p class="hint">Любой компьютер в офисе в той же сети, что и терминал. Установите <a href="https://nodejs.org" target="_blank">Node.js</a>, скачайте мост и запустите — он раз в 20 секунд забирает события из терминала (ISAPI AcsEvent) и отправляет сюда. Ключ уже вписан в файл.</p>
+      <a class="btn" href="/api/admin/att/bridge.js" download>⬇ Скачать hik-bridge.js</a>
+      <p style="margin:12px 0 6px">Windows (cmd, в папке с файлом):</p><div class="code">set HIK_HOST=192.168.1.64&amp;&amp; set HIK_USER=admin&amp;&amp; set HIK_PASS=пароль_терминала&amp;&amp; node hik-bridge.js</div>
+      <p class="hint">Замените IP и пароль на свои. Чтобы мост работал постоянно — добавьте команду в автозапуск (или pm2).</p></div>
+    <div class="card"><h3>Правила</h3>
+      <div class="row2">
+        <label class="f"><span>Начало рабочего дня</span>${inp('settings.att.start', '10:00', 'time')}</label>
+        <label class="f"><span>Допуск, мин (не считается опозданием)</span>${inp('settings.att.grace', '0', 'number')}</label>
+        <label class="f"><span>Опоздание до (позже — пропуск)</span>${inp('settings.att.lateUntil', '13:00', 'time')}</label>
+      </div>
+      <label class="ck" style="display:flex;gap:10px;align-items:center;margin:8px 0">${sw('settings.att.autoLate')} Автоматически штрафовать за опоздание (${money(cfg.settings.penalty.late)})</label>
+      <label class="ck" style="display:flex;gap:10px;align-items:center;margin:8px 0">${sw('settings.att.autoAbsent')} Автоматически штрафовать за пропуск (${money(cfg.settings.penalty.absent)}) — не пришёл в рабочий день или пришёл после ${esc(cfg.settings.att.lateUntil)}</label>
+      <p class="hint">Рабочие дни и праздники — из «Настроек», суммы штрафов — там же. Авто-штрафы видны в «Штрафах» и вычитаются из зарплаты; уважительную причину можно снять кнопкой «Снять» на вкладке «День». Учёт начинается с первого события сотрудника на терминале.</p></div>
+    <div class="card"><h3>Кто есть кто</h3><p class="hint">Сотрудники появляются здесь после первого прохода через терминал. Выберите для каждого менеджера из Bitrix24 (по имени подставлено автоматически, где совпало) и нажмите «Сохранить».</p>
+      <div class="tw"><table><thead><tr><th>№ на терминале</th><th>Имя на терминале</th><th>Последний проход</th><th>Менеджер в Bitrix24</th></tr></thead><tbody>
+      ${R.people.map(p => { const cur = (cfg.settings.att.map || {})[p.emp] || ''; return `<tr><td class="num">${esc(p.emp)}</td><td>${esc(p.name || '—')}</td><td class="num">${esc(p.last || '')}</td>
+        <td><select class="in" data-k="settings.att.map.${esc(p.emp)}"><option value="">— не учитывать —</option>${people.map(id => `<option value="${id}" ${cur === id ? 'selected' : ''}>${esc(uName(id))}${used.includes(id) && cur !== id ? ' (уже выбран)' : ''}</option>`).join('')}</select>${!cur && guess(p.name) ? `<button class="btn l s" data-guess="${esc(p.emp)}" data-uid="${guess(p.name)}" style="margin-top:6px">Подставить: ${esc(uName(guess(p.name)))}</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="4" class="empty">Пока никто не проходил через терминал</td></tr>'}
+      </tbody></table></div>
+      ${R.people.some(p => !(cfg.settings.att.map || {})[p.emp] && guess(p.name)) ? '<button class="btn" id="aAuto" style="margin-top:12px">Подставить всех совпавших по имени</button>' : ''}</div>`;
+  bindTop();
+  const setMap = (emp, id) => { cfg.settings.att.map = { ...(cfg.settings.att.map || {}), [emp]: id }; setDirty(); };
+  document.querySelectorAll('[data-guess]').forEach(el => el.onclick = () => { setMap(el.dataset.guess, el.dataset.uid); route(); });
+  const au = $('#aAuto'); if (au) au.onclick = () => { R.people.forEach(p => { if (!(cfg.settings.att.map || {})[p.emp] && guess(p.name)) setMap(p.emp, guess(p.name)); }); route(); toast('Подставлено — нажмите «Сохранить»'); };
+  $('#aTok').onclick = async () => { if (!confirm('Сменить ключ? Старый адрес перестанет работать.')) return; await api('/api/admin/att/token', { method: 'POST' }); route(); toast('Ключ изменён'); };
+}
 
 /* ===== общие помощники аналитики ===== */
 const pct = v => v == null ? '—' : (Math.round(v * 10) / 10) + '%';

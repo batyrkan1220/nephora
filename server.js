@@ -11,6 +11,7 @@ const C = require('./lib/calc');
 const auth = require('./lib/auth');
 const wh = require('./lib/warehouse');
 const AN = require('./lib/analytics');
+const att = require('./lib/attendance');
 
 const PORT = process.env.PORT || 3000;
 const PASS = process.env.DASH_PASSWORD || '';
@@ -73,7 +74,7 @@ function photos() {
 function ctx(deals) {
   return {
     deals: deals || cache.deals, users: cache.users, userMap: cache.userMap, deps: cache.deps,
-    managers: cfg.managers, settings: cfg.settings, today: C.todayKey(cfg.settings.tz), photos: photos(), penalties: cfg.penalties,
+    managers: cfg.managers, settings: cfg.settings, today: C.todayKey(cfg.settings.tz), photos: photos(), penalties: [...cfg.penalties, ...att.penalties(cfg)],
   };
 }
 function stageNames() { return Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x.name])); }
@@ -154,6 +155,17 @@ async function handle(req, res) {
     return res.end(Buffer.from(b64, 'base64'));
   }
 
+  // --- терминал Hikvision: события прихода/ухода (HTTP Listening терминала или мост hik-bridge) ---
+  if ((m = p.match(/^\/api\/att\/(\w+)\/?$/))) {
+    const t = att.token(), ok = m[1].length === t.length && crypto.timingSafeEqual(Buffer.from(m[1]), Buffer.from(t));
+    if (!ok) return send(res, 403, { error: 'bad token' });
+    if (req.method !== 'POST') return send(res, 200, { ok: true, service: 'Safa attendance' });
+    const body = await new Promise(ok => { const ch = []; let n = 0; req.on('data', c => { n += c.length; if (n < 12e6) ch.push(c); }); req.on('end', () => ok(Buffer.concat(ch).toString('utf8'))); req.on('error', () => ok('')); });
+    const evs = att.parse(body, req.headers['content-type']);
+    const n = evs.length ? await att.ingest(evs, cfg, req.headers['user-agent'] && /bridge/i.test(req.headers['user-agent']) ? 'bridge' : 'terminal') : 0;
+    return send(res, 200, { ok: true, accepted: n });
+  }
+
   // --- вход ---
   if (p === '/login' && req.method === 'POST') {
     const q = new URLSearchParams(await readBody(req, 1e4));
@@ -173,7 +185,7 @@ async function handle(req, res) {
   const scope = auth.scopeOf(user), isOwner = user.role === 'owner';
   // только владелец: настройки, фото, сверка, пересинхронизация, аккаунты, база
   const ownerOnly = (p === '/api/admin/config' && req.method !== 'GET') || p.startsWith('/api/admin/photo/') || p === '/api/admin/diag' ||
-    p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/');
+    p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/') || p.startsWith('/api/admin/att/');
   if (ownerOnly && !isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
 
   // --- кабинет ---
@@ -192,14 +204,14 @@ async function handle(req, res) {
       boards: cfg.boards.map(b => ({ id: b.id, members: C.computeBoard(b, ctx()).members })),
       dealUids: [...new Set(cache.deals.map(d => d.uid))],
       secOf: C.sectorMap(ctx()), me: auth.publicUser(user), sectors: C.sectorsOf(cache.deps).map(d => ({ id: d.id, name: d.name })),
-      accounts: isOwner ? auth.list() : undefined, wh: wh.status(), ai: !!process.env.ANTHROPIC_API_KEY,
+      accounts: isOwner ? auth.list() : undefined, attPen: isOwner ? att.penalties(cfg) : undefined, wh: wh.status(), ai: !!process.env.ANTHROPIC_API_KEY,
     });
   }
   if (p === '/api/admin/config' && req.method === 'PUT') {
     const body = JSON.parse(await readBody(req));
     const prevStages = JSON.stringify([cfg.settings.stages, cfg.settings.dateField]);
     cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, penalties: body.penalties || [], sectorBoards: cfg.sectorBoards || [], presetV: cfg.presetV, oneBoardV2: cfg.oneBoardV2, brandV3: cfg.brandV3 });
-    await store.set('config', cfg); wh.setCfg(cfg);
+    await store.set('config', cfg); wh.setCfg(cfg); att.touch();
     if (JSON.stringify([cfg.settings.stages, cfg.settings.dateField]) !== prevStages) seen = null;
     sync().then(loop);
     return send(res, 200, { ok: true, cfg });
@@ -247,6 +259,33 @@ async function handle(req, res) {
       date, dateField: F, counted: { cnt: counted.length, sum: counted.reduce((a, d) => a + d.sum, 0) },
       stages: Object.values(stages).sort((a, b) => b.sum - a.sum), deals: A, other,
     });
+  }
+  // посещаемость (руководитель видит только свои секторы)
+  if (p === '/api/admin/att') {
+    const A = AN.allowedUids(ctx(), scope, { sector: url.searchParams.get('sector') || '' });
+    const month = /^\d{4}-\d{2}$/.test(url.searchParams.get('month') || '') ? url.searchParams.get('month') : '';
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get('date') || '') ? url.searchParams.get('date') : '';
+    const r = att.report(cfg, { date, month }, uid => A.has(uid));
+    const secOf = A.secOf, SN = Object.fromEntries(C.sectorsOf(cache.deps).map(d => [d.id, d.name]));
+    r.rows.forEach(x => { x.name = (cfg.managers[x.uid] || {}).name || (cache.userMap[x.uid] || {}).name || ('ID ' + x.uid); x.sector = SN[secOf[x.uid]] || ''; });
+    r.rows.sort((a, b) => a.sector.localeCompare(b.sector, 'ru') || a.name.localeCompare(b.name, 'ru'));
+    r.settings = att.setup(cfg).settings; delete r.settings.map;
+    return send(res, 200, r);
+  }
+  if (p === '/api/admin/att/setup') {
+    const proto = req.headers['x-forwarded-proto'] || 'http', host = req.headers.host;
+    return send(res, 200, { ...att.setup(cfg), url: `${proto}://${host}/api/att/${att.token()}` });
+  }
+  if (p === '/api/admin/att/token' && req.method === 'POST') { await att.newToken(); return send(res, 200, { ok: true }); }
+  if (p === '/api/admin/att/dismiss' && req.method === 'POST') {
+    const { id, on } = JSON.parse(await readBody(req, 1e4));
+    if (!/^att-\w+-\d{4}-\d{2}-\d{2}$/.test(id || '')) return send(res, 400, { error: 'bad id' });
+    await att.dismiss(id, !!on); return send(res, 200, { ok: true });
+  }
+  if (p === '/api/admin/att/bridge.js') {
+    const proto = req.headers['x-forwarded-proto'] || 'http', host = req.headers.host;
+    const src = fs.readFileSync(path.join(__dirname, 'tools', 'hik-bridge.js'), 'utf8').replace("process.env.SAFA_URL || ''", `process.env.SAFA_URL || '${proto}://${host}/api/att/${att.token()}'`);
+    return send(res, 200, src, 'application/javascript; charset=utf-8', { 'Content-Disposition': 'attachment; filename="hik-bridge.js"' });
   }
   if (p === '/api/admin/resync' && req.method === 'POST') {
     cache.meta = null; await sync(); return send(res, 200, { ok: !cache.error, error: cache.error, syncedAt: cache.syncedAt });
