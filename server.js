@@ -12,6 +12,7 @@ const auth = require('./lib/auth');
 const wh = require('./lib/warehouse');
 const AN = require('./lib/analytics');
 const att = require('./lib/attendance');
+const cai = require('./lib/callai');
 
 const PORT = process.env.PORT || 3000;
 const PASS = process.env.DASH_PASSWORD || '';
@@ -185,7 +186,7 @@ async function handle(req, res) {
   const scope = auth.scopeOf(user), isOwner = user.role === 'owner';
   // только владелец: настройки, фото, сверка, пересинхронизация, аккаунты, база
   const ownerOnly = (p === '/api/admin/config' && req.method !== 'GET') || p.startsWith('/api/admin/photo/') || p === '/api/admin/diag' ||
-    p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/') || p.startsWith('/api/admin/att/');
+    p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/') || p.startsWith('/api/admin/att/') || p.startsWith('/api/admin/callai/settings');
   if (ownerOnly && !isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
 
   // --- кабинет ---
@@ -211,7 +212,7 @@ async function handle(req, res) {
     const body = JSON.parse(await readBody(req));
     const prevStages = JSON.stringify([cfg.settings.stages, cfg.settings.dateField]);
     cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, penalties: body.penalties || [], sectorBoards: cfg.sectorBoards || [], presetV: cfg.presetV, oneBoardV2: cfg.oneBoardV2, brandV3: cfg.brandV3 });
-    await store.set('config', cfg); wh.setCfg(cfg); att.touch();
+    await store.set('config', cfg); wh.setCfg(cfg); att.touch(); cai.setCfg(cfg);
     if (JSON.stringify([cfg.settings.stages, cfg.settings.dateField]) !== prevStages) seen = null;
     sync().then(loop);
     return send(res, 200, { ok: true, cfg });
@@ -323,7 +324,32 @@ async function handle(req, res) {
   if (p === '/api/admin/calls/list') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
     const f = { from: q.get('from') || today, to: q.get('to') || today, sector: q.get('sector') || '', uid: q.get('uid') || '' };
-    return send(res, 200, AN.callList(ctx(), scope, f, { q: q.get('q') || '', rec: q.get('all') !== '1', limit: q.get('limit') }));
+    const out = AN.callList(ctx(), scope, f, { q: q.get('q') || '', rec: q.get('all') !== '1', limit: q.get('limit') });
+    out.rows.forEach(r => { const x = cai.get(r.id); if (x) r.ai = x.skip ? { skip: true } : { score: x.score, outcome: x.outcome }; });
+    out.callai = { on: cai.status().settings.on, ready: cai.status().ready };
+    return send(res, 200, out);
+  }
+  // AI-разбор звонков
+  if (p === '/api/admin/callai/summary') {
+    const q = url.searchParams, today = C.todayKey(cfg.settings.tz), c = ctx();
+    const A = AN.allowedUids(c, scope, { sector: q.get('sector') || '', uid: q.get('uid') || '' });
+    const nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || ('ID ' + id);
+    return send(res, 200, { ...cai.summary(id => A.has(id), q.get('from') || C.monthRange(today).from, q.get('to') || today, nm), status: (({ settings, ready, doneToday, total }) => ({ on: settings.on, ready, doneToday, total }))(cai.status()) });
+  }
+  if (p === '/api/admin/callai/settings') {
+    if (req.method === 'POST') { await cai.setKeys(JSON.parse(await readBody(req, 1e4))); }
+    return send(res, 200, cai.status());
+  }
+  if ((m = p.match(/^\/api\/admin\/callai\/([\w.-]+)$/))) {
+    const c = wh.byId('call', m[1]);
+    if (!c) return send(res, 404, { error: 'Звонок не найден в базе' });
+    if (!AN.allowedUids(ctx(), scope, {}).has(c.uid)) return send(res, 403, { error: 'Нет доступа к этому звонку' });
+    try {
+      const d = req.method === 'POST' ? await cai.analyze(c.id) : cai.get(c.id);
+      if (!d) return send(res, 404, { error: 'Разбора ещё нет' });
+      const x = ctx(); const nm = (cfg.managers[c.uid] || {}).name || (x.userMap[c.uid] || {}).name || '';
+      return send(res, 200, { ...d, name: nm, phone: c.ph, transcript: await cai.transcript(c.id) });
+    } catch (e) { return send(res, 400, { error: e.message }); }
   }
   if (p === '/api/admin/calls/raw') { // диагностика: какие поля записи отдаёт Bitrix24
     if (!isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
@@ -425,5 +451,5 @@ async function handle(req, res) {
     console.error(e); if (!res.headersSent) send(res, 500, { error: String(e.message || e) });
   })).listen(PORT, () => console.log('Leaderboard on :' + PORT));
   sync().then(async () => { loop(); if (!cache.meta && bx.configured()) cache.meta = await bx.meta().catch(() => null); });
-  wh.start(cfg);
+  wh.start(cfg); cai.start(cfg);
 })();

@@ -239,6 +239,13 @@ tfoot td{font-weight:600;border-top:2px solid var(--line)}
 .amx i.off{background:transparent;color:#d5d8e2}.amx i.extra{background:#eaf1ff;color:#1f6bff}.amx i.dis{text-decoration:line-through;opacity:.6}
 .code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--soft);padding:10px 12px;border-radius:10px;word-break:break-all;user-select:all}
 ol.steps{margin:6px 0 0;padding-left:20px;line-height:1.7;font-size:14px}
+.sc{display:inline-flex;align-items:center;justify-content:center;min-width:46px;padding:4px 10px;border-radius:999px;font-weight:700;font-size:13px;border:0;cursor:pointer}
+.sc.g{background:#e7f8ef;color:#0f7a48}.sc.m{background:#fff3e0;color:#a85800}.sc.b{background:#ffecec;color:#c0281b}.sc.n{background:#f1f2f6;color:#6a7088}
+.ovl{position:fixed;inset:0;background:rgba(20,26,51,.45);display:flex;justify-content:flex-end;z-index:50}
+.ovl .pane{width:min(760px,100%);height:100%;overflow:auto;background:#fff;padding:28px 30px;box-shadow:-20px 0 60px rgba(0,0,0,.15)}
+.cr{display:grid;grid-template-columns:1fr 120px 34px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.cr .bar{height:8px;border-radius:6px;background:#eef0f5;overflow:hidden}.cr .bar i{display:block;height:100%;background:var(--blue)}
+.dlg p{margin:0 0 8px;line-height:1.5}.dlg .mg{background:#eef3ff;border-radius:12px;padding:8px 12px}.dlg .cl{background:#f6f7fa;border-radius:12px;padding:8px 12px}
 </style>
 </head>
 <body>
@@ -642,6 +649,15 @@ pages.settings = () => {
       ${S.wh.callsError ? `<div class="warn">${esc(S.wh.callsError)}</div>` : ''}
       <label class="f" style="max-width:320px"><span>Загружать историю за последние, дней</span>${inp('settings.whDays', '120', 'number')}</label>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn l" id="whSync">↻ Обновить сейчас</button><button class="btn l" id="whRebuild">Пересобрать базу заново</button></div></div>
+    <div class="card" id="caiCard"><h3>AI-разбор звонков</h3><p class="hint">После разговора запись расшифровывается (казахский и русский) и Claude оценивает менеджера по критериям ниже. Нужен ключ сервиса расшифровки: <b>ElevenLabs</b> (рекомендуем, Scribe v2, ≈$0,22 за час записи) или <b>OpenAI</b>.</p>
+      <div id="caiSt" class="hint">Загрузка…</div>
+      <label class="ck" style="display:flex;gap:10px;align-items:center;margin:10px 0">${sw('settings.callai.on')} Автоматически разбирать новые звонки с записью</label>
+      <div class="row2"><label class="f"><span>Только разговоры от, сек</span>${inp('settings.callai.minSec', '40', 'number')}</label><label class="f"><span>Лимит разборов в день</span>${inp('settings.callai.perDay', '300', 'number')}</label>
+      <label class="f"><span>Язык разбора</span><select class="in" data-k="settings.callai.lang"><option value="ru" ${s.callai.lang !== 'kk' ? 'selected' : ''}>Русский</option><option value="kk" ${s.callai.lang === 'kk' ? 'selected' : ''}>Қазақша</option></select></label></div>
+      <label class="f"><span>Критерии оценки (каждый с новой строки, до 12)</span><textarea class="in" rows="7" id="caiCrit">${esc((s.callai.criteria || []).join('\n'))}</textarea></label>
+      <label class="f"><span>Скрипт продаж компании (необязательно — AI проверит, следует ли менеджер)</span><textarea class="in" rows="5" id="caiScript" placeholder="Вставьте текст скрипта">${esc(s.callai.script || '')}</textarea></label>
+      <div class="row2"><label class="f"><span>Ключ ElevenLabs</span><input class="in" type="password" id="caiEl" placeholder="sk_… (оставьте пустым — без изменений)" autocomplete="off"></label><label class="f"><span>Ключ OpenAI (если нет ElevenLabs)</span><input class="in" type="password" id="caiOa" placeholder="sk-… (оставьте пустым — без изменений)" autocomplete="off"></label></div>
+      <button class="btn l" id="caiKeys">Сохранить ключи</button></div>
     <div class="card" id="diagCard"><h3>Сверка кассы за день</h3><p class="hint">Показывает все сделки Bitrix24 с выбранной датой заказа — какие попали в рейтинг, а какие нет и почему. Если касса на табло меньше, чем в отчёте Bitrix24, — здесь видно причину.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><input class="in" type="date" id="dgDate" value="${S.today}" style="max-width:200px"><button class="btn" id="dgRun">Проверить</button></div>
       <div id="dgOut"></div></div>
@@ -680,6 +696,14 @@ pages.settings = () => {
     document.querySelectorAll('[data-addst]').forEach(b => b.onclick = () => { if (!s.stages.includes(b.dataset.addst)) s.stages.push(b.dataset.addst); setDirty(); b.replaceWith(Object.assign(document.createElement('span'), { className: 'pill ok', textContent: 'добавлено — нажмите «Сохранить»' })); });
   };
   $('#dgRun').onclick = dgRun;
+  $('#caiCrit').oninput = e => { s.callai.criteria = e.target.value.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 12); setDirty(); };
+  $('#caiScript').oninput = e => { s.callai.script = e.target.value; setDirty(); };
+  const caiSt = async (R) => { R = R || await api('/api/admin/callai/settings').catch(e => ({ err: e.message })); const el = $('#caiSt'); if (!el) return; if (R.err) { el.textContent = R.err; return; }
+    el.innerHTML = `${R.ready.stt ? `<span class="pill ok">Расшифровка: ${R.ready.stt === 'elevenlabs' ? 'ElevenLabs' : 'OpenAI'}</span>` : '<span class="pill er">Нет ключа расшифровки</span>'} ${R.ready.claude ? '<span class="pill ok">Claude подключён</span>' : '<span class="pill er">Нет ANTHROPIC_API_KEY</span>'}
+      · разборов всего: ${R.total}, сегодня: ${R.doneToday}${R.keys.eleven ? ' · ElevenLabs ' + R.keys.eleven : ''}${R.keys.openai ? ' · OpenAI ' + R.keys.openai : ''}${R.lastError ? `<div class="warn" style="margin-top:8px">Последняя ошибка: ${esc(R.lastError)}</div>` : ''}`; };
+  caiSt();
+  $('#caiKeys').onclick = async () => { const b = {}; if ($('#caiEl').value.trim()) b.eleven = $('#caiEl').value.trim(); if ($('#caiOa').value.trim()) b.openai = $('#caiOa').value.trim();
+    if (!Object.keys(b).length) return toast('Введите ключ'); const R = await api('/api/admin/callai/settings', { method: 'POST', body: JSON.stringify(b) }); $('#caiEl').value = $('#caiOa').value = ''; caiSt(R); toast('Ключи сохранены'); };
   $('#whSync').onclick = async () => { $('#whSync').disabled = true; await api('/api/admin/wh/sync', { method: 'POST' }); await loadState(); route(); toast('База обновлена'); };
   $('#whRebuild').onclick = async () => { if (!confirm('Очистить копию и загрузить заново из Bitrix24? Это займёт несколько минут.')) return; await api('/api/admin/wh/rebuild', { method: 'POST' }); toast('Загрузка началась — обновите страницу через пару минут'); };
   $('#resync').onclick = async () => { $('#resync').disabled = true; const r = await api('/api/admin/resync', { method: 'POST' }); await loadState().catch(() => {}); toast(r.ok ? 'Синхронизировано' : 'Ошибка: ' + r.error); route(); };
@@ -906,12 +930,45 @@ pages.calls = async () => {
       ${R.managers.map(x => `<tr><td><div class="who">${av(x.name, uPhoto(x.uid))}<div>${esc(x.name)}<small>${esc(x.sector)}</small></div></div></td><td class="r num"><b>${x.total}</b></td><td class="r num">${x.out}</td><td class="r num">${pct(x.reach)}</td><td class="r num">${x.inc}</td><td class="r num ${x.missed ? 'bad' : ''}">${x.missed || '—'}</td><td class="r num">${x.talkMin}</td><td class="r num">${x.orders}</td><td class="r num">${x.callsPerOrder == null ? '—' : Math.round(x.callsPerOrder * 10) / 10}</td><td class="r num">${mins(x.respMedianMin)}</td><td class="r num ${x.leadsNoCall ? 'bad' : ''}">${x.leadsNoCall || '—'}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Звонков за период нет</td></tr>'}</tbody></table></div></div>
     ${L.noCallList.length ? `<div class="card"><h3>${DM ? 'Новые сделки' : 'Лиды'} без звонка</h3><p class="hint">${DM ? 'Сделки' : 'Лиды'} периода, по которым нет ни одного звонка в Bitrix24.</p><div class="tw"><table><thead><tr><th>${DM ? 'Сделка' : 'Лид'}</th><th>Менеджер</th><th>Создан(а)</th></tr></thead><tbody>
       ${L.noCallList.map(l => `<tr><td>#${esc(l.id)} ${esc(l.title)}</td><td>${esc(l.manager)}</td><td class="num">${esc(String(l.created).slice(0, 16).replace('T', ' '))}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
+    <div class="card" id="aiSum"><h3>AI-оценка разговоров</h3><div id="aiSumB" class="empty">Загрузка…</div></div>
     <div class="card" id="recs"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><h3 style="flex:1;margin:0">Записи разговоров</h3>
       <input class="in" id="recQ" placeholder="Поиск по номеру" value="${esc(REC.q)}" style="max-width:220px"><label class="ck"><input type="checkbox" id="recAll" ${REC.all ? 'checked' : ''}> все звонки</label></div>
       <div id="recBody" class="empty">Загрузка…</div></div>`;
-  bindFilters(); loadRecs();
+  bindFilters(); loadRecs(); loadAiSum();
 };
 const REC = { q: '', all: false, play: '' };
+const scCls = v => v >= 80 ? 'g' : v >= 60 ? 'm' : 'b';
+const OUT = { order: 'Заказ', next_step: 'Следующий шаг', refusal: 'Отказ', no_result: 'Без результата', other: 'Другое' };
+async function loadAiSum() {
+  const b = $('#aiSumB'); if (!b) return;
+  let R; try { R = await api('/api/admin/callai/summary?' + qs()); } catch (e) { b.textContent = 'Ошибка: ' + e.message; return; }
+  const st = R.status, own = S.me.role === 'owner';
+  if (!st.ready.stt || !st.ready.claude) { b.className = ''; b.innerHTML = `<div class="warn">AI-разбор не подключён: ${!st.ready.stt ? 'нужен ключ расшифровки (ElevenLabs или OpenAI)' : 'нужен ANTHROPIC_API_KEY'}. ${own ? '<a href="#/settings">Настройки → AI-разбор звонков</a>' : 'Обратитесь к владельцу.'}</div>`; return; }
+  b.className = '';
+  b.innerHTML = `<p class="hint" style="margin:0 0 10px">${st.on ? `Автоматически разбираются новые звонки с записью · сегодня: ${st.doneToday}` : `Авторазбор выключен${own ? ' (<a href="#/settings">включить</a>)' : ''} — разбор по кнопке «AI разбор» в записях`} · всего разборов: ${st.total}</p>
+    ${R.total.n ? `<div class="grid"><div class="kpi"><small>Средняя оценка</small><b class="num">${R.total.avg}<span style="font-size:15px;color:var(--muted)"> / 100</span></b><span>${R.total.n} разговоров за период</span></div>
+      ${R.criteria.slice().sort((a, b) => a.avg - b.avg).filter(c => c.avg < 8).slice(0, 3).map(c => `<div class="kpi"><small>Слабое место</small><b class="num ${c.avg < 6 ? 'bad' : ''}" style="font-size:24px">${c.avg}/10</b><span>${esc(c.name)}</span></div>`).join('')}</div>
+    <div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Разборов</th><th class="r">Средняя оценка</th><th class="r">Заказов</th><th>Сильнее всего</th><th>Слабее всего</th></tr></thead><tbody>
+    ${R.managers.map(m => `<tr><td><div class="who">${av(m.name, uPhoto(m.uid))}${esc(m.name)}</div></td><td class="r num">${m.reviews}</td><td class="r"><span class="sc ${scCls(m.avg)}">${m.avg}</span></td><td class="r num">${m.orders}</td>
+      <td style="font-size:13px">${m.strongest ? esc(m.strongest.name) + ' · ' + m.strongest.avg : '—'}</td><td style="font-size:13px;color:var(--red)">${m.weakest ? esc(m.weakest.name) + ' · ' + m.weakest.avg : '—'}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">За период разборов ещё нет</div>'}`;
+}
+async function openReview(id) {
+  const o = document.createElement('div'); o.className = 'ovl'; o.innerHTML = '<div class="pane"><div class="empty">Загрузка…</div></div>';
+  o.onclick = e => { if (e.target === o) o.remove(); }; document.body.appendChild(o); window.addEventListener('hashchange', () => o.remove(), { once: true });
+  const P = o.querySelector('.pane');
+  let d; try { d = await api('/api/admin/callai/' + encodeURIComponent(id)); } catch (e) { P.innerHTML = `<div class="warn">${esc(e.message)}</div>`; return; }
+  const li = a => (a || []).length ? `<ul style="margin:6px 0 14px;padding-left:20px;line-height:1.55">${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="hint">—</p>';
+  const who = sp => sp === d.mgr ? 'Менеджер' : 'Клиент';
+  P.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:start;gap:12px"><div><h2 style="margin:0">${esc(d.name || 'Звонок')}</h2><p class="hint" style="margin:4px 0 0">${esc(String(d.at).slice(0, 16).replace('T', ' '))} · ${esc(d.phone || '')} · ${dur(d.dur)}</p></div><button class="x" id="ovX" style="font-size:22px">×</button></div>
+    ${d.skip ? `<div class="warn" style="margin-top:16px">${esc(d.reason)}</div>` : `
+    <div style="display:flex;gap:16px;align-items:center;margin:18px 0"><span class="sc ${scCls(d.score)}" style="font-size:28px;padding:10px 18px">${d.score}</span><div><b>${OUT[d.outcome] || ''}</b>${d.next ? ` · следующий шаг: ${esc(d.next)}` : ''}<br><span class="hint">${esc(d.summary)}</span></div></div>
+    <h3>Критерии</h3>${(d.criteria || []).map(c => `<div class="cr"><div><b style="font-size:14px">${esc(c.name)}</b><div class="hint" style="margin:2px 0 0">${esc(c.comment)}</div></div><div class="bar"><i style="width:${c.score * 10}%"></i></div><b class="num">${c.score}</b></div>`).join('')}
+    <h3 style="margin-top:18px">Хорошо</h3>${li(d.strengths)}<h3>Ошибки</h3>${li(d.mistakes)}<h3>Как сказать лучше</h3>${li(d.recommendations)}${(d.objections || []).length ? '<h3>Возражения клиента</h3>' + li(d.objections) : ''}`}
+    <audio controls preload="none" src="/api/admin/call-rec/${encodeURIComponent(id)}" style="width:100%;margin:6px 0 14px"></audio>
+    <details ${d.skip ? 'open' : ''}><summary style="cursor:pointer;font-weight:600">Расшифровка разговора</summary><div class="dlg" style="margin-top:10px">${(d.transcript || []).map(l => `<p class="${l.sp === d.mgr ? 'mg' : 'cl'}"><b>${who(l.sp)}:</b> ${esc(l.t)}</p>`).join('') || '<p class="hint">Нет текста</p>'}</div></details>
+    <p class="hint" style="margin-top:14px">Расшифровка: ${esc(d.stt || '')}${d.lang ? ' · язык: ' + esc(d.lang) : ''} · оценка: ${esc(d.model || '')}. Автоматическая расшифровка может содержать ошибки.</p>`;
+  $('#ovX').onclick = () => o.remove();
+}
 const dur = s => { s = +s || 0; return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 async function loadRecs() {
   const box = $('#recBody'); if (!box) return;
@@ -920,11 +977,18 @@ async function loadRecs() {
   let R; try { R = await api('/api/admin/calls/list?' + qs() + '&q=' + encodeURIComponent(REC.q) + (REC.all ? '&all=1' : '')); } catch (e) { box.textContent = 'Ошибка: ' + e.message; return; }
   box.className = '';
   box.innerHTML = `<p class="hint" style="margin:0 0 10px">${REC.all ? 'Звонков' : 'Звонков с записью'} за период: <b>${R.total}</b>${R.total > R.rows.length ? ` · показаны последние ${R.rows.length}` : ''}. Запись загружается из Bitrix24 при нажатии ▶.</p>
-    <div class="tw"><table><thead><tr><th>Время</th><th>Менеджер</th><th>Номер</th><th>Тип</th><th class="r">Длит.</th><th style="min-width:320px">Запись</th></tr></thead><tbody>
+    <div class="tw"><table><thead><tr><th>Время</th><th>Менеджер</th><th>Номер</th><th>Тип</th><th class="r">Длит.</th><th>AI</th><th style="min-width:320px">Запись</th></tr></thead><tbody>
     ${R.rows.map(c => `<tr><td class="num">${esc(String(c.at).slice(0, 16).replace('T', ' '))}</td><td><div class="who">${av(c.name, uPhoto(c.uid))}<div>${esc(c.name)}<small>${esc(c.sector)}</small></div></div></td>
       <td class="num">${esc(c.phone)}</td><td>${c.dir === 'out' ? '↗ исходящий' : c.dir === 'in' ? '↙ входящий' : '—'}${c.ok ? '' : ' <span class="pill no">не состоялся</span>'}</td><td class="r num">${dur(c.dur)}</td>
-      <td data-rc="${esc(c.id)}">${c.rec ? `<button class="btn l s" data-play="${esc(c.id)}">▶ Слушать</button> <a class="btn l s" href="/api/admin/call-rec/${encodeURIComponent(c.id)}?dl=1">⬇</a>` : '<span style="color:var(--muted)">нет записи</span>'}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Нет звонков с записью за период</td></tr>'}
+      <td>${c.ai ? (c.ai.skip ? '<span class="sc n" title="Слишком короткий разговор">—</span>' : `<button class="sc ${scCls(c.ai.score)}" data-air="${esc(c.id)}">${c.ai.score}</button>`) : c.rec && c.ok && R.callai.ready.stt && R.callai.ready.claude ? `<button class="btn l s" data-ain="${esc(c.id)}" title="Расшифровать и оценить разговор">AI разбор</button>` : ''}</td>
+      <td data-rc="${esc(c.id)}">${c.rec ? `<button class="btn l s" data-play="${esc(c.id)}">▶ Слушать</button> <a class="btn l s" href="/api/admin/call-rec/${encodeURIComponent(c.id)}?dl=1">⬇</a>` : '<span style="color:var(--muted)">нет записи</span>'}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">Нет звонков с записью за период</td></tr>'}
     </tbody></table></div>`;
+  box.querySelectorAll('[data-air]').forEach(b => b.onclick = () => openReview(b.dataset.air));
+  box.querySelectorAll('[data-ain]').forEach(b => b.onclick = async () => {
+    b.disabled = true; b.textContent = 'Разбираю… ~1 мин';
+    try { await api('/api/admin/callai/' + encodeURIComponent(b.dataset.ain), { method: 'POST' }); openReview(b.dataset.ain); loadRecs(); loadAiSum(); }
+    catch (e) { b.outerHTML = `<span class="pill er" title="${esc(e.message)}">${esc(e.message.slice(0, 60))}</span>`; }
+  });
   box.querySelectorAll('[data-play]').forEach(b => b.onclick = async () => {
     const id = b.dataset.play, cell = box.querySelector(`[data-rc="${CSS.escape(id)}"]`);
     box.querySelectorAll('audio').forEach(a => a.pause());
