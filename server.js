@@ -175,7 +175,10 @@ async function handle(req, res) {
     const ev = hasSince ? events.filter(e => e.seq > since && (e.test || (mem.has(e.uid) && e.dk >= from && e.dk <= to)))
       .map(e => { const r = data._all.find(x => x.uid === e.uid) || { name: e.name || 'Менеджер', photo: '' };
         return { name: r.name, photo: r.photo, place: r.place, total: r.sum, sector: r.sectorName || '', seq: e.seq, sum: e.sum, title: e.title }; }) : [];
-    return send(res, 200, { ...data, members: undefined, _all: undefined, events: ev, seq, syncedAt: cache.syncedAt, error: cache.error, company: cfg.settings.company });
+    // «Топ месяца» — всегда за текущий календарный месяц, даже если у доски свой период
+    const M = C.monthRange(data.period.today);
+    const month = M.from === from && M.to === to ? { from, to, rows: null } : { ...M, rows: C.computeBoard({ ...b, auto: true }, ctx()).rows };
+    return send(res, 200, { ...data, month, members: undefined, _all: undefined, events: ev, seq, syncedAt: cache.syncedAt, error: cache.error, company: cfg.settings.company });
   }
   if (p === '/sale.mp3') {
     res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400' });
