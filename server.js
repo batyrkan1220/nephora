@@ -549,13 +549,15 @@ async function handle(req, res) {
       by: { contact: 0, phone: 0, lead: 0 }, matched: 0, matchedSum: 0, sameSum: 0, sameDate: 0, tgtStages: {}, unmatched: [], noKey: 0, inKassa: { n: 0, sum: 0 } };
     const kassa = new Set(cfg.settings.stages || []);
     for (const d of src) {
+      const mk = (d.od || d.cr || '').slice(0, 7), M = (out.months = out.months || {})[mk] = (out.months || {})[mk] || { n: 0, sum: 0, dup: 0, dupSum: 0 };
+      M.n++; M.sum += d.sum;
       out.sum += d.sum; if (kassa.has(d.st)) { out.inKassa.n++; out.inKassa.sum += d.sum; }
       const c = byC[d.contact] || [], f = ph(d) ? byP[ph(d)] || [] : [], l = byL[d.lead] || [];
       if (c.length) out.by.contact++; if (f.length) out.by.phone++; if (l.length) out.by.lead++;
       const all = [...new Map([...c, ...f, ...l].map(x => [x.id, x])).values()];
       if (!d.contact && !ph(d) && !d.lead) out.noKey++;
       if (all.length) {
-        out.matched++; out.matchedSum += d.sum;
+        out.matched++; out.matchedSum += d.sum; M.dup++; M.dupSum += d.sum;
         const best = all.find(x => x.sum === d.sum) || all[0];
         if (all.some(x => x.sum === d.sum)) out.sameSum++;
         if (all.some(x => x.od && x.od === d.od)) out.sameDate++;
