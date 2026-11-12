@@ -527,6 +527,44 @@ async function handle(req, res) {
     catch (e) { return send(res, 400, { error: e.message }); }
   }
   if ((m = p.match(/^\/api\/admin\/users\/(\w+)$/)) && req.method === 'DELETE') { await auth.deleteUser(m[1]); return send(res, 200, { ok: true }); }
+  // диагностика дублей: сделки стадии stage (напр. «Первичный → Заказ») ищутся в другой воронке (по умолчанию «Логистика»)
+  // совпадение — по контакту, номеру телефона в названии или лиду. Только владелец (префикс /api/admin/wh/).
+  if (p === '/api/admin/wh/dupes') {
+    const q = url.searchParams, st = (cache.meta || {}).stages || [];
+    const nm = Object.fromEntries(st.map(x => [x.id, x])), D = wh.all('deal');
+    const label = id => nm[id] ? nm[id].category + ' → ' + nm[id].name : id;
+    const stage = q.get('stage');
+    if (!stage) {
+      const cnt = {}; D.forEach(d => { cnt[d.st] = (cnt[d.st] || 0) + 1; });
+      return send(res, 200, { stages: Object.entries(cnt).map(([id, n]) => ({ id, n, name: label(id), cat: (nm[id] || {}).category || '' })).sort((a, b) => b.n - a.n), wh: wh.status() });
+    }
+    const tgtRe = new RegExp(q.get('target') || 'логист', 'i');
+    const isTgt = d => tgtRe.test((nm[d.st] || {}).category || '');
+    const ph = d => wz.phoneOf(d.t), mask = s => String(s || '').replace(/(\d{4})\d{4}(\d{2})/g, '$1****$2');
+    const T = D.filter(isTgt), byC = {}, byP = {}, byL = {};
+    const add = (m, k, d) => { if (k) (m[k] = m[k] || []).push(d); };
+    T.forEach(d => { add(byC, d.contact, d); add(byP, ph(d), d); add(byL, d.lead, d); });
+    const src = D.filter(d => d.st === stage);
+    const out = { stage: label(stage), target: q.get('target') || 'логист', total: src.length, sum: 0, targetDeals: T.length,
+      by: { contact: 0, phone: 0, lead: 0 }, matched: 0, matchedSum: 0, sameSum: 0, sameDate: 0, tgtStages: {}, unmatched: [], noKey: 0, inKassa: { n: 0, sum: 0 } };
+    const kassa = new Set(cfg.settings.stages || []);
+    for (const d of src) {
+      out.sum += d.sum; if (kassa.has(d.st)) { out.inKassa.n++; out.inKassa.sum += d.sum; }
+      const c = byC[d.contact] || [], f = ph(d) ? byP[ph(d)] || [] : [], l = byL[d.lead] || [];
+      if (c.length) out.by.contact++; if (f.length) out.by.phone++; if (l.length) out.by.lead++;
+      const all = [...new Map([...c, ...f, ...l].map(x => [x.id, x])).values()];
+      if (!d.contact && !ph(d) && !d.lead) out.noKey++;
+      if (all.length) {
+        out.matched++; out.matchedSum += d.sum;
+        const best = all.find(x => x.sum === d.sum) || all[0];
+        if (all.some(x => x.sum === d.sum)) out.sameSum++;
+        if (all.some(x => x.od && x.od === d.od)) out.sameDate++;
+        const k = label(best.st); out.tgtStages[k] = (out.tgtStages[k] || 0) + 1;
+      } else out.unmatched.push({ id: d.id, t: mask(d.t), sum: d.sum, od: d.od, cr: (d.cr || '').slice(0, 10), contact: !!d.contact, phone: !!ph(d) });
+    }
+    out.unmatchedN = out.unmatched.length; out.unmatched = out.unmatched.slice(0, +q.get('limit') || 50);
+    return send(res, 200, out);
+  }
   if (p === '/api/admin/wh/sync' && req.method === 'POST') { await wh.sync(); return send(res, 200, wh.status()); }
   if (p === '/api/admin/wh/rebuild' && req.method === 'POST') { wh.resetAndResync(); return send(res, 200, { ok: true }); }
   if (p === '/api/ai/chat' && req.method === 'POST') {
