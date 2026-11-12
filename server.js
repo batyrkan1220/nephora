@@ -592,6 +592,7 @@ async function handle(req, res) {
     if (body.confirm !== 'DELETE' || !body.stage) return send(res, 400, { error: 'нужно подтверждение' });
     if (dupeJob && dupeJob.running) return send(res, 409, { error: 'удаление уже идёт', job: dupeJob });
     const r = dupePairs(body.stage, body.target || 'логист');
+    if (Array.isArray(body.only)) r.pairs = r.pairs.filter(x => body.only.includes(x.how));
     if (+body.expect !== r.pairs.length) return send(res, 409, { error: 'число дублей изменилось', now: r.pairs.length });
     const key = 'dupes:backup:' + new Date().toISOString();
     await store.set(key, { stage: body.stage, target: body.target || 'логист', at: Date.now(), by: user.login || user.role,
