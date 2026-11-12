@@ -96,6 +96,52 @@ function warm() {
     EF.touches(c, sc, f, cfg); EF.efficiency(c, sc, f, cfg);
   } catch (e) { console.error('warm:', e.message); }
 }
+/* ===== дубли сделок ===== */
+let dupeJob = null;
+function dupeCtx() {
+  const nm = Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x]));
+  return { nm, label: id => nm[id] ? nm[id].category + ' → ' + nm[id].name : id };
+}
+function dupePairs(stage, target) {
+  const { nm, label } = dupeCtx(), D = wh.all('deal'), tgtRe = new RegExp(target, 'i');
+  const T = D.filter(d => tgtRe.test((nm[d.st] || {}).category || '')), src = D.filter(d => d.st === stage);
+  const ph = d => wz.phoneOf(d.t), idx = {}, add = (k, d) => { if (k) (idx[k] = idx[k] || []).push(d); };
+  T.forEach(d => { add('c' + d.contact, d); add('p' + ph(d), d); add('l' + d.lead, d); });
+  const cands = d => [...new Map([...(d.contact ? idx['c' + d.contact] || [] : []), ...(ph(d) ? idx['p' + ph(d)] || [] : []), ...(d.lead ? idx['l' + d.lead] || [] : [])].map(x => [x.id, x])).values()];
+  const used = new Set(), paired = new Map();
+  // проходы от самых надёжных пар к менее надёжным: сумма+дата → сумма → любая
+  const passes = [['sum+date', (a, b) => a.sum === b.sum && a.od && a.od === b.od], ['sum', (a, b) => a.sum === b.sum], ['client', () => true]];
+  for (const [how, ok] of passes) for (const d of src) {
+    if (paired.has(d.id)) continue;
+    const c = cands(d).filter(x => !used.has(x.id) && ok(d, x)).sort((x, y) => Math.abs(+new Date(x.cr) - +new Date(d.cr)) - Math.abs(+new Date(y.cr) - +new Date(d.cr)))[0];
+    if (c) { used.add(c.id); paired.set(d.id, { src: d, tgt: c, how }); }
+  }
+  const pairs = [...paired.values()], unmatched = src.filter(d => !paired.has(d.id));
+  const byHow = {}; pairs.forEach(x => { byHow[x.how] = (byHow[x.how] || 0) + 1; });
+  const months = {}; src.forEach(d => { const k = (d.od || d.cr || '').slice(0, 7), M = months[k] = months[k] || { n: 0, sum: 0, dup: 0, dupSum: 0 }; M.n++; M.sum += d.sum; if (paired.has(d.id)) { M.dup++; M.dupSum += d.sum; } });
+  return { pairs, unmatched, label, summary: { stage: label(stage), total: src.length, sum: src.reduce((a, d) => a + d.sum, 0), dupes: pairs.length,
+    dupSum: pairs.reduce((a, x) => a + x.src.sum, 0), byHow, unmatchedN: unmatched.length, unmatchedSum: unmatched.reduce((a, d) => a + d.sum, 0), months } };
+}
+// удаление: перед каждым пакетом сделки перечитываются из Bitrix — удаляются только те, что всё ещё в той же стадии
+async function runDupeDelete(pairs, stage) {
+  for (let i = 0; i < pairs.length; i += 25) {
+    const chunk = pairs.slice(i, i + 25), ids = chunk.map(x => x.src.id), pids = chunk.map(x => x.tgt.id);
+    const fresh = await bx.call('crm.deal.list', { filter: { '@ID': [...ids, ...pids] }, select: ['ID', 'STAGE_ID'] });
+    const stOf = Object.fromEntries((fresh.result || []).map(d => [String(d.ID), d.STAGE_ID]));
+    const go = chunk.filter(x => stOf[x.src.id] === stage && stOf[x.tgt.id]);
+    chunk.filter(x => !go.includes(x)).forEach(x => dupeJob.skipped.push({ id: x.src.id, why: stOf[x.src.id] !== stage ? 'стадия изменилась' : 'пара в логистике не найдена' }));
+    if (go.length) {
+      const r = await bx.call('batch', { halt: 0, cmd: Object.fromEntries(go.map(x => ['d' + x.src.id, 'crm.deal.delete?id=' + x.src.id])) });
+      const errs = (r.result || {}).result_error || {}, ok = [];
+      for (const x of go) { const e = errs['d' + x.src.id]; if (e && (!Array.isArray(e) || e.length)) dupeJob.errors.push(x.src.id + ': ' + (e.error_description || e.error || JSON.stringify(e))); else ok.push(x.src.id); }
+      await wh.remove('deal', ok); dupeJob.deleted += ok.length;
+    }
+    dupeJob.done += chunk.length;
+    await new Promise(z => setTimeout(z, 600));
+  }
+  cache.deals = cache.deals.filter(d => wh.byId('deal', d.id) || !pairs.some(x => x.src.id === d.id));
+  sync();
+}
 function loop() {
   clearTimeout(timer);
   timer = setTimeout(async () => { await sync(); loop(); }, Math.max(15, +cfg.settings.syncSec || 30) * 1000);
@@ -527,45 +573,32 @@ async function handle(req, res) {
     catch (e) { return send(res, 400, { error: e.message }); }
   }
   if ((m = p.match(/^\/api\/admin\/users\/(\w+)$/)) && req.method === 'DELETE') { await auth.deleteUser(m[1]); return send(res, 200, { ok: true }); }
-  // диагностика дублей: сделки стадии stage (напр. «Первичный → Заказ») ищутся в другой воронке (по умолчанию «Логистика»)
-  // совпадение — по контакту, номеру телефона в названии или лиду. Только владелец (префикс /api/admin/wh/).
-  if (p === '/api/admin/wh/dupes') {
-    const q = url.searchParams, st = (cache.meta || {}).stages || [];
-    const nm = Object.fromEntries(st.map(x => [x.id, x])), D = wh.all('deal');
-    const label = id => nm[id] ? nm[id].category + ' → ' + nm[id].name : id;
-    const stage = q.get('stage');
+  // дубли: сделки стадии stage (напр. «Общая → Заказ»), у которых есть пара в другой воронке (по умолчанию «Логистика»).
+  // Пары один-к-одному: одна сделка логистики закрывает только одну сделку-источник (повторные заказы клиента не считаются дублями).
+  // Только владелец (префикс /api/admin/wh/).
+  if (p === '/api/admin/wh/dupes' && req.method === 'GET') {
+    const q = url.searchParams, stage = q.get('stage');
     if (!stage) {
-      const cnt = {}; D.forEach(d => { cnt[d.st] = (cnt[d.st] || 0) + 1; });
-      return send(res, 200, { stages: Object.entries(cnt).map(([id, n]) => ({ id, n, name: label(id), cat: (nm[id] || {}).category || '' })).sort((a, b) => b.n - a.n), wh: wh.status() });
+      const { label } = dupeCtx(), cnt = {}; wh.all('deal').forEach(d => { cnt[d.st] = (cnt[d.st] || 0) + 1; });
+      return send(res, 200, { stages: Object.entries(cnt).map(([id, n]) => ({ id, n, name: label(id) })).sort((a, b) => b.n - a.n), wh: wh.status() });
     }
-    const tgtRe = new RegExp(q.get('target') || 'логист', 'i');
-    const isTgt = d => tgtRe.test((nm[d.st] || {}).category || '');
-    const ph = d => wz.phoneOf(d.t), mask = s => String(s || '').replace(/(\d{4})\d{4}(\d{2})/g, '$1****$2');
-    const T = D.filter(isTgt), byC = {}, byP = {}, byL = {};
-    const add = (m, k, d) => { if (k) (m[k] = m[k] || []).push(d); };
-    T.forEach(d => { add(byC, d.contact, d); add(byP, ph(d), d); add(byL, d.lead, d); });
-    const src = D.filter(d => d.st === stage);
-    const out = { stage: label(stage), target: q.get('target') || 'логист', total: src.length, sum: 0, targetDeals: T.length,
-      by: { contact: 0, phone: 0, lead: 0 }, matched: 0, matchedSum: 0, sameSum: 0, sameDate: 0, tgtStages: {}, unmatched: [], noKey: 0, inKassa: { n: 0, sum: 0 } };
-    const kassa = new Set(cfg.settings.stages || []);
-    for (const d of src) {
-      const mk = (d.od || d.cr || '').slice(0, 7), M = (out.months = out.months || {})[mk] = (out.months || {})[mk] || { n: 0, sum: 0, dup: 0, dupSum: 0 };
-      M.n++; M.sum += d.sum;
-      out.sum += d.sum; if (kassa.has(d.st)) { out.inKassa.n++; out.inKassa.sum += d.sum; }
-      const c = byC[d.contact] || [], f = ph(d) ? byP[ph(d)] || [] : [], l = byL[d.lead] || [];
-      if (c.length) out.by.contact++; if (f.length) out.by.phone++; if (l.length) out.by.lead++;
-      const all = [...new Map([...c, ...f, ...l].map(x => [x.id, x])).values()];
-      if (!d.contact && !ph(d) && !d.lead) out.noKey++;
-      if (all.length) {
-        out.matched++; out.matchedSum += d.sum; M.dup++; M.dupSum += d.sum;
-        const best = all.find(x => x.sum === d.sum) || all[0];
-        if (all.some(x => x.sum === d.sum)) out.sameSum++;
-        if (all.some(x => x.od && x.od === d.od)) out.sameDate++;
-        const k = label(best.st); out.tgtStages[k] = (out.tgtStages[k] || 0) + 1;
-      } else out.unmatched.push({ id: d.id, t: mask(d.t), sum: d.sum, od: d.od, cr: (d.cr || '').slice(0, 10), contact: !!d.contact, phone: !!ph(d) });
-    }
-    out.unmatchedN = out.unmatched.length; out.unmatched = out.unmatched.slice(0, +q.get('limit') || 50);
-    return send(res, 200, out);
+    const r = dupePairs(stage, q.get('target') || 'логист');
+    const mask = s => String(s || '').replace(/(\d{4})\d{4}(\d{2})/g, '$1****$2'), lim = +q.get('limit') || 50;
+    return send(res, 200, { ...r.summary, pairs: r.pairs.slice(0, lim).map(x => ({ id: x.src.id, pair: x.tgt.id, how: x.how, sum: x.src.sum, pairSum: x.tgt.sum, od: x.src.od, pairOd: x.tgt.od, pairStage: r.label(x.tgt.st) })),
+      unmatched: r.unmatched.slice(0, lim).map(d => ({ id: d.id, t: mask(d.t), sum: d.sum, od: d.od, cr: (d.cr || '').slice(0, 10) })), job: dupeJob });
+  }
+  if (p === '/api/admin/wh/dupes/delete' && req.method === 'POST') {
+    let body = {}; try { body = JSON.parse(await readBody(req) || '{}'); } catch {}
+    if (body.confirm !== 'DELETE' || !body.stage) return send(res, 400, { error: 'нужно подтверждение' });
+    if (dupeJob && dupeJob.running) return send(res, 409, { error: 'удаление уже идёт', job: dupeJob });
+    const r = dupePairs(body.stage, body.target || 'логист');
+    if (+body.expect !== r.pairs.length) return send(res, 409, { error: 'число дублей изменилось', now: r.pairs.length });
+    const key = 'dupes:backup:' + new Date().toISOString();
+    await store.set(key, { stage: body.stage, target: body.target || 'логист', at: Date.now(), by: user.login || user.role,
+      pairs: r.pairs.map(x => ({ deal: x.src, pair: x.tgt, how: x.how })) });
+    dupeJob = { running: true, total: r.pairs.length, done: 0, deleted: 0, skipped: [], errors: [], backup: key, startedAt: Date.now() };
+    runDupeDelete(r.pairs, body.stage).catch(e => { dupeJob.errors.push(String(e.message || e)); }).finally(() => { dupeJob.running = false; dupeJob.finishedAt = Date.now(); });
+    return send(res, 200, dupeJob);
   }
   if (p === '/api/admin/wh/sync' && req.method === 'POST') { await wh.sync(); return send(res, 200, wh.status()); }
   if (p === '/api/admin/wh/rebuild' && req.method === 'POST') { wh.resetAndResync(); return send(res, 200, { ok: true }); }
