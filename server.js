@@ -212,6 +212,12 @@ async function handle(req, res) {
 
   // --- публичное: табло по ключу, фото ---
   let m;
+  // короткая ссылка для ТВ: /tv → активное табло (удобно набрать на пульте)
+  if (/^\/tv\/?$/i.test(p)) {
+    const b = cfg.boards.find(x => x.active) || cfg.boards[0];
+    if (!b) return send(res, 404, 'Табло не настроено', 'text/plain; charset=utf-8');
+    res.writeHead(302, { Location: '/b/' + b.key }); return res.end();
+  }
   if ((m = p.match(/^\/b\/([\w-]+)\/?$/))) return file(res, 'board.html');
   if ((m = p.match(/^\/api\/board\/([\w-]+)$/))) {
     const b = cfg.boards.find(x => x.key === m[1]);

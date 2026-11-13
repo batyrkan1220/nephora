@@ -367,7 +367,7 @@ async function loadState() {
   cfg = JSON.parse(JSON.stringify(S.cfg)); saved = JSON.stringify(cfg); setDirty();
   document.body.classList.toggle('head', S.me.role !== 'owner');
   const secN = S.me.sectors ? mySectors().map(x => x.name).join(', ') || 'секторы не назначены' : 'все секторы';
-  const b0 = (S.cfg.boards || [])[0]; $('#tvLink').href = b0 && b0.key ? '/b/' + b0.key : '#'; $('#tvBox').style.display = b0 && b0.key && b0.active ? '' : 'none';
+  const b0 = (S.cfg.boards || [])[0]; $('#tvLink').href = b0 && b0.key ? '/tv' : '#'; $('#tvBox').style.display = b0 && b0.key && b0.active ? '' : 'none';
   $('#me').innerHTML = `<b>${esc(S.me.name)}</b>${S.me.role === 'owner' ? 'Владелец' : 'Руководитель'} · ${esc(secN)}`;
 }
 function setDirty() { dirty = JSON.stringify(cfg) !== saved; $('#save').classList.toggle('on', dirty); }
@@ -591,6 +591,7 @@ pages.board = (id, tab = 'main') => {
     const link = b.key ? location.origin + '/b/' + b.key : '';
     h += `<div class="card"><h3>Ссылка на лидерборд</h3><p class="hint">Для телевизора, компьютера и телефона. Открывается без пароля — не публикуйте её в открытом доступе.</p>
         ${link ? `<div class="link"><span>${esc(link)}</span><button class="btn s" id="copy">Копировать</button><a class="btn l s" href="${esc(link)}" target="_blank">Открыть</a></div>
+        <p class="hint" style="margin:10px 0 0">Короткая ссылка для ТВ: <b>${esc(location.host)}/tv</b> — откроет активное табло.</p>
         <p style="margin:10px 0 0"><button class="btn l s" id="rekey">Сменить ссылку</button> <button class="btn g s" id="test">🎉 Показать тестовую продажу</button></p>` : '<p class="hint">Ссылка появится после сохранения.</p>'}</div>
       <div class="card"><h3>Ориентация экрана</h3>
         <div class="chips">${[['horizontal', 'Горизонтальный'], ['vertical', 'Вертикальный']].map(([v, n]) => `<button class="chip ${b.screen.orientation === v ? 'on' : ''}" data-set="${K}.screen.orientation" data-v="${v}">${n}</button>`).join('')}</div>
