@@ -1225,17 +1225,29 @@ pages.users = () => {
     '<button class="btn g" id="uAdd">+ Добавить руководителя</button>') + `
     ${u ? `<div class="card"><h3>${u.id ? 'Изменить' : 'Новый'} аккаунт</h3>
       <div class="row2"><label class="f"><span>Имя</span><input class="in" id="uName" value="${esc(u.name || '')}" placeholder="Айгерим — руководитель Gold"></label>
-        <label class="f"><span>Логин</span><input class="in" id="uLogin" value="${esc(u.login || '')}" placeholder="gold.head" autocapitalize="none"></label>
+        <label class="f"><span>Логин</span><input class="in" id="uLogin" value="${esc(u.login || '')}" placeholder="email или gold.head" autocapitalize="none"></label>
         <label class="f"><span>${u.id ? 'Новый пароль (пусто — не менять)' : 'Пароль'}</span><input class="in" id="uPass" type="text" placeholder="минимум 6 символов"></label></div>
       <label class="f"><span>Секторы, которые видит</span></label><div class="chips" style="margin-bottom:14px">${S.sectors.map(x => `<button class="chip ${(u.sectors || []).includes(x.id) ? 'on' : ''}" data-us="${x.id}">${esc(x.name)}</button>`).join('') || '<span class="hint">Секторы появятся после синхронизации с Bitrix24</span>'}</div>
       <label class="ck"><input type="checkbox" id="uAct" ${u.active !== false ? 'checked' : ''}> Активен (может входить)</label>
       <div style="display:flex;gap:10px;margin-top:12px"><button class="btn" id="uSave">Сохранить</button><button class="btn l" id="uCancel">Отмена</button>${u.id ? '<button class="btn d" id="uDel" style="margin-left:auto">Удалить</button>' : ''}</div></div>` : ''}
+    <div class="card"><h3>Вход владельца (главный администратор)</h3>
+      <p class="hint">Владелец входит по email и паролю. Регистрации на сайте нет — остальные аккаунты создаёте вы ниже.${S.ownerLogin ? '' : ' Сейчас вход настроен по общему паролю — задайте email и свой пароль.'}</p>
+      <div class="row2"><label class="f"><span>Email</span><input class="in" id="oLogin" type="email" value="${esc(S.ownerLogin || '')}" placeholder="name@mail.com" autocapitalize="none" autocomplete="username"></label>
+        <label class="f"><span>${S.ownerLogin ? 'Новый пароль (пусто — не менять)' : 'Пароль'}</span><input class="in" id="oPass" type="password" placeholder="минимум 8 символов" autocomplete="new-password"></label>
+        <label class="f"><span>Текущий пароль</span><input class="in" id="oCur" type="password" placeholder="для подтверждения" autocomplete="current-password"></label></div>
+      <button class="btn" id="oSave">Сохранить вход</button></div>
     <div class="card"><div class="tw"><table><thead><tr><th>Имя</th><th>Логин</th><th>Роль</th><th>Секторы</th><th>Статус</th><th></th></tr></thead><tbody>
-      <tr><td><b>Владелец</b></td><td>— (только пароль)</td><td>Владелец</td><td>все</td><td><span class="pill ok">активен</span></td><td></td></tr>
+      <tr><td><b>Владелец</b></td><td>${S.ownerLogin ? `<code>${esc(S.ownerLogin)}</code>` : '— (общий пароль)'}</td><td>Главный администратор</td><td>все</td><td><span class="pill ok">активен</span></td><td></td></tr>
       ${list.map(x => `<tr><td><b>${esc(x.name)}</b></td><td><code>${esc(x.login)}</code></td><td>Руководитель сектора</td><td>${(x.sectors || []).map(id => `<span class="pill">${esc(secName(id))}</span>`).join(' ') || '<span class="bad">не назначены</span>'}</td>
         <td>${x.active ? '<span class="pill ok">активен</span>' : '<span class="pill no">отключён</span>'}</td><td class="r"><button class="btn l s" data-ue="${x.id}">Изменить</button></td></tr>`).join('')}</tbody></table></div>
       <p class="hint" style="margin:12px 0 0">Вход: ${esc(location.origin)}/admin → логин и пароль. Пароль хранится в зашифрованном виде — если забыли, задайте новый.</p></div>`;
   $('#uAdd').onclick = () => { UE.edit = { sectors: [] }; route(); };
+  $('#oSave').onclick = async () => {
+    try {
+      await api('/api/admin/owner', { method: 'POST', body: JSON.stringify({ login: $('#oLogin').value, password: $('#oPass').value, current: $('#oCur').value }) });
+      await loadState(); route(); toast('Вход владельца сохранён');
+    } catch (e) { toast('Ошибка: ' + e.message); }
+  };
   document.querySelectorAll('[data-ue]').forEach(b => b.onclick = () => { UE.edit = JSON.parse(JSON.stringify(list.find(x => x.id === b.dataset.ue))); route(); });
   if (!u) return;
   document.querySelectorAll('[data-us]').forEach(b => b.onclick = () => { const s2 = new Set(u.sectors || []); s2.has(b.dataset.us) ? s2.delete(b.dataset.us) : s2.add(b.dataset.us); u.sectors = [...s2]; b.classList.toggle('on'); });

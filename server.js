@@ -190,9 +190,9 @@ h1{margin:0 0 6px;font-size:22px}h1 b{background:linear-gradient(90deg,#ff3d8b,#
 input{font:inherit;padding:13px 14px;border:1.5px solid #ece4ff;border-radius:12px;outline:none}input:focus{border-color:#a24bff}
 button{font:inherit;font-weight:700;padding:13px;border:0;border-radius:12px;background:linear-gradient(90deg,#ff3d8b,#a24bff);color:#fff;cursor:pointer}.e{color:#be123c;font-size:14px}</style>
 <form method="post" action="/login"><h1>Safa <b>Leaderboard</b></h1>${err ? '<div class="e">Неверный логин или пароль</div>' : ''}
-<input name="login" placeholder="Логин (руководителю сектора)" autocomplete="username" autocapitalize="none">
-<input type="password" name="password" placeholder="Пароль" autocomplete="current-password" autofocus required><button>Войти</button>
-<div style="font-size:12px;color:#8a83a8">Владелец входит только по паролю</div></form></html>`;
+<input name="login" type="text" inputmode="email" placeholder="Email или логин" autocomplete="username" autocapitalize="none" autofocus required>
+<input type="password" name="password" placeholder="Пароль" autocomplete="current-password" required><button>Войти</button>
+<div style="font-size:12px;color:#8a83a8">Регистрации нет — аккаунт выдаёт администратор</div></form></html>`;
 
 function csv(rows) {
   return '﻿' + rows.map(r => r.map(v => {
@@ -300,7 +300,7 @@ async function handle(req, res) {
       boards: cfg.boards.map(b => ({ id: b.id, members: C.computeBoard(b, ctx()).members })),
       dealUids: [...new Set(cache.deals.map(d => d.uid))],
       secOf: C.sectorMap(ctx()), me: auth.publicUser(user), sectors: C.sectorsOf(cache.deps).map(d => ({ id: d.id, name: d.name })),
-      accounts: isOwner ? auth.list() : undefined, wzCh: Object.fromEntries(wz.status().channels.map(x => [x.id, wz.channelName(x.id)])), attPen: isOwner ? att.penalties(cfg) : undefined, wh: wh.status(), ai: !!process.env.ANTHROPIC_API_KEY,
+      accounts: isOwner ? auth.list() : undefined, ownerLogin: isOwner ? auth.ownerLogin() : undefined, wzCh: Object.fromEntries(wz.status().channels.map(x => [x.id, wz.channelName(x.id)])), attPen: isOwner ? att.penalties(cfg) : undefined, wh: wh.status(), ai: !!process.env.ANTHROPIC_API_KEY,
     });
   }
   if (p === '/api/admin/config' && req.method === 'PUT') {
@@ -571,6 +571,11 @@ async function handle(req, res) {
   if (p === '/api/admin/users' && req.method === 'POST') {
     try { return send(res, 200, { ok: true, user: await auth.saveUser(JSON.parse(await readBody(req, 1e5))) }); }
     catch (e) { return send(res, 400, { error: e.message }); }
+  }
+  if (p === '/api/admin/owner' && req.method === 'POST') {
+    if (!isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
+    try { return send(res, 200, { ok: true, ...(await auth.setOwner(JSON.parse(await readBody(req, 1e4)))) }); }
+    catch (e) { await new Promise(r => setTimeout(r, 400)); return send(res, 400, { error: e.message }); }
   }
   if ((m = p.match(/^\/api\/admin\/users\/(\w+)$/)) && req.method === 'DELETE') { await auth.deleteUser(m[1]); return send(res, 200, { ok: true }); }
   // дубли: сделки стадии stage (напр. «Общая → Заказ»), у которых есть пара в другой воронке (по умолчанию «Логистика»).
