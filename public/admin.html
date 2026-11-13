@@ -481,7 +481,10 @@ pages.home = async () => {
       <div class="tt"><i style="background:#DADCE6"></i>${money(m.orders)} заказы (${m.cnt})<br><i style="background:#6E72F5"></i>${money(m.won)} выкуп${ix === M.length - 1 ? ' · месяц идёт' : ''}</div></div>`).join('')}</div>
     <div class="gbx">${M.map(m => `<span>${mon(m.m)}</span>`).join('')}</div>`;
   // кольца секторов
-  const COL = ['#4B4FE8', '#8B8EF6', '#F04B4B', '#22C55E', '#F59E0B'], secs = R.sectors.slice(0, 5);
+  // свой цвет у каждого сектора (как на ТВ-табло): по порядку id, не зависит от места
+  const SECCOL = ['#4B4FE8', '#F59E0B', '#16A34A', '#EF4444', '#06B6D4', '#EC4899', '#8B5CF6', '#84CC16'];
+  const sids = R.sectors.map(x => String(x.id)).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+  const secs = R.sectors.slice(0, 5), COL = secs.map(x => SECCOL[Math.max(0, sids.indexOf(String(x.id))) % SECCOL.length]);
   const arc = (r, f, c) => { const L = 2 * Math.PI * r * 0.75, v = Math.max(0, Math.min(1, f)) * L; return `<circle cx="100" cy="100" r="${r}" fill="none" stroke="#DCDEE8" stroke-width="12" stroke-linecap="round" stroke-dasharray="${L} 999" transform="rotate(135 100 100)"/>`
     + (v > 0 ? `<circle cx="100" cy="100" r="${r}" fill="none" stroke="${c}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${v} 999" transform="rotate(135 100 100)"/>` : ''); };
   const rings = `<svg viewBox="0 0 200 200">${secs.map((x, k) => arc(88 - k * 19, x.plan ? x.sum / x.plan : 0, COL[k])).join('')}</svg>`;

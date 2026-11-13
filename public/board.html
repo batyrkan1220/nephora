@@ -479,12 +479,12 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
 .ovt{position:fixed;inset:0;z-index:25;overflow:hidden;display:grid;place-items:center;font-family:Inter,system-ui,sans-serif;color:#fff;animation:fade .35s}
 .ovt.out{opacity:0;transition:opacity .45s}
 .ovt-l,.ovt-r{position:absolute;top:0;bottom:0}.ovt-l{z-index:1}.ovt-c{z-index:2}
-.ovt-l{left:0;width:58%;background:linear-gradient(135deg,#5B5FF0,#3A3ED8);clip-path:polygon(0 0,100% 0,82% 100%,0 100%);animation:ovtL .7s cubic-bezier(.2,.9,.2,1)}
-.ovt-r{right:0;width:100%;background:linear-gradient(135deg,#0F3B3A,#0B2A2A)}
+.ovt-l{left:0;width:58%;background:linear-gradient(135deg,var(--o1,#5B5FF0),var(--o1d,#3A3ED8));clip-path:polygon(0 0,100% 0,82% 100%,0 100%);animation:ovtL .7s cubic-bezier(.2,.9,.2,1)}
+.ovt-r{right:0;width:100%;background:linear-gradient(135deg,var(--o2,#0F3B3A),var(--o2d,#0B2A2A))}
 @keyframes ovtL{from{transform:translateX(-100%)}to{transform:none}}
 .ovt-c{position:relative;text-align:center;font-size:min(1.9vh,1.05vw);display:flex;flex-direction:column;align-items:center;gap:1.1em;animation:ovtIn .6s .15s both cubic-bezier(.2,1.3,.4,1)}
 @keyframes ovtIn{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
-.ovt-tag{background:#fff;color:#4B4FE8;font-weight:800;letter-spacing:.12em;font-size:1.3em;padding:.35em 1.1em;border-radius:999px;transform:rotate(-6deg)}
+.ovt-tag{background:#fff;color:var(--o1,#4B4FE8);font-weight:800;letter-spacing:.12em;font-size:1.3em;padding:.35em 1.1em;border-radius:999px;transform:rotate(-6deg)}
 .ovt-h{font-size:7.5em;font-weight:900;line-height:.9;letter-spacing:-.02em;text-shadow:0 .08em 0 rgba(0,0,0,.18);transform:rotate(-4deg);margin-top:-.15em}
 .ovt-ic{display:flex;align-items:center;gap:1em}
 .ovt-ic span{display:grid;place-items:center;border-radius:50%}
@@ -500,6 +500,10 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
 .ovt-by{display:flex;align-items:center;gap:.8em;font-size:1.6em;font-weight:600;margin-top:.4em}
 .ovt-by .av,.ovt-by img{width:3em;height:3em;border-radius:50%;border:.15em solid #fff;object-fit:cover;flex:none}
 @media (max-width:600px){.ovt-c{font-size:2.6vw}}
+
+/* цвета секторов: карточка в оттенке своего сектора */
+.scd{background:var(--t,var(--soft));border-left:.35em solid var(--c)}
+.scd.lead{background:var(--t2,#E9EAFD)}
 </style>
 </head>
 <body>
@@ -535,7 +539,7 @@ document.addEventListener('click', e => {
   { // демонстрация «ОБГОН!»: сектор менеджера поднимается на одно место выше
     const so = secOrder(D.sectors), i = so.findIndex(x => x.name === r.sectorName);
     if (D.board.screen.overtake !== false && so.length > 1) { const k = i > 0 ? i : 1, me = so[k], lost = so[k - 1];
-      queue.push({ kind: 'overtake', sec: me.name, place: k, lost: lost.name, lostPlace: k + 1, by: { name: r.name, photo: r.photo, sum } }); if (!showing) next(); } }
+      queue.push({ kind: 'overtake', sec: me.name, place: k, lost: lost.name, lostPlace: k + 1, by: { name: r.name, photo: r.photo, sum }, c1: secColor(me.id), c2: secColor(lost.id) }); if (!showing) next(); } }
 });
 let audio = null, soundOk = false; // браузер разрешает звук только после клика на этой странице
 
@@ -568,14 +572,14 @@ function render() {
   const TOPD = ALL.filter(r => r.daySum > 0).sort((a, b) => b.daySum - a.daySum || b.dayCnt - a.dayCnt).slice(0, N); // топ сегодня
   SEC.sort((a, b) => b.daySum - a.daySum || b.sum - a.sum);
   const MED = ['m1', 'm2', 'm3'];
-  const SCOL = ['#4B4FE8', '#8B8EF6', '#F04B4B', '#16A34A', '#F59E0B', '#06B6D4'];
+  const SCOL = SECCOL;
   const MEDAL = i => `<svg class="medal" viewBox="0 0 32 32"><path d="M9 2h5l2 7-4 2zM23 2h-5l-2 7 4 2z" fill="${['#1f6bff', '#c86df2', '#12b76a'][i]}"/><circle cx="16" cy="19" r="10" fill="${['#f5b400', '#a8b3c7', '#e07b39'][i]}"/><circle cx="16" cy="19" r="7.2" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><text x="16" y="23.2" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Poppins,sans-serif">${i + 1}</text></svg>`;
   const place = i => i < 3 ? MEDAL(i) : `<span class="pl num">${i + 1}</span>`;
 
   // сектор: карточка растягивается на свободную высоту; кольцо — выполнение плана периода
   const secCard = (x, i) => {
-    const pct = x.plan ? x.sum / x.plan * 100 : 0, c = SCOL[i % SCOL.length];
-    return `<div class="scd ${i === 0 && x.daySum ? 'lead' : ''}" style="--c:${c};--i:${i}">
+    const pct = x.plan ? x.sum / x.plan * 100 : 0, c = secColor(x.id);
+    return `<div class="scd ${i === 0 && x.daySum ? 'lead' : ''}" style="--c:${c};--t:${tint(c, .1)};--t2:${tint(c, .2)};--i:${i}">
       <div class="sh1"><span class="sr num">${i + 1}</span><b>${esc(x.name)}</b>${i === 0 && x.daySum ? '<span class="tag"><i class="fl">🔥</i> 1 место дня</span>' : ''}<small>${x.managers} ${plural(x.managers, 'менеджер', 'менеджера', 'менеджеров')}</small></div>
       <div class="sbody">
         <div class="sdat"><small>Касса сегодня</small><b class="num">${CU('s-' + x.id, x.daySum)}</b>
@@ -709,6 +713,16 @@ function next() {
   setTimeout(() => { el.remove(); next(); }, Math.min(60, Math.max(3, +D.board.screen.popupSec || 8)) * 1000);
 }
 
+/* ===== цвет сектора: свой у каждого и не меняется при смене мест ===== */
+const SECCOL = ['#4B4FE8', '#F59E0B', '#16A34A', '#EF4444', '#06B6D4', '#EC4899', '#8B5CF6', '#84CC16'];
+function secColor(id) {
+  const ids = ((D && D.sectors) || []).map(x => String(x.id)).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+  const i = ids.indexOf(String(id)); return SECCOL[(i < 0 ? 0 : i) % SECCOL.length];
+}
+// светлый оттенок цвета (без color-mix — работает на старых браузерах ТВ)
+function tint(hex, a) { const n = parseInt(hex.slice(1), 16), m = c => Math.round(c * a + 255 * (1 - a)); return `rgb(${m(n >> 16)},${m((n >> 8) & 255)},${m(n & 255)})`; }
+function shade(hex, a) { const n = parseInt(hex.slice(1), 16), m = c => Math.round(c * (1 - a)); return `rgb(${m(n >> 16)},${m((n >> 8) & 255)},${m(n & 255)})`; }
+
 /* ===== жарыс секторов: «ОБГОН!», когда сектор обходит другой по кассе дня ===== */
 let secPrev = null;
 const secOrder = list => (list || []).slice().sort((a, b) => b.daySum - a.daySum || b.sum - a.sum);
@@ -723,7 +737,7 @@ function overtakeCheck(sectors, evs) {
     if (!passed.length) return;
     const by = (evs || []).filter(e => e.sector === x.name).slice(-1)[0];
     const lost = passed[0];
-    queue.push({ kind: 'overtake', sec: x.name, place: i + 1, lost: lost.name, lostPlace: now.indexOf(lost) + 1, by, ci: i, li: now.indexOf(lost) });
+    queue.push({ kind: 'overtake', sec: x.name, place: i + 1, lost: lost.name, lostPlace: now.indexOf(lost) + 1, by, c1: secColor(x.id), c2: secColor(lost.id) });
     if (!showing) next();
   });
 }
@@ -731,6 +745,7 @@ const SICON = { fire: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12
   shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.6-3.4 8-8 9-4.6-1-8-4.4-8-9V6z"/><path d="M8.5 12.2l2.4 2.4 4.6-4.8"/></svg>' };
 function overtakeShow(e) {
   const el = document.createElement('div'); el.className = 'ovt';
+  if (e.c1) el.style.cssText = `--o1:${e.c1};--o1d:${shade(e.c1, .25)};--o2:${shade(e.c2 || '#0F3B3A', .55)};--o2d:${shade(e.c2 || '#0F3B3A', .7)}`;
   el.innerHTML = `<div class="ovt-l"></div><div class="ovt-r"></div><div class="ovt-c">
     <span class="ovt-tag">СЕКТОРА</span><div class="ovt-h">ОБГОН!</div>
     <div class="ovt-ic"><span class="a">${SICON.fire}</span><i>›</i><span class="b">${SICON.shield}</span></div>
