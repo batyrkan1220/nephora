@@ -235,9 +235,9 @@ async function handle(req, res) {
     const month = M.from === from && M.to === to ? { from, to, rows: null } : { ...M, rows: C.computeBoard({ ...b, auto: true }, ctx()).rows };
     return send(res, 200, { ...data, month, members: undefined, _all: undefined, events: ev, seq, syncedAt: cache.syncedAt, error: cache.error, company: cfg.settings.company });
   }
-  if (p === '/sale.mp3') {
+  if (p === '/sale.mp3' || p === '/overtake.mp3') {
     res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400' });
-    return res.end(fs.readFileSync(path.join(PUB, 'sale.mp3')));
+    return res.end(fs.readFileSync(path.join(PUB, p.slice(1))));
   }
   if ((m = p.match(/^\/photo\/(\w+)$/))) {
     const ph = store.get('photo:' + m[1]);

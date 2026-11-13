@@ -660,6 +660,24 @@ function loadSale() {
     .then(b => { saleBuf = b; return b; }).catch(e => { console.warn('sale.mp3', e); saleLoading = null; });
   return saleLoading;
 }
+// звук «ОБГОН!»: барабанная дробь (public/overtake.mp3)
+let ovtBuf = null, ovtLoading = null;
+function loadOvt() {
+  if (ovtBuf || ovtLoading || !audio) return ovtLoading;
+  ovtLoading = fetch('/overtake.mp3').then(r => r.arrayBuffer()).then(ab => new Promise((ok, no) => audio.decodeAudioData(ab, ok, no)))
+    .then(b => { ovtBuf = b; return b; }).catch(e => { console.warn('overtake.mp3', e); ovtLoading = null; });
+  return ovtLoading;
+}
+async function drumRoll() {
+  if (!soundOk || !D.board.screen.sound) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === 'suspended') await audio.resume();
+    const buf = ovtBuf || await loadOvt();
+    if (!buf) return chime();
+    const src = audio.createBufferSource(); src.buffer = buf; src.connect(audio.destination); src.start();
+  } catch (e) { console.warn(e); }
+}
 function synthChime() {
   const t0 = audio.currentTime;
   [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
@@ -684,7 +702,7 @@ async function chime() {
 function askSound() {
   if (!D.board.screen.sound) return;
   soundOk = true;
-  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume().catch(() => {}); loadSale(); } catch {}
+  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume().catch(() => {}); loadSale(); loadOvt(); } catch {}
 }
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { try { if (audio && audio.state === 'suspended') audio.resume(); } catch {} }, { passive: true }));
 const queue = []; let showing = false;
@@ -753,7 +771,7 @@ function overtakeShow(e) {
     <div class="ovt-q">${esc(e.lost)} → ${e.lostPlace}-е место</div>
     ${e.by ? `<div class="ovt-by">${av(e.by)}<span>${esc(e.by.name)} · <b class="num">+${money(e.by.sum)}</b></span></div>` : ''}</div>`;
   document.body.appendChild(el);
-  chime();
+  drumRoll();
   setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); next(); }, 450); }, Math.min(60, Math.max(5, +D.board.screen.popupSec || 8)) * 1000);
 }
 
