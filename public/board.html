@@ -601,7 +601,7 @@ function render() {
     const crown = i === 0 ? '<svg class="crw" viewBox="0 0 24 16"><path d="M2 14L1 3l6 5 5-7 5 7 6-5-1 11z" fill="#fcd94a" stroke="#d99a00" stroke-width="1.2" stroke-linejoin="round"/></svg>' : '';
     return `<div class="li ${MED[i] || ''} ${i === 0 ? 'first' : ''} ${up} ${mv ? 'moved' : ''}" style="--i:${i}">${place(i)}<span class="avw">${av(r)}${crown}</span>
       <div class="w"><div class="nm">${esc(r.name)}${mv}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${r.dep ? `<span class="sp">${esc(r.dep)}</span>` : ''}</div></div>
-      <span class="v num">${CU((today ? 'd-' : 'p-') + r.uid, v)}<small>${today ? r.dayCnt : r.cnt} ${plural(today ? r.dayCnt : r.cnt, 'продажа', 'продажи', 'продаж')}</small></span>
+      <span class="v num">${CU((today ? 'd-' : 'p-') + r.uid, v)}</span>
       <i class="lb" style="width:${w.toFixed(1)}%"></i></div>`;
   };
   const slot = i => `<div class="li slot" style="--i:${i}">${`<span class="pl num">${i + 1}</span>`}<div class="w"><div class="nm">Свободное место</div><div class="dp">ждём первую продажу</div></div></div>`;
@@ -617,7 +617,6 @@ function render() {
     <div class="hd">
       <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>
         <div class="per num"><span class="lv"><i></i>LIVE</span>${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : `<span id="upd">${updText()}</span>`}</div></div>
-      <div class="stat kw"><small>Продаж сегодня</small><b class="num">${CU('h-cnt', T.dayCnt, 'n')}</b></div>
       ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · план ${short(T.dayPlan)} ₸</small><b class="num">${CU('h-day', T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
         : `<div class="stat kp"><small>Касса сегодня · вся компания</small><b class="num">${CU('h-day', T.daySum)}</b></div>`}
       ${T.plan ? `<div class="stat plan kb"><small>Касса периода · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
