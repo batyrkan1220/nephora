@@ -468,6 +468,12 @@ body{background:#D9DCE4}
 .pop .card{background:linear-gradient(150deg,#6366F1,#4B4FE8 50%,#3F43DD);box-shadow:0 40px 90px -30px rgba(75,79,232,.95)}
 .pop .psec{color:var(--blue)}
 .snd button{background:var(--blue);box-shadow:none}
+
+/* без внешней рамки: на весь экран */
+body{background:#EEF0F7}
+#app{inset:0;border-radius:0;box-shadow:none}
+html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:translateX(100vw) rotate(90deg);border-radius:0}
+@media (max-width:600px){#app{margin:0;border-radius:0}}
 </style>
 </head>
 <body>
