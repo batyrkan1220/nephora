@@ -305,6 +305,8 @@ tbody tr:hover td{background:#F8F8FD}
 /* без внешней рамки: на весь экран */
 body{background:#EEF0F7}
 .shell{margin:0;border-radius:0;min-height:100vh;box-shadow:none}
+/* меню закреплено: не прокручивается вместе со страницей */
+@media (min-width:1001px){aside{position:sticky;top:16px;align-self:start;height:calc(100vh - 32px);overflow-y:auto}}
 </style>
 </head>
 <body>
