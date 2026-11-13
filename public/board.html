@@ -344,7 +344,7 @@ html.pt .slst.many .scd{flex:none;max-height:none}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 /* сектор вместо «Новая продажа» — крупно вверху карточки */
 .pop .psec{display:inline-block;max-width:100%;background:#fff;color:var(--blue);border-radius:22px;padding:10px 30px 12px;font-weight:800;
-  font-size:clamp(40px,7vmin,76px);line-height:1.05;letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:clamp(40px,7vmin,76px);line-height:1.05;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   box-shadow:0 14px 34px -14px rgba(15,18,34,.55);overflow-wrap:anywhere;animation:secIn .7s cubic-bezier(.2,1.5,.4,1) both}
 @keyframes secIn{from{opacity:0;transform:translateY(-30px) scale(.6)}}
 .pop .card{width:min(640px,90vw)}
@@ -716,7 +716,7 @@ function next() {
   showing = true;
   if (e.kind === 'overtake') return overtakeShow(e);
   const el = document.createElement('div'); el.className = 'pop';
-  el.innerHTML = `<div class="rays"></div><div class="card">${e.sector ? `<div class="psec">${esc(e.sector)}</div>` : '<span class="tag">🎉 Новая продажа</span>'}<div class="pav">${av(e)}</div><div class="nm">${esc(e.name)}</div>
+  el.innerHTML = `<div class="rays"></div><div class="card">${e.sector ? `<div class="psec">${/^сектор/i.test(e.sector) ? esc(e.sector) : 'Сектор ' + esc(e.sector)}</div>` : '<span class="tag">🎉 Новая продажа</span>'}<div class="pav">${av(e)}</div><div class="nm">${esc(e.name)}</div>
     <div class="sm num">+<span id="psum">0 ₸</span></div>${e.title ? `<div class="tt">${esc(e.title)}</div>` : ''}
     ${e.place ? `<div class="pl">${e.place} место · ${money(e.total)} за период</div>` : ''}</div>`;
   document.body.appendChild(el);
