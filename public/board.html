@@ -504,6 +504,7 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
 /* цвета секторов: карточка в оттенке своего сектора */
 .scd{background:var(--t,var(--soft));border-left:.35em solid var(--c)}
 .scd.lead{background:var(--t2,#E9EAFD)}
+.tbtn.war{background:#4B4FE8}.tbtn.war:hover{background:#3F43D6}
 </style>
 </head>
 <body>
@@ -529,17 +530,20 @@ function bar(v, plan, extra = '') {
 }
 
 let D = null, seq = 0, prev = {};
-// кнопка «Тест продажа»: попап только на этом экране, данные не меняются
+// кнопки «Тест продажа» и «Тест битва»: показ только на этом экране, данные не меняются
 document.addEventListener('click', e => {
-  if (!e.target.closest('#testSale') || !D) return;
-  if (D.board.screen.sound && !soundOk) { soundOk = true; try { audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); loadSale(); } catch {} const sn = $('.snd'); if (sn) sn.remove(); }
+  const sale = e.target.closest('#testSale'), war = e.target.closest('#testWar');
+  if ((!sale && !war) || !D) return;
+  if (D.board.screen.sound && !soundOk) { soundOk = true; try { audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); loadSale(); loadOvt(); } catch {} }
   const pool = D.rows.slice(0, 10), r = pool[Math.floor(Math.random() * pool.length)] || { name: 'Тестовый менеджер', photo: '' };
   const sum = (10 + Math.floor(Math.random() * 90)) * 5000;
-  popup({ name: r.name, photo: r.photo, place: r.place, total: (r.sum || 0) + sum, sum, sector: r.sectorName || '', title: 'Тестовая продажа' });
-  { // демонстрация «ОБГОН!»: сектор менеджера поднимается на одно место выше
-    const so = secOrder(D.sectors), i = so.findIndex(x => x.name === r.sectorName);
-    if (D.board.screen.overtake !== false && so.length > 1) { const k = i > 0 ? i : 1, me = so[k], lost = so[k - 1];
-      queue.push({ kind: 'overtake', sec: me.name, place: k, lost: lost.name, lostPlace: k + 1, by: { name: r.name, photo: r.photo, sum }, c1: secColor(me.id), c2: secColor(lost.id) }); if (!showing) next(); } }
+  if (sale) return popup({ name: r.name, photo: r.photo, place: r.place, total: (r.sum || 0) + sum, sum, sector: r.sectorName || '', title: 'Тестовая продажа' });
+  // «ОБГОН!»: сектор менеджера поднимается на одно место выше (если он первый — показываем второй сектор)
+  const so = secOrder(D.sectors);
+  if (so.length < 2) return;
+  const i = so.findIndex(x => x.name === r.sectorName), k = i > 0 ? i : 1, me = so[k], lost = so[k - 1];
+  const by = me.name === r.sectorName ? { name: r.name, photo: r.photo, sum } : (() => { const m = D.rows.find(x => x.sectorName === me.name) || { name: 'Менеджер', photo: '' }; return { name: m.name, photo: m.photo, sum }; })();
+  queue.push({ kind: 'overtake', sec: me.name, place: k, lost: lost.name, lostPlace: k + 1, by, c1: secColor(me.id), c2: secColor(lost.id) }); if (!showing) next();
 });
 let audio = null, soundOk = false; // браузер разрешает звук только после клика на этой странице
 
@@ -620,6 +624,7 @@ function render() {
         : `<div class="stat kb"><small>Касса периода · вся компания</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
       <button class="tbtn" id="testSale" title="Показать тестовую продажу на этом экране">🎉<span>Тест<br>продажа</span></button>
+      ${(D.sectors || []).length > 1 ? `<button class="tbtn war" id="testWar" title="Показать «ОБГОН!» битвы секторов на этом экране">🔥<span>Тест<br>битва</span></button>` : ''}
     </div>
     <div class="cols3">
       <div class="col cs"><div class="ch"><span class="ci">${ICO.sec}</span><b>Битва секторов</b><span>по кассе дня</span></div>
