@@ -1,4 +1,4 @@
-// Safa Leaderboard — сервер.
+// Safa портал — сервер.
 // • Раз в N секунд забирает сделки из Bitrix24 (вебхук только на сервере)
 // • Отдаёт ТВ-табло по публичной ссылке /b/<ключ> и кабинет руководителя /admin
 // • Настройки (доски, планы, бонусы, фото) хранятся в Postgres (DATABASE_URL)
@@ -182,17 +182,20 @@ function readBody(req, limit = 4e6) {
     req.on('end', () => ok(b)); req.on('error', fail);
   });
 }
-const loginPage = err => `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вход · Safa Leaderboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(900px 600px at 0 0,#ffe1ef,transparent 60%),radial-gradient(900px 600px at 100% 100%,#dff3ff,transparent 60%),#fff8f0;font-family:Poppins,system-ui,sans-serif;color:#1f1640}
-form{background:#fff;padding:32px;border-radius:24px;width:min(360px,90vw);display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 60px -30px rgba(123,92,255,.5)}
-h1{margin:0 0 6px;font-size:22px}h1 b{background:linear-gradient(90deg,#ff3d8b,#a24bff,#22b8f0);-webkit-background-clip:text;color:transparent}
-input{font:inherit;padding:13px 14px;border:1.5px solid #ece4ff;border-radius:12px;outline:none}input:focus{border-color:#a24bff}
-button{font:inherit;font-weight:700;padding:13px;border:0;border-radius:12px;background:linear-gradient(90deg,#ff3d8b,#a24bff);color:#fff;cursor:pointer}.e{color:#be123c;font-size:14px}</style>
-<form method="post" action="/login"><h1>Safa <b>Leaderboard</b></h1>${err ? '<div class="e">Неверный логин или пароль</div>' : ''}
-<input name="login" type="text" inputmode="email" placeholder="Email или логин" autocomplete="username" autocapitalize="none" autofocus required>
+const loginPage = err => `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Safa портал</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#EEF0F7;font-family:Inter,system-ui,sans-serif;color:#151827;padding:20px}
+form{background:#fff;padding:36px 32px 28px;border-radius:24px;width:min(380px,100%);display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 60px -30px rgba(75,79,232,.35)}
+.lg{display:flex;align-items:center;gap:12px;margin-bottom:14px}.lg i{width:44px;height:44px;border-radius:13px;background:#4B4FE8;display:grid;place-items:center}.lg i svg{width:22px;height:22px}
+.lg b{font-size:22px;font-weight:700;letter-spacing:-.02em}.lg span{display:block;font-size:13px;color:#8A8FA8;font-weight:500}
+input{font:inherit;font-size:15px;padding:14px 15px;border:1.5px solid #E4E6F0;border-radius:12px;outline:none;background:#F7F8FC}input:focus{border-color:#4B4FE8;background:#fff}
+button{font:inherit;font-size:15px;font-weight:600;padding:14px;border:0;border-radius:12px;background:#4B4FE8;color:#fff;cursor:pointer;margin-top:4px}button:hover{background:#3F43D6}
+.e{color:#DC2626;font-size:14px;background:#FEF2F2;padding:10px 12px;border-radius:10px}.n{font-size:12.5px;color:#8A8FA8;text-align:center;margin-top:6px}</style>
+<form method="post" action="/login"><div class="lg"><i><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2L5 13.5h6L10 22l9-12.5h-6.2z"/></svg></i><div><b>Safa портал</b><span>Вход в систему</span></div></div>
+${err ? '<div class="e">Неверный email или пароль</div>' : ''}
+<input name="login" type="text" inputmode="email" placeholder="Email" autocomplete="username" autocapitalize="none" autofocus required>
 <input type="password" name="password" placeholder="Пароль" autocomplete="current-password" required><button>Войти</button>
-<div style="font-size:12px;color:#8a83a8">Регистрации нет — аккаунт выдаёт администратор</div></form></html>`;
+<div class="n">Аккаунт выдаёт администратор</div></form></html>`;
 
 function csv(rows) {
   return '﻿' + rows.map(r => r.map(v => {
