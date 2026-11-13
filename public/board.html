@@ -646,15 +646,13 @@ async function chime() {
     src.buffer = buf; g.gain.value = 1; src.connect(g).connect(audio.destination); src.start();
   } catch (e) { console.warn(e); }
 }
+// без окна «Включить звук?»: звук включён сразу; если браузер блокирует автозвук — разблокируется первым касанием/клавишей (пульт ТВ)
 function askSound() {
-  if (soundOk || !D.board.screen.sound || !D.board.screen.popup || $('.snd')) return;
-  const el = document.createElement('div'); el.className = 'snd';
-  el.innerHTML = `<b>Включить звук?</b><p>Браузер не играет звук сам. Нажмите «Разрешить», чтобы слышать звук новой продажи.</p><button class="yes">Разрешить</button><button class="no">Без звука</button>`;
-  document.body.appendChild(el);
-  el.querySelector('.yes').onclick = () => { soundOk = true; sessionStorage.setItem('lb-sound', '1'); audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); loadSale(); el.remove(); };
-  el.querySelector('.no').onclick = () => el.remove();
-  setTimeout(() => el.remove(), 20000); // на ТВ без мыши окно не должно висеть
+  if (!D.board.screen.sound) return;
+  soundOk = true;
+  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume().catch(() => {}); loadSale(); } catch {}
 }
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { try { if (audio && audio.state === 'suspended') audio.resume(); } catch {} }, { passive: true }));
 const queue = []; let showing = false;
 function popup(e) { queue.push(e); if (!showing) next(); }
 function next() {
