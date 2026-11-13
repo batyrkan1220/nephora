@@ -474,6 +474,32 @@ body{background:#EEF0F7}
 #app{inset:0;border-radius:0;box-shadow:none}
 html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:translateX(100vw) rotate(90deg);border-radius:0}
 @media (max-width:600px){#app{margin:0;border-radius:0}}
+
+/* ===== ОБГОН! ===== */
+.ovt{position:fixed;inset:0;z-index:25;overflow:hidden;display:grid;place-items:center;font-family:Inter,system-ui,sans-serif;color:#fff;animation:fade .35s}
+.ovt.out{opacity:0;transition:opacity .45s}
+.ovt-l,.ovt-r{position:absolute;top:0;bottom:0}.ovt-l{z-index:1}.ovt-c{z-index:2}
+.ovt-l{left:0;width:58%;background:linear-gradient(135deg,#5B5FF0,#3A3ED8);clip-path:polygon(0 0,100% 0,82% 100%,0 100%);animation:ovtL .7s cubic-bezier(.2,.9,.2,1)}
+.ovt-r{right:0;width:100%;background:linear-gradient(135deg,#0F3B3A,#0B2A2A)}
+@keyframes ovtL{from{transform:translateX(-100%)}to{transform:none}}
+.ovt-c{position:relative;text-align:center;font-size:min(1.9vh,1.05vw);display:flex;flex-direction:column;align-items:center;gap:1.1em;animation:ovtIn .6s .15s both cubic-bezier(.2,1.3,.4,1)}
+@keyframes ovtIn{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+.ovt-tag{background:#fff;color:#4B4FE8;font-weight:800;letter-spacing:.12em;font-size:1.3em;padding:.35em 1.1em;border-radius:999px;transform:rotate(-6deg)}
+.ovt-h{font-size:7.5em;font-weight:900;line-height:.9;letter-spacing:-.02em;text-shadow:0 .08em 0 rgba(0,0,0,.18);transform:rotate(-4deg);margin-top:-.15em}
+.ovt-ic{display:flex;align-items:center;gap:1em}
+.ovt-ic span{display:grid;place-items:center;border-radius:50%}
+.ovt-ic .a{width:7em;height:7em;border:.35em solid #fff;background:rgba(255,255,255,.12);animation:ovtPulse 1.2s ease-in-out infinite}
+.ovt-ic .a svg{width:3.4em;height:3.4em}
+.ovt-ic .b{width:4.4em;height:4.4em;border:.2em solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);opacity:.85}
+.ovt-ic .b svg{width:2.1em;height:2.1em}
+.ovt-ic i{font-style:normal;font-size:2.6em;opacity:.8;font-weight:700}
+@keyframes ovtPulse{50%{transform:scale(1.06);box-shadow:0 0 0 .6em rgba(255,255,255,.12)}}
+.ovt-s{font-size:4.6em;font-weight:900;text-transform:uppercase;letter-spacing:-.01em;line-height:1;max-width:80vw}
+.ovt-p{font-size:1.9em;font-weight:700;margin-top:-.4em}
+.ovt-q{font-size:1.35em;opacity:.75;font-weight:500}
+.ovt-by{display:flex;align-items:center;gap:.8em;font-size:1.6em;font-weight:600;margin-top:.4em}
+.ovt-by .av,.ovt-by img{width:3em;height:3em;border-radius:50%;border:.15em solid #fff;object-fit:cover;flex:none}
+@media (max-width:600px){.ovt-c{font-size:2.6vw}}
 </style>
 </head>
 <body>
@@ -506,6 +532,10 @@ document.addEventListener('click', e => {
   const pool = D.rows.slice(0, 10), r = pool[Math.floor(Math.random() * pool.length)] || { name: 'Тестовый менеджер', photo: '' };
   const sum = (10 + Math.floor(Math.random() * 90)) * 5000;
   popup({ name: r.name, photo: r.photo, place: r.place, total: (r.sum || 0) + sum, sum, sector: r.sectorName || '', title: 'Тестовая продажа' });
+  { // демонстрация «ОБГОН!»: сектор менеджера поднимается на одно место выше
+    const so = secOrder(D.sectors), i = so.findIndex(x => x.name === r.sectorName);
+    if (D.board.screen.overtake !== false && so.length > 1) { const k = i > 0 ? i : 1, me = so[k], lost = so[k - 1];
+      queue.push({ kind: 'overtake', sec: me.name, place: k, lost: lost.name, lostPlace: k + 1, by: { name: r.name, photo: r.photo, sum } }); if (!showing) next(); } }
 });
 let audio = null, soundOk = false; // браузер разрешает звук только после клика на этой странице
 
@@ -588,7 +618,7 @@ function render() {
       <button class="tbtn" id="testSale" title="Показать тестовую продажу на этом экране">🎉<span>Тест<br>продажа</span></button>
     </div>
     <div class="cols3">
-      <div class="col cs"><div class="ch"><span class="ci">${ICO.sec}</span><b>Рейтинг секторов</b><span>по кассе дня</span></div>
+      <div class="col cs"><div class="ch"><span class="ci">${ICO.sec}</span><b>Битва секторов</b><span>по кассе дня</span></div>
         <div class="slst ${SEC.length > (PT ? 2 : 3) ? 'many' : ''}" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
         ${T.plan ? `<div class="cfoot num"><div><span>План компании</span><b>${money(T.sum)} <em>/ ${short(T.plan)} ₸</em></b></div>${bar(T.sum, T.plan)}</div>` : ''}</div>
       <div class="col cd"><div class="ch"><span class="ci">${ICO.day}</span><b>Топ-${N} сегодня</b><span>касса за день</span></div>
@@ -658,6 +688,7 @@ function popup(e) { queue.push(e); if (!showing) next(); }
 function next() {
   const e = queue.shift(); if (!e) { showing = false; return; }
   showing = true;
+  if (e.kind === 'overtake') return overtakeShow(e);
   const el = document.createElement('div'); el.className = 'pop';
   el.innerHTML = `<div class="rays"></div><div class="card">${e.sector ? `<div class="psec">${esc(e.sector)}</div>` : '<span class="tag">🎉 Новая продажа</span>'}<div class="pav">${av(e)}</div><div class="nm">${esc(e.name)}</div>
     <div class="sm num">+<span id="psum">0 ₸</span></div>${e.title ? `<div class="tt">${esc(e.title)}</div>` : ''}
@@ -676,6 +707,39 @@ function next() {
   }
   chime();
   setTimeout(() => { el.remove(); next(); }, Math.min(60, Math.max(3, +D.board.screen.popupSec || 8)) * 1000);
+}
+
+/* ===== жарыс секторов: «ОБГОН!», когда сектор обходит другой по кассе дня ===== */
+let secPrev = null;
+const secOrder = list => (list || []).slice().sort((a, b) => b.daySum - a.daySum || b.sum - a.sum);
+function overtakeCheck(sectors, evs) {
+  const now = secOrder(sectors), old = secPrev; secPrev = now.map(x => ({ id: x.id, daySum: x.daySum }));
+  if (!old || now.length < 2 || D.board.screen.overtake === false) return;
+  const oldIdx = Object.fromEntries(old.map((x, i) => [x.id, i])), oldSum = Object.fromEntries(old.map(x => [x.id, x.daySum]));
+  now.forEach((x, i) => {
+    if (oldIdx[x.id] === undefined || i >= oldIdx[x.id] || !(x.daySum > (oldSum[x.id] || 0))) return;
+    // кого обогнал: были выше, теперь ниже
+    const passed = now.filter((y, j) => j > i && oldIdx[y.id] !== undefined && oldIdx[y.id] < oldIdx[x.id]);
+    if (!passed.length) return;
+    const by = (evs || []).filter(e => e.sector === x.name).slice(-1)[0];
+    const lost = passed[0];
+    queue.push({ kind: 'overtake', sec: x.name, place: i + 1, lost: lost.name, lostPlace: now.indexOf(lost) + 1, by, ci: i, li: now.indexOf(lost) });
+    if (!showing) next();
+  });
+}
+const SICON = { fire: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.2-.6 5-2 6.6C8.6 10.2 7 12 7 14.6A5 5 0 0012 20a5 5 0 005-5.2c0-2-1-3.4-2-4.6.1 1.6-.5 2.8-1.6 3.3.4-2.4-.3-4.5-1.4-6.3C11.4 5.6 12.4 4 12 2z"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.6-3.4 8-8 9-4.6-1-8-4.4-8-9V6z"/><path d="M8.5 12.2l2.4 2.4 4.6-4.8"/></svg>' };
+function overtakeShow(e) {
+  const el = document.createElement('div'); el.className = 'ovt';
+  el.innerHTML = `<div class="ovt-l"></div><div class="ovt-r"></div><div class="ovt-c">
+    <span class="ovt-tag">СЕКТОРА</span><div class="ovt-h">ОБГОН!</div>
+    <div class="ovt-ic"><span class="a">${SICON.fire}</span><i>›</i><span class="b">${SICON.shield}</span></div>
+    <div class="ovt-s">${esc(e.sec)}</div><div class="ovt-p">Выходит на ${e.place}-е место дня</div>
+    <div class="ovt-q">${esc(e.lost)} → ${e.lostPlace}-е место</div>
+    ${e.by ? `<div class="ovt-by">${av(e.by)}<span>${esc(e.by.name)} · <b class="num">+${money(e.by.sum)}</b></span></div>` : ''}</div>`;
+  document.body.appendChild(el);
+  chime();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); next(); }, 450); }, Math.min(60, Math.max(5, +D.board.screen.popupSec || 8)) * 1000);
 }
 
 /* ===== загрузка ===== */
@@ -710,6 +774,7 @@ async function load() {
     if (key !== lastKey) { lastKey = key; render(); }
     else { const u = $('#upd'); if (u) u.textContent = updText(); }
     if (!first && D.board.screen.popup) j.events.forEach(popup);
+    overtakeCheck(j.sectors, j.events);
     seq = j.seq;
     if (first) askSound();
   } catch (e) { console.warn(e); }

@@ -601,6 +601,7 @@ pages.board = (id, tab = 'main') => {
           .map(([k, n, d]) => `<label class="ck">${sw(`${K}.screen.cols.${k}`)} <span><b>${n}</b> <span style="color:var(--muted)">— ${d}</span></span></label>`).join('')}</div>
       <div class="card"><h3>Продажа на экране</h3>
         <label class="ck">${sw(K + '.screen.popup')} Показывать попап новой продажи (фото, сумма, конфетти)</label>
+        <label class="ck">${sw(K + '.screen.overtake')} «ОБГОН!» — на весь экран, когда сектор обходит другой по кассе дня</label>
         <label class="ck">${sw(K + '.screen.sound')} Звук продажи</label>
         <label class="f" style="max-width:240px;margin-top:8px"><span>Показ продажи, сек (3–60)</span>${inp(K + '.screen.popupSec', '8', 'number')}</label></div>`;
   }
