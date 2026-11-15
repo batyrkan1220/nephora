@@ -616,6 +616,7 @@ pages.board = (id, tab = 'main') => {
     const tree = (p, lvl) => (depKids[p] || []).map(d => `<label class="ck" style="padding-left:${lvl * 20}px"><input type="checkbox" data-dep="${d.id}" ${b.departments.includes(d.id) ? 'checked' : ''}> ${esc(d.name)}</label>` + tree(d.id, lvl + 1)).join('');
     const pool = S.users.filter(u => u.active && !b.members.includes(u.id)).sort((a, c) => a.name.localeCompare(c.name, 'ru'));
     h += `<div class="card"><h3>Отделы из Bitrix24</h3><p class="hint">Все активные сотрудники отмеченных отделов (и подотделов) участвуют в рейтинге — даже без продаж. Если ничего не выбрано и нет ручных участников — на доске все, у кого есть продажи за период.</p>
+        <label class="ck" style="margin:6px 0 10px">${sw(K + '.autoSectors')} Новые секторы из Bitrix24 добавлять автоматически (если их сотрудники ведут сделки)</label>
         <div class="dept">${tree('', 0) || '<div class="empty">Нет данных об отделах</div>'}</div></div>
       <div class="card"><h3>Добавить вручную</h3><div style="display:flex;gap:8px"><select class="in" id="addU"><option value="">Выберите сотрудника…</option>${pool.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select><button class="btn" id="addUB">Добавить</button></div>
         ${b.members.length ? `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${b.members.map(id => `<span class="pill">${esc(uName(id))} <a href="javascript:void 0" data-rmm="${id}" style="color:var(--red)">×</a></span>`).join('')}</div>` : ''}</div>

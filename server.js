@@ -156,7 +156,17 @@ function ctx(deals) {
   return {
     deals: deals || cache.deals, users: cache.users, userMap: cache.userMap, deps: cache.deps,
     managers: cfg.managers, settings: cfg.settings, today: C.todayKey(cfg.settings.tz), photos: photos(), penalties: [...cfg.penalties, ...att.penalties(cfg)],
+    salesOwners: salesOwners(),
   };
+}
+// кто ведёт сделки в воронке продаж («Общая», стадии без префикса C…) за последние 30 дней — для автодобавления новых секторов
+let soAt = 0, soSet = null;
+function salesOwners() {
+  if (soSet && Date.now() - soAt < 5 * 60e3) return soSet;
+  const t0 = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10), set = new Set();
+  wh.all('deal').forEach(d => { if (d.uid && d.cat === '0' && (d.cr || '') >= t0) set.add(String(d.uid)); });
+  (cache.deals || []).forEach(d => { if (d.uid && !/^C\d+:/.test(d.stage || '')) set.add(String(d.uid)); });
+  soAt = Date.now(); soSet = set; return set;
 }
 function stageNames() { return Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x.name])); }
 async function reportFor({ from, to, sector, boardId }, scope) {
