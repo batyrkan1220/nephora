@@ -507,6 +507,19 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
 .tbtn.war{background:#4B4FE8}.tbtn.war:hover{background:#3F43D6}
 .tbtn.fs{background:#fff;color:#151827;box-shadow:inset 0 0 0 1.5px #E4E6F0}.tbtn.fs:hover{background:#F2F3FA}
 :fullscreen #fsBtn{display:none}
+
+/* ===== лёгкий режим для ТВ: без постоянных тяжёлых анимаций (перерисовка больших областей, тени, размытие) ===== */
+.aura{display:none}
+.li.first::after,.stat.kb::after,.stat.kp::after{display:none}
+.ttl h1 b,.li .medal,.crw,.li.first .av,.fl,.scd.lead,.tbtn,.pop .sm,.pop .pav::before,.pop .pav::after,.ovt-ic .a{animation:none}
+.intro .scd.lead{animation:rowIn .7s cubic-bezier(.2,.9,.25,1.15) both .25s}
+.pb .tr i,.intro .pb .tr i,.intro .li .lb{animation:grow 1.6s cubic-bezier(.2,.8,.2,1) both;background-image:none}
+.pb .tr i:not(.intro *){animation:none}
+.per .lv::before{animation:none;box-shadow:none}
+.pop{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,18,34,.55)}
+.crw{filter:none}
+.pop .rays{animation:none}
+.tm{will-change:transform}
 </style>
 </head>
 <body>
@@ -661,9 +674,12 @@ const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 &
 /* ===== звук и попап ===== */
 /* звук продажи: public/sale.mp3 («Cha-Ching»), через Web Audio — после одного клика на экране */
 let saleBuf = null, saleLoading = null;
+// файлы звуков скачиваются сразу при открытии страницы (до первого касания), декодируются один раз
+const RAW = { sale: fetch('/sale.mp3').then(r => r.arrayBuffer()).catch(() => null), ovt: fetch('/overtake.mp3').then(r => r.arrayBuffer()).catch(() => null) };
+const rawCopy = k => RAW[k].then(ab => { if (!ab) throw new Error('нет файла'); return ab.slice(0); });
 function loadSale() {
   if (saleBuf || saleLoading || !audio) return saleLoading;
-  saleLoading = fetch('/sale.mp3').then(r => r.arrayBuffer()).then(ab => new Promise((ok, no) => audio.decodeAudioData(ab, ok, no)))
+  saleLoading = rawCopy('sale').then(ab => new Promise((ok, no) => audio.decodeAudioData(ab, ok, no)))
     .then(b => { saleBuf = b; return b; }).catch(e => { console.warn('sale.mp3', e); saleLoading = null; });
   return saleLoading;
 }
@@ -671,7 +687,7 @@ function loadSale() {
 let ovtBuf = null, ovtLoading = null;
 function loadOvt() {
   if (ovtBuf || ovtLoading || !audio) return ovtLoading;
-  ovtLoading = fetch('/overtake.mp3').then(r => r.arrayBuffer()).then(ab => new Promise((ok, no) => audio.decodeAudioData(ab, ok, no)))
+  ovtLoading = rawCopy('ovt').then(ab => new Promise((ok, no) => audio.decodeAudioData(ab, ok, no)))
     .then(b => { ovtBuf = b; return b; }).catch(e => { console.warn('overtake.mp3', e); ovtLoading = null; });
   return ovtLoading;
 }
@@ -721,7 +737,10 @@ document.addEventListener('click', e => { if (e.target.closest('#fsBtn')) { fsAu
 document.addEventListener('keydown', e => { if ((e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') && !e.ctrlKey && !e.metaKey) { fsAuto = false; fsToggle(); } });
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, e => { if (fsAuto && !(e.target.closest && e.target.closest('#fsBtn'))) { fsAuto = false; fsEnter(); } }, { passive: true }));
 document.addEventListener('fullscreenchange', () => { const b = document.getElementById('fsBtn'); if (b) b.style.display = fsOn() ? 'none' : ''; });
-['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { try { if (audio && audio.state === 'suspended') audio.resume(); } catch {} }, { passive: true }));
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { try {
+  if (!audio && D && D.board.screen.sound) { audio = new (window.AudioContext || window.webkitAudioContext)(); soundOk = true; }
+  if (audio) { if (audio.state === 'suspended') audio.resume(); loadSale(); loadOvt(); }
+} catch {} }, { passive: true }));
 const queue = []; let showing = false;
 function popup(e) { queue.push(e); if (!showing) next(); }
 function next() {
