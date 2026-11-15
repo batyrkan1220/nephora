@@ -520,6 +520,22 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
 .crw{filter:none}
 .pop .rays{animation:none}
 .tm{will-change:transform}
+
+/* суммы — ссылки на сделки в CRM */
+.dlk{cursor:pointer;border-radius:.3em;transition:background .15s}
+.dlk:hover{text-decoration:underline;text-decoration-thickness:.08em;text-underline-offset:.15em}
+.dlm{position:fixed;inset:0;z-index:40;background:rgba(15,18,34,.45);display:grid;place-items:center;padding:20px;font-family:Inter,system-ui,sans-serif}
+.dlb{background:#fff;color:#151827;border-radius:20px;width:min(560px,100%);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 30px 80px -30px rgba(15,18,34,.6)}
+.dlh{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 12px;border-bottom:1px solid #EEF0F7}
+.dlh b{font-size:18px;display:block}.dlh small{color:#8A8FA8;font-size:13px}
+.dlx{border:0;background:#F2F3FA;width:34px;height:34px;border-radius:10px;font-size:22px;cursor:pointer;color:#151827}
+.dll{overflow:auto;padding:8px 10px 12px}
+.dli{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;color:inherit;text-decoration:none}
+.dli[href]:hover{background:#F2F3FA}.dli>div{flex:1;min-width:0}
+.dli b{font-size:14px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dli small{color:#8A8FA8;font-size:12px}
+.dli span{font-weight:700;font-size:15px;white-space:nowrap}.dli i{font-style:normal;color:#4B4FE8;font-weight:700}
+.dlt{display:flex;justify-content:space-between;padding:12px 10px 4px;border-top:1px solid #EEF0F7;margin-top:6px;color:#8A8FA8;font-size:13px}.dlt b{color:#151827;font-size:15px}
+.dle{padding:24px;text-align:center;color:#8A8FA8}
 </style>
 </head>
 <body>
@@ -601,7 +617,7 @@ function render() {
     return `<div class="scd ${i === 0 && x.daySum ? 'lead' : ''}" style="--c:${c};--t:${tint(c, .1)};--t2:${tint(c, .2)};--i:${i}">
       <div class="sh1"><span class="sr num">${i + 1}</span><b>${esc(x.name)}</b>${i === 0 && x.daySum ? '<span class="tag"><i class="fl">🔥</i> 1 место дня</span>' : ''}<small>${x.managers} ${plural(x.managers, 'менеджер', 'менеджера', 'менеджеров')}</small></div>
       <div class="sbody">
-        <div class="sdat"><small>Касса сегодня</small><b class="num">${CU('s-' + x.id, x.daySum)}</b>
+        <div class="sdat"><small>Касса сегодня</small><b class="num dlk" data-sector="${x.id}" data-scope="day" data-nm="Сектор ${esc(x.name)}" title="Сделки в CRM">${CU('s-' + x.id, x.daySum)}</b>
           <div class="sline num">период <b>${short(x.sum)}</b>${x.plan ? ` из ${short(x.plan)} ₸ · осталось <b>${short(Math.max(0, x.plan - x.sum))}</b>` : ' ₸ · план не задан'}</div>
           ${x.dayPlan ? `<div class="sline num">план дня ${short(x.dayPlan)} ₸ · ${Math.floor(x.daySum / x.dayPlan * 100)}%</div>` : ''}</div>
         ${x.plan ? `<div class="ring ${pct >= 100 ? 'ok' : ''}" style="--p:${Math.min(100, pct).toFixed(1)}"><span class="num">${Math.floor(pct)}%</span><small>плана</small></div>` : ''}
@@ -616,7 +632,7 @@ function render() {
     const crown = i === 0 ? '<svg class="crw" viewBox="0 0 24 16"><path d="M2 14L1 3l6 5 5-7 5 7 6-5-1 11z" fill="#fcd94a" stroke="#d99a00" stroke-width="1.2" stroke-linejoin="round"/></svg>' : '';
     return `<div class="li ${MED[i] || ''} ${i === 0 ? 'first' : ''} ${up} ${mv ? 'moved' : ''}" style="--i:${i}">${place(i)}<span class="avw">${av(r)}${crown}</span>
       <div class="w"><div class="nm">${esc(r.name)}${mv}</div><div class="dp">${r.elite ? '<span class="el">★ Элит</span>' : ''}${r.dep ? `<span class="sp">${esc(r.dep)}</span>` : ''}</div></div>
-      <span class="v num">${CU((today ? 'd-' : 'p-') + r.uid, v)}</span>
+      <span class="v num dlk" data-uid="${r.uid}" data-scope="${today ? 'day' : 'month'}" data-nm="${esc(r.name)}" title="Сделки в CRM">${CU((today ? 'd-' : 'p-') + r.uid, v)}</span>
       <i class="lb" style="width:${w.toFixed(1)}%"></i></div>`;
   };
   const slot = i => `<div class="li slot" style="--i:${i}">${`<span class="pl num">${i + 1}</span>`}<div class="w"><div class="nm">Свободное место</div><div class="dp">ждём первую продажу</div></div></div>`;
@@ -728,6 +744,27 @@ function askSound() {
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume().catch(() => {}); loadSale(); loadOvt(); } catch {}
 }
 
+/* ===== клик по сумме → список сделок со ссылками в CRM (Bitrix24) ===== */
+document.addEventListener('click', async e => {
+  const t = e.target.closest('.dlk'); if (!t || !D) return;
+  const q = new URLSearchParams({ scope: t.dataset.scope }); if (t.dataset.uid) q.set('uid', t.dataset.uid); if (t.dataset.sector) q.set('sector', t.dataset.sector);
+  const key = location.pathname.split('/').filter(Boolean).pop();
+  document.querySelectorAll('.dlm').forEach(x => x.remove());
+  const el = document.createElement('div'); el.className = 'dlm';
+  el.innerHTML = `<div class="dlb"><div class="dlh"><div><b>${t.dataset.nm}</b><small>${t.dataset.scope === 'day' ? 'Сделки за сегодня' : 'Сделки за месяц'}</small></div><button class="dlx" aria-label="Закрыть">×</button></div><div class="dll"><div class="dle">Загрузка…</div></div></div>`;
+  document.body.appendChild(el);
+  const close = () => el.remove();
+  el.addEventListener('click', ev => { if (ev.target === el || ev.target.closest('.dlx')) close(); });
+  try {
+    const j = await (await fetch(`/api/board/${key}/deals?${q}`)).json();
+    el.querySelector('.dll').innerHTML = (j.deals || []).length ? j.deals.map(d => `<a class="dli" ${d.url ? `href="${d.url}" target="_blank" rel="noopener"` : ''}>
+        <div><b>${esc(d.t || 'Сделка #' + d.id)}</b><small>#${d.id} · ${d.dk.split('-').reverse().join('.')}${d.who ? ' · ' + esc(d.who) : ''}</small></div><span class="num">${money(d.sum)}</span><i>↗</i></a>`).join('')
+      + `<div class="dlt"><span>${j.deals.length} ${plural(j.deals.length, 'сделка', 'сделки', 'сделок')}</span><b class="num">${money(j.sum)}</b></div>`
+      : '<div class="dle">Сделок нет</div>';
+  } catch { el.querySelector('.dll').innerHTML = '<div class="dle">Не удалось загрузить</div>'; }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.dlm').forEach(x => x.remove()); });
+
 /* ===== экран ТВ не засыпает =====
    1) Screen Wake Lock API (Chrome, Edge, Android TV, новые Samsung/LG) — перезапрашивается при возврате на вкладку;
    2) запасной путь для старых ТВ-браузеров: крошечное беззвучное видео по кругу (ТВ считает, что идёт воспроизведение);
@@ -763,7 +800,7 @@ function fsToggle() { if (fsOn()) { (document.exitFullscreen || document.webkitE
 let fsAuto = true;
 document.addEventListener('click', e => { if (e.target.closest('#fsBtn')) { fsAuto = false; fsToggle(); } });
 document.addEventListener('keydown', e => { if ((e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') && !e.ctrlKey && !e.metaKey) { fsAuto = false; fsToggle(); } });
-['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, e => { if (fsAuto && !(e.target.closest && e.target.closest('#fsBtn'))) { fsAuto = false; fsEnter(); } }, { passive: true }));
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, e => { if (fsAuto && !(e.target.closest && e.target.closest('#fsBtn,.dlk,.dlm'))) { fsAuto = false; fsEnter(); } }, { passive: true }));
 document.addEventListener('fullscreenchange', () => { const b = document.getElementById('fsBtn'); if (b) b.style.display = fsOn() ? 'none' : ''; });
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { try {
   if (!audio && D && D.board.screen.sound) { audio = new (window.AudioContext || window.webkitAudioContext)(); soundOk = true; }

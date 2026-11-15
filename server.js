@@ -229,6 +229,20 @@ async function handle(req, res) {
     res.writeHead(302, { Location: '/b/' + b.key }); return res.end();
   }
   if ((m = p.match(/^\/b\/([\w-]+)\/?$/))) return file(res, 'board.html');
+  // сделки за суммой на табло: менеджер или сектор, за день / период / месяц → ссылки в CRM
+  if ((m = p.match(/^\/api\/board\/([\w-]+)\/deals$/))) {
+    const b = cfg.boards.find(x => x.key === m[1]);
+    if (!b || !b.active) return send(res, 404, { error: 'Лидерборд не найден' });
+    const q = url.searchParams, scope = q.get('scope') || 'day', uid = q.get('uid') || '', sector = q.get('sector') || '';
+    const c = ctx(), data = C.computeBoard(scope === 'month' ? { ...b, auto: true } : b, c), { from, to, today } = data.period;
+    const mem = new Set(data.members), secOf = C.sectorMap(c);
+    const ok = d => mem.has(d.uid) && (scope === 'day' ? d.dk === today : d.dk >= from && d.dk <= to) && (uid ? d.uid === uid : sector ? secOf[d.uid] === sector : true);
+    const base = bx.portal(), mask = t => String(t || '').replace(/(\d{4})\d{4}(\d{2})/g, '$1****$2');
+    const nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || '';
+    const list = c.deals.filter(ok).sort((a, z) => z.dk.localeCompare(a.dk) || z.sum - a.sum)
+      .map(d => ({ id: d.id, sum: d.sum, dk: d.dk, t: mask(d.title), who: uid ? '' : nm(d.uid), url: base ? `${base}/crm/deal/details/${d.id}/` : '' }));
+    return send(res, 200, { from: scope === 'day' ? today : from, to: scope === 'day' ? today : to, sum: list.reduce((a, d) => a + d.sum, 0), deals: list });
+  }
   if ((m = p.match(/^\/api\/board\/([\w-]+)$/))) {
     const b = cfg.boards.find(x => x.key === m[1]);
     if (!b) return send(res, 404, { error: 'Лидерборд не найден' });
