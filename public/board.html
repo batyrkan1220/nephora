@@ -505,6 +505,8 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
 .scd{background:var(--t,var(--soft));border-left:.35em solid var(--c)}
 .scd.lead{background:var(--t2,#E9EAFD)}
 .tbtn.war{background:#4B4FE8}.tbtn.war:hover{background:#3F43D6}
+.tbtn.fs{background:#fff;color:#151827;box-shadow:inset 0 0 0 1.5px #E4E6F0}.tbtn.fs:hover{background:#F2F3FA}
+:fullscreen #fsBtn{display:none}
 </style>
 </head>
 <body>
@@ -623,6 +625,7 @@ function render() {
         : `<div class="stat kb"><small>Касса периода · вся компания</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
       <button class="tbtn" id="testSale" title="Показать тестовую продажу на этом экране">🎉<span>Тест<br>продажа</span></button>
+      <button class="tbtn fs" id="fsBtn" title="Полный экран (F)">⛶<span>Полный<br>экран</span></button>
       ${(D.sectors || []).length > 1 ? `<button class="tbtn war" id="testWar" title="Показать «ОБГОН!» битвы секторов на этом экране">🔥<span>Тест<br>битва</span></button>` : ''}
     </div>
     <div class="cols3">
@@ -708,6 +711,16 @@ function askSound() {
   soundOk = true;
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume().catch(() => {}); loadSale(); loadOvt(); } catch {}
 }
+/* ===== полный экран: кнопка, клавиша F и автоматически при первом касании/нажатии пульта =====
+   (браузер не даёт открыть полный экран без действия пользователя — поэтому первое касание его и включает) */
+const fsEl = document.documentElement, fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+function fsEnter() { try { const f = fsEl.requestFullscreen || fsEl.webkitRequestFullscreen; if (f && !fsOn()) { const p = f.call(fsEl); if (p && p.catch) p.catch(() => {}); } } catch {} }
+function fsToggle() { if (fsOn()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } else fsEnter(); }
+let fsAuto = true;
+document.addEventListener('click', e => { if (e.target.closest('#fsBtn')) { fsAuto = false; fsToggle(); } });
+document.addEventListener('keydown', e => { if ((e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') && !e.ctrlKey && !e.metaKey) { fsAuto = false; fsToggle(); } });
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, e => { if (fsAuto && !(e.target.closest && e.target.closest('#fsBtn'))) { fsAuto = false; fsEnter(); } }, { passive: true }));
+document.addEventListener('fullscreenchange', () => { const b = document.getElementById('fsBtn'); if (b) b.style.display = fsOn() ? 'none' : ''; });
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { try { if (audio && audio.state === 'suspended') audio.resume(); } catch {} }, { passive: true }));
 const queue = []; let showing = false;
 function popup(e) { queue.push(e); if (!showing) next(); }
