@@ -307,6 +307,42 @@ body{background:#EEF0F7}
 .shell{margin:0;border-radius:0;min-height:100vh;box-shadow:none}
 /* меню закреплено: не прокручивается вместе со страницей */
 @media (min-width:1001px){aside{position:sticky;top:16px;align-self:start;height:calc(100vh - 32px);overflow-y:auto}}
+
+/* ===== ИИ завод ===== */
+.floor{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:34px 28px 26px;margin-bottom:18px;border-radius:22px;overflow:hidden;
+  background:linear-gradient(180deg,#F7F8FC,#EEF0F7);box-shadow:inset 0 0 0 1px #E4E6F0}
+.floor::before{content:"";position:absolute;inset:-40% -10% 0;background-image:linear-gradient(#E1E4EF 1px,transparent 1px),linear-gradient(90deg,#E1E4EF 1px,transparent 1px);
+  background-size:46px 46px;transform:perspective(700px) rotateX(58deg);transform-origin:50% 100%;opacity:.7;pointer-events:none}
+.desk{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:transform .2s}
+.desk:hover{transform:translateY(-3px)}
+.dpill{display:flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:5px 14px 5px 5px;font-weight:700;font-size:14px;box-shadow:0 6px 16px -8px rgba(21,24,39,.3);transform:rotate(-4deg)}
+.dpill b{width:28px;height:28px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-size:13px}
+.dmon{width:min(100%,250px);background:#fff;border:2px solid #2B2F45;border-top:10px solid var(--c);border-radius:10px;padding:8px 10px;min-height:112px;box-shadow:0 10px 20px -14px rgba(21,24,39,.5)}
+.dmh{font-size:11px;font-weight:700;color:#8A8FA8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.dml{font-size:12px;line-height:1.35;padding:3px 0;border-bottom:1px dashed #EEF0F7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dml:last-child{border:0}
+.rbt{width:130px;height:140px;margin-top:-4px}
+.rbt .hd{transform-origin:60px 40px;animation:rbHead 4s ease-in-out infinite}
+.rbt.busy .hd{animation-duration:1.2s}.rbt .arm.l{transform-origin:32px 54px;animation:rbArm .9s ease-in-out infinite alternate}.rbt .arm.r{transform-origin:88px 54px;animation:rbArm .9s ease-in-out infinite alternate-reverse}
+.rbt .scr{animation:rbScr 1.4s steps(2) infinite}
+@keyframes rbHead{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes rbArm{from{transform:rotate(-6deg)}to{transform:rotate(8deg)}}
+@keyframes rbScr{50%{opacity:.2}}
+.dst{font-size:12px;color:#8A8FA8}.dst .bad{color:#DC2626}
+.fbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.seg{display:flex;gap:4px;background:#F2F3FA;padding:4px;border-radius:12px;flex-wrap:wrap}
+.seg button{border:0;background:none;padding:7px 12px;border-radius:9px;font:inherit;font-size:13px;font-weight:600;color:#5B6078;cursor:pointer}
+.seg button.on{background:#fff;color:#151827;box-shadow:0 2px 6px -2px rgba(21,24,39,.2)}.seg button i{font-style:normal;color:#8A8FA8;font-weight:500;margin-left:2px}
+.tasks{display:flex;flex-direction:column;gap:8px}
+.tk{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#F7F8FC;border-left:4px solid var(--c)}
+.tk.done,.tk.auto{opacity:.6}
+.tkb{font-size:20px}.tkw{flex:1;min-width:0}
+.tkt{font-weight:600;font-size:14px}.tkt a{color:inherit;text-decoration:none}.tkt a:hover{text-decoration:underline}
+.tkd{font-size:13px;color:#5B6078;margin-top:2px}.tkd .tag{display:inline-block;font-size:11px;font-weight:700;background:#fff;border-radius:6px;padding:1px 7px;margin-right:6px;color:var(--c)}
+.tkm{font-size:11.5px;color:#8A8FA8;margin-top:3px}
+.row2.fr{grid-template-columns:repeat(auto-fit,minmax(420px,1fr));align-items:start}.rep{white-space:pre-wrap;font:13px/1.5 Inter,system-ui,sans-serif;background:#F7F8FC;border-radius:12px;padding:12px 14px;margin:0 0 8px;max-height:420px;overflow:auto}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+@media (max-width:1000px){.floor{grid-template-columns:1fr}.row3{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -322,6 +358,7 @@ body{background:#EEF0F7}
     <a href="#/money" data-r="money"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h3"/></svg></span>Зарплата</a>
     <div class="navl">Инструменты</div>
     <a href="#/ai" data-r="ai"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></span>AI-ассистент</a>
+    <a href="#/factory" data-r="factory"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16h5M3 12v3M21 12v3"/></svg></span>ИИ завод</a>
     <a href="#/settings" data-r="settings" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 010-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 014 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 010 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg></span>Настройки</a>
     <div class="promo" id="tvBox"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg></i><b>ТВ-табло</b><small>Рейтинг и продажи на экране в зале</small><a id="tvLink" href="#" target="_blank">Открыть ↗</a></div>
     <div class="sp"></div>
@@ -1193,6 +1230,80 @@ function md(t) {
   }
   flushT(); flushL(); return out.join('');
 }
+
+/* ===== ИИ завод: боты-сотрудники ставят задачи ===== */
+const FB = { bot: 'all', st: 'open', data: null };
+const robot = (c, busy) => `<svg class="rbt ${busy ? 'busy' : ''}" viewBox="0 0 120 130">
+  <ellipse cx="60" cy="122" rx="44" ry="7" fill="#000" opacity=".08"/>
+  <rect x="12" y="78" width="96" height="10" rx="3" fill="#E9E2D3"/><rect x="18" y="88" width="6" height="30" rx="2" fill="#D9C7A3"/><rect x="96" y="88" width="6" height="30" rx="2" fill="#D9C7A3"/>
+  <rect x="36" y="44" width="48" height="40" rx="14" fill="${c}"/><rect x="47" y="54" width="26" height="18" rx="4" fill="#fff" opacity=".9"/><circle cx="60" cy="63" r="4" fill="${c}"/>
+  <rect x="26" y="52" width="12" height="26" rx="6" fill="${c}" class="arm l"/><rect x="82" y="52" width="12" height="26" rx="6" fill="${c}" class="arm r"/>
+  <g class="hd"><rect x="38" y="8" width="44" height="38" rx="19" fill="#F4F5F9" stroke="#E3E5EE" stroke-width="2"/>
+    <circle cx="51" cy="27" r="5" fill="#151827"/><circle cx="69" cy="27" r="5" fill="#151827"/><circle cx="52.5" cy="25.5" r="1.6" fill="#fff"/><circle cx="70.5" cy="25.5" r="1.6" fill="#fff"/>
+    <rect x="57" y="1" width="6" height="8" rx="3" fill="${c}"/></g>
+  <path d="M40 78l8-12h28l8 12z" fill="#2B2F45"/><rect x="48" y="68" width="24" height="2" fill="${c}" class="scr"/></svg>`;
+pages.factory = async () => {
+  $('#view').innerHTML = head('ИИ завод', 'Боты-сотрудники проверяют свои участки по данным Bitrix24 каждые 10 минут и ставят задачи людям. В CRM боты ничего не меняют.') + '<div class="card"><div class="empty">Загрузка…</div></div>';
+  let d;
+  try { d = FB.data = await api('/api/admin/bots'); } catch (e) { $('#view').innerHTML += `<div class="warn">${esc(e.message)}</div>`; return; }
+  const own = S.me.role === 'owner', ago = t => !t ? 'ещё не запускался' : Math.round((Date.now() - t) / 60000) < 1 ? 'только что' : Math.round((Date.now() - t) / 60000) + ' мин назад';
+  const BI = { calls: '📞', logi: '🚚', report: '📊' };
+  const deskOf = b => {
+    const lastT = d.tasks.filter(t => t.bot === b.id && t.status === 'open').slice(0, 3);
+    const mon = b.id === 'report' ? (d.report ? d.report.text.split('\n').filter(Boolean).slice(1, 4) : ['Отчёт ещё не готов']) : (lastT.length ? lastT.map(t => t.title) : ['Всё в порядке']);
+    return `<div class="desk" style="--c:${b.color}" data-bot="${b.id}">
+      <div class="dpill"><b>${b.id === 'report' ? (d.report ? '✓' : '·') : b.open}</b>${esc(b.name)}</div>
+      <div class="dmon"><div class="dmh">${BI[b.id]} ${esc(b.role)}</div>${mon.map(x => `<div class="dml">${esc(x)}</div>`).join('')}</div>
+      ${robot(b.color, d.running)}
+      <div class="dst">${b.error ? `<span class="bad">ошибка: ${esc(b.error)}</span>` : 'проверка: ' + ago(b.id === 'report' ? (d.report || {}).at : b.last)}</div></div>`;
+  };
+  const tl = d.tasks.filter(t => (FB.bot === 'all' || t.bot === FB.bot) && (FB.st === 'all' || (FB.st === 'open' ? t.status === 'open' : t.status !== 'open')));
+  const cnt = id => d.tasks.filter(t => t.status === 'open' && (id === 'all' || t.bot === id)).length;
+  const bname = id => (d.bots.find(b => b.id === id) || {}).name || id;
+  $('#view').innerHTML = head('ИИ завод', 'Боты-сотрудники проверяют свои участки по данным Bitrix24 каждые 10 минут и ставят задачи людям. В CRM боты ничего не меняют.',
+      own ? `<button class="btn" id="fRun">${d.running ? 'Боты работают…' : 'Запустить проверку'}</button>` : '') + `
+    <div class="floor">${d.bots.map(deskOf).join('')}</div>
+    <div class="card"><div class="fbar"><nav class="seg">${[['all', 'Все'], ...d.bots.filter(b => b.id !== 'report').map(b => [b.id, b.name])].map(([k, n]) => `<button data-fb="${k}" class="${FB.bot === k ? 'on' : ''}">${n} <i>${cnt(k)}</i></button>`).join('')}</nav>
+      <nav class="seg">${[['open', 'Открытые'], ['done', 'Выполненные'], ['all', 'Все']].map(([k, n]) => `<button data-fs="${k}" class="${FB.st === k ? 'on' : ''}">${n}</button>`).join('')}</nav></div>
+      <div class="tasks">${tl.length ? tl.map(t => `<div class="tk ${t.status}" style="--c:${(d.bots.find(b => b.id === t.bot) || {}).color}">
+        <span class="tkb">${BI[t.bot] || '🤖'}</span>
+        <div class="tkw"><div class="tkt">${t.url ? `<a href="${esc(t.url)}" ${t.url[0] === '#' ? '' : 'target="_blank" rel="noopener"'}>${esc(t.title)}</a>` : esc(t.title)}</div>
+          <div class="tkd"><span class="tag">${esc(t.kind)}</span>${t.who ? `<b>${esc(t.who)}</b> · ` : ''}${esc(t.detail || '')}</div>
+          <div class="tkm">${esc(bname(t.bot))} · ${new Date(t.at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}${t.status === 'auto' ? ' · решено само (ситуация исправлена)' : t.status === 'done' ? ' · выполнено' + (t.doneBy ? ': ' + esc(t.doneBy) : '') : ''}</div></div>
+        ${t.status === 'open' ? `<button class="btn s" data-done="${t.id}">Готово</button>` : t.status === 'done' ? `<button class="btn l s" data-undo="${t.id}">Вернуть</button>` : ''}</div>`).join('')
+        : `<div class="empty">${FB.st === 'open' ? 'Открытых задач нет — боты ничего не нашли 👌' : 'Пусто'}</div>`}</div></div>
+    ${own ? `<div class="row2 fr">
+      <div class="card"><h3>📊 Есеп-бот — отчёт руководителю</h3>
+        ${d.report ? `<pre class="rep">${esc(d.report.text)}</pre><p class="hint">Собран ${new Date(d.report.at).toLocaleString('ru-RU')}${d.report.sent ? ' · отправлен в WhatsApp ' + esc(d.report.sent.to) : ''}${d.report.sendError ? ' · <span class="bad">не отправлен: ' + esc(d.report.sendError) + '</span>' : ''}</p>` : '<p class="hint">Отчёт собирается каждое утро после указанного времени.</p>'}
+        <p><button class="btn l s" id="fRep">Собрать сейчас</button> ${d.settings.reportPhone && d.settings.reportChannel ? `<button class="btn s" id="fRepSend">Собрать и отправить в WhatsApp</button>` : ''} ${d.report ? '<button class="btn l s" id="fCopy">Скопировать</button>' : ''}</p></div>
+      <div class="card"><h3>Настройки ботов</h3>
+        <label class="ck">${'<input type="checkbox" id="fsOn" ' + (d.settings.on ? 'checked' : '') + '>'} Боты работают автоматически (каждые 10 минут)</label>
+        <div class="row3"><label class="f"><span>Доставка «зависла» через, дней</span><input class="in" id="fsStuck" type="number" min="1" max="30" value="${d.settings.stuckDays}"></label>
+          <label class="f"><span>Слабый звонок — AI-оценка ниже</span><input class="in" id="fsLow" type="number" min="10" max="90" value="${d.settings.lowScore}"></label>
+          <label class="f"><span>Пропущенные за последние, дней</span><input class="in" id="fsMiss" type="number" min="1" max="7" value="${d.settings.missedDays}"></label></div>
+        <div class="row3"><label class="f"><span>Отчёт каждое утро в</span><input class="in" id="fsAt" type="time" value="${d.settings.reportAt}"></label>
+          <label class="f"><span>WhatsApp руководителя</span><input class="in" id="fsPh" placeholder="+7 7xx xxx xx xx" value="${esc(d.settings.reportPhone ? '+' + d.settings.reportPhone : '')}"></label>
+          <label class="f"><span>С какого номера Wazzup</span><select class="in" id="fsCh"><option value="">— не отправлять —</option>${(d.channels || []).map(c => `<option value="${c.id}" ${c.id === d.settings.reportChannel ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label></div>
+        <label class="ck"><input type="checkbox" id="fsSend" ${d.settings.reportSend ? 'checked' : ''}> Отправлять утренний отчёт в WhatsApp автоматически</label>
+        <p><button class="btn" id="fsSave">Сохранить</button></p></div></div>` : ''}`;
+  document.querySelectorAll('[data-fb]').forEach(b => b.onclick = () => { FB.bot = b.dataset.fb; pages.factory(); });
+  document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { FB.st = b.dataset.fs; pages.factory(); });
+  document.querySelectorAll('.desk').forEach(x => x.onclick = () => { if (x.dataset.bot !== 'report') { FB.bot = x.dataset.bot; FB.st = 'open'; pages.factory(); } });
+  const setSt = (id, status) => api('/api/admin/bots/task/' + id, { method: 'POST', body: JSON.stringify({ status }) }).then(pages.factory).catch(e => toast('Ошибка: ' + e.message));
+  document.querySelectorAll('[data-done]').forEach(b => b.onclick = () => setSt(b.dataset.done, 'done'));
+  document.querySelectorAll('[data-undo]').forEach(b => b.onclick = () => setSt(b.dataset.undo, 'open'));
+  if (!own) return;
+  $('#fRun').onclick = async () => { $('#fRun').textContent = 'Боты работают…'; await api('/api/admin/bots/run', { method: 'POST' }).catch(e => toast(e.message)); pages.factory(); };
+  $('#fRep').onclick = async () => { await api('/api/admin/bots/report', { method: 'POST', body: '{}' }).catch(e => toast(e.message)); pages.factory(); };
+  if ($('#fRepSend')) $('#fRepSend').onclick = async () => { if (!confirm('Отправить отчёт в WhatsApp ' + (d.settings.reportPhone ? '+' + d.settings.reportPhone : '') + '?')) return; await api('/api/admin/bots/report', { method: 'POST', body: JSON.stringify({ send: true }) }).catch(e => toast(e.message)); pages.factory(); };
+  if ($('#fCopy')) $('#fCopy').onclick = () => navigator.clipboard.writeText(d.report.text).then(() => toast('Скопировано'));
+  $('#fsSave').onclick = async () => {
+    try { await api('/api/admin/bots/settings', { method: 'POST', body: JSON.stringify({ on: $('#fsOn').checked, stuckDays: $('#fsStuck').value, lowScore: $('#fsLow').value, missedDays: $('#fsMiss').value,
+      reportAt: $('#fsAt').value, reportPhone: $('#fsPh').value, reportChannel: $('#fsCh').value, reportSend: $('#fsSend').checked }) }); toast('Сохранено'); pages.factory(); }
+    catch (e) { toast('Ошибка: ' + e.message); }
+  };
+};
+
 pages.ai = () => {
   const TL = { get_board_today: 'табло', get_sales_report: 'продажи', get_funnel: 'воронка', get_calls: 'звонки', find_deals: 'сделки', get_sources: 'источники', get_payouts: 'зарплата', list_people: 'сотрудники' };
   const sug = ['Бүгін қалай? Жоспар орындала ма?', 'Кто лучший менеджер за неделю и почему?', 'Где мы теряем выкуп в этом месяце?', 'Кто медленно звонит по новым лидам?', 'Сравни секторы за месяц', 'Какие заказы зависли дольше всего?'];
@@ -1281,6 +1392,7 @@ const SECTIONS = [
   { id: 'calls', title: 'Звонки и WhatsApp', tabs: [['stats', 'Звонки'], ['wa', 'WhatsApp'], ['rec', 'Записи и AI-разбор']] },
   { id: 'money', title: 'Зарплата', tabs: [['payouts', 'Выплаты'], ['penalties', 'Штрафы', 1]] },
   { id: 'ai', title: 'AI-ассистент' },
+  { id: 'factory', title: 'ИИ завод' },
   { id: 'settings', title: 'Настройки', own: 1, tabs: [['board', 'Табло и планы'], ['managers', 'Менеджеры'], ['users', 'Доступы'], ['terminal', 'Терминал'], ['system', 'Система']] },
 ];
 // старые адреса → новые разделы
@@ -1312,6 +1424,7 @@ function route() {
     calls: () => { if (tab === 'wa') return pages.wa(); CALLV = tab; return pages.calls(); },
     money: () => (tab === 'penalties' ? pages.penalties() : pages.payouts()),
     ai: () => pages.ai(),
+    factory: () => pages.factory(),
     settings: () => ({ board: () => pages.board((cfg.boards[0] || {}).id, b || 'main'), managers: () => pages.managers(), users: () => pages.users(),
       terminal: () => { AT.view = 'setup'; return pages.att(); }, system: () => pages.settings() })[tab](),
   };

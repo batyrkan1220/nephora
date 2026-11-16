@@ -15,6 +15,7 @@ const att = require('./lib/attendance');
 const cai = require('./lib/callai');
 const EF = require('./lib/efficiency');
 const wz = require('./lib/wazzup');
+const bots = require('./lib/bots');
 
 const PORT = process.env.PORT || 3000;
 const PASS = process.env.DASH_PASSWORD || '';
@@ -313,7 +314,7 @@ async function handle(req, res) {
   if (p.startsWith('/api/admin/') && p !== '/api/admin/state') await wh.ready();
   const scope = auth.scopeOf(user), isOwner = user.role === 'owner';
   // только владелец: настройки, фото, сверка, пересинхронизация, аккаунты, база
-  const ownerOnly = (p === '/api/admin/config' && req.method !== 'GET') || p.startsWith('/api/admin/photo/') || p === '/api/admin/diag' ||
+  const ownerOnly = (p.startsWith('/api/admin/bots/') && !p.startsWith('/api/admin/bots/task/')) || (p === '/api/admin/config' && req.method !== 'GET') || p.startsWith('/api/admin/photo/') || p === '/api/admin/diag' ||
     p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/') || p.startsWith('/api/admin/att/') || p.startsWith('/api/admin/callai/settings') || p.startsWith('/api/admin/wz/settings');
   if (ownerOnly && !isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
 
@@ -544,6 +545,27 @@ async function handle(req, res) {
     return send(res, 200, wz.report(q.get('from') || C.monthRange(today).from, q.get('to') || today, cfg.settings.tz, nm, n => byName[norm(n)] || '', id => A.has(id)));
   }
   // AI-разбор звонков
+  // «ИИ завод»: боты, задачи, отчёт
+  if (p === '/api/admin/bots') {
+    const c = ctx(), A = AN.allowedUids(c, scope, {});
+    const v = bots.view(id => A.has(id), isOwner), nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || '';
+    v.tasks.forEach(t => { t.who = nm(t.uid); });
+    if (isOwner) v.channels = wz.status().channels.filter(x => /whatsapp|wapi/.test(x.transport || '') && x.state === 'active').map(x => ({ id: x.id, name: wz.channelName(x.id) }));
+    return send(res, 200, v);
+  }
+  if ((m = p.match(/^\/api\/admin\/bots\/task\/([\w-]+)$/)) && req.method === 'POST') {
+    const body = JSON.parse(await readBody(req, 1e4) || '{}'), t = bots.view(() => true, true).tasks.find(x => x.id === m[1]);
+    if (!t) return send(res, 404, { error: 'Задача не найдена' });
+    const A = AN.allowedUids(ctx(), scope, {});
+    if (!isOwner && (t.owner || !A.has(t.uid))) return send(res, 403, { error: 'Нет доступа' });
+    return send(res, 200, await bots.setStatus(m[1], body.status, user.name || user.login || 'владелец'));
+  }
+  if (p === '/api/admin/bots/run' && req.method === 'POST') { await bots.runAll(true); return send(res, 200, { ok: true }); }
+  if (p === '/api/admin/bots/settings' && req.method === 'POST') return send(res, 200, await bots.setCfg(JSON.parse(await readBody(req, 1e4) || '{}')));
+  if (p === '/api/admin/bots/report' && req.method === 'POST') {
+    const body = JSON.parse(await readBody(req, 1e4) || '{}');
+    return send(res, 200, await bots.report(!!body.send));
+  }
   if (p === '/api/admin/callai/summary') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz), c = ctx();
     const A = AN.allowedUids(c, scope, { sector: q.get('sector') || '', uid: q.get('uid') || '' });
@@ -699,5 +721,6 @@ async function handle(req, res) {
     console.error(e); if (!res.headersSent) send(res, 500, { error: String(e.message || e) });
   })).listen(PORT, () => console.log('Leaderboard on :' + PORT));
   sync().then(async () => { loop(); if (!cache.meta && bx.configured()) { cache.meta = await bx.meta().catch(() => null); if (cache.meta) saveSnap(true); } });
-  wh.start(cfg).then(warm); cai.start(cfg); wz.init().catch(e => console.error('wazzup init', e.message));
+  wh.start(cfg).then(warm);
+  bots.init({ wh, cai, wz, C, cache, ctx, cfg: () => cfg, dupePairs, deal: id => { const b = bx.portal(); return b ? `${b}/crm/deal/details/${id}/` : ''; } }); cai.start(cfg); wz.init().catch(e => console.error('wazzup init', e.message));
 })();
