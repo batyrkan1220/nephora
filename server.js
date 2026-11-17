@@ -253,7 +253,7 @@ async function handle(req, res) {
   if (/^\/tv\/?$/i.test(p)) {
     const b = cfg.boards.find(x => x.active) || cfg.boards[0];
     if (!b) return send(res, 404, 'Табло не настроено', 'text/plain; charset=utf-8');
-    res.writeHead(302, { Location: '/b/' + b.key }); return res.end();
+    res.writeHead(302, { Location: '/b/' + b.key + (url.search || '') }); return res.end();
   }
   if ((m = p.match(/^\/b\/([\w-]+)\/?$/))) return file(res, 'board.html');
   // сделки за суммой на табло: менеджер или сектор, за день / период / месяц → ссылки в CRM

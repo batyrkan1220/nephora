@@ -722,10 +722,10 @@ function upload(id, f) {
   const img = new Image(), r = new FileReader();
   r.onload = () => { img.src = r.result; };
   img.onload = async () => {
-    const n = 320, c = document.createElement('canvas'); c.width = c.height = n;
+    const n = 720, c = document.createElement('canvas'); c.width = c.height = n;
     const s = Math.min(img.width, img.height), x = c.getContext('2d');
     x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, n, n);
-    try { await api('/api/admin/photo/' + id, { method: 'POST', body: JSON.stringify({ data: c.toDataURL('image/jpeg', .86) }) }); await refreshUsers(); toast('Фото обновлено'); }
+    try { await api('/api/admin/photo/' + id, { method: 'POST', body: JSON.stringify({ data: c.toDataURL('image/jpeg', .92) }) }); await refreshUsers(); toast('Фото обновлено'); }
     catch (e) { toast('Ошибка: ' + e.message); }
   };
   r.readAsDataURL(f);

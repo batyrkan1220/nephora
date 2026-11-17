@@ -543,6 +543,14 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
 #wake video{width:14px;height:14px;border-radius:50%;object-fit:cover;display:block}
 #wake.ok{opacity:.6;background:none;box-shadow:none;padding:0}#wake.ok span{max-width:0;overflow:hidden;white-space:nowrap;transition:max-width .4s}
 #wake.off{background:#FEF3C7;color:#92400E;opacity:1}#wake.off span{max-width:none}
+
+/* чёткость: на ТВ, которые рисуют в низком разрешении, — плотнее шрифты и без тонких полутонов */
+html{text-rendering:optimizeLegibility}
+html.lowres body{-webkit-font-smoothing:subpixel-antialiased}
+html.lowres small,html.lowres .sline,html.lowres .pill,html.lowres .tag,html.lowres .cnt,html.lowres .ch span{font-weight:600}
+html.lowres .li .nm,html.lowres .rr .nm,html.lowres .mg .nm{font-weight:600}html.lowres .scd b{font-weight:700}
+.resinfo{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;background:#151827;color:#fff;border-radius:20px;padding:28px 36px;text-align:center;font-family:Inter,system-ui,sans-serif;display:flex;flex-direction:column;gap:8px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5)}
+.resinfo b{font-size:30px}.resinfo span{font-size:22px;color:#A5A8FF}.resinfo small{font-size:15px;opacity:.6}
 </style>
 </head>
 <body>
@@ -778,6 +786,18 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') document.que
   let t = null; const es = new EventSource('/api/live');
   const go = () => { clearTimeout(t); t = setTimeout(() => { try { load(); } catch {} }, 300); };
   es.addEventListener('data', go); es.addEventListener('config', go);
+})();
+
+/* ===== качество на больших ТВ: проверка разрешения (/tv?res) и чёткий режим ===== */
+(() => {
+  const dpr = window.devicePixelRatio || 1, w = Math.round(innerWidth * dpr), h = Math.round(innerHeight * dpr);
+  // ТВ-браузер рисует в низком разрешении (≤ 1280 px) — делаем шрифты плотнее, чтобы после растягивания текст оставался чётким
+  if (w <= 1366) document.documentElement.classList.add('lowres');
+  if (!/[?&]res\b/.test(location.search)) return;
+  const el = document.createElement('div'); el.className = 'resinfo';
+  const q = w >= 3800 ? '4K ✓' : w >= 2500 ? 'QHD' : w >= 1900 ? 'Full HD (1080p)' : w >= 1270 ? 'HD (720p) — ТВ растягивает картинку' : 'низкое';
+  el.innerHTML = `<b>Браузер ТВ рисует: ${w} × ${h}</b><span>${q}</span><small>окно ${innerWidth}×${innerHeight} · масштаб ${dpr}</small>`;
+  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(el)); if (document.body) document.body.appendChild(el);
 })();
 
 /* ===== экран ТВ не засыпает =====
