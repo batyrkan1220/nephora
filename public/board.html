@@ -625,7 +625,7 @@ function render() {
       <div class="sh1"><span class="sr num">${i + 1}</span><b>${esc(x.name)}</b>${i === 0 && x.daySum ? '<span class="tag"><i class="fl">🔥</i> 1 место дня</span>' : ''}<small>${x.managers} ${plural(x.managers, 'менеджер', 'менеджера', 'менеджеров')}</small></div>
       <div class="sbody">
         <div class="sdat"><small>Касса сегодня</small><b class="num dlk" data-sector="${x.id}" data-scope="day" data-nm="Сектор ${esc(x.name)}" title="Сделки в CRM">${CU('s-' + x.id, x.daySum)}</b>
-          <div class="sline num">период <b>${short(x.sum)}</b>${x.plan ? ` из ${short(x.plan)} ₸ · осталось <b>${short(Math.max(0, x.plan - x.sum))}</b>` : ' ₸ · план не задан'}</div>
+          <div class="sline num">за месяц <b>${short(x.sum)}</b>${x.plan ? ` из ${short(x.plan)} ₸ · осталось <b>${short(Math.max(0, x.plan - x.sum))}</b>` : ' ₸ · план не задан'}</div>
           ${x.dayPlan ? `<div class="sline num">план дня ${short(x.dayPlan)} ₸ · ${Math.floor(x.daySum / x.dayPlan * 100)}%</div>` : ''}</div>
         ${x.plan ? `<div class="ring ${pct >= 100 ? 'ok' : ''}" style="--p:${Math.min(100, pct).toFixed(1)}"><span class="num">${Math.floor(pct)}%</span><small>плана</small></div>` : ''}
       </div></div>`;
@@ -657,8 +657,8 @@ function render() {
         <div class="per num"><span class="lv"><i></i>LIVE</span>${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : `<span id="upd">${updText()}</span>`}</div></div>
       ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · план ${short(T.dayPlan)} ₸</small><b class="num">${CU('h-day', T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
         : `<div class="stat kp"><small>Касса сегодня · вся компания</small><b class="num">${CU('h-day', T.daySum)}</b></div>`}
-      ${T.plan ? `<div class="stat plan kb"><small>Касса периода · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
-        : `<div class="stat kb"><small>Касса периода · вся компания</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
+      ${T.plan ? `<div class="stat plan kb"><small>Касса за месяц · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
+        : `<div class="stat kb"><small>Касса за месяц · вся компания</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
       <button class="tbtn" id="testSale" title="Показать тестовую продажу на этом экране">🎉<span>Тест<br>продажа</span></button>
       <button class="tbtn fs" id="fsBtn" title="Полный экран (F)">⛶<span>Полный<br>экран</span></button>
@@ -846,7 +846,7 @@ function next() {
   const el = document.createElement('div'); el.className = 'pop';
   el.innerHTML = `<div class="rays"></div><div class="card">${e.sector ? `<div class="psec">${/^сектор/i.test(e.sector) ? esc(e.sector) : 'Сектор ' + esc(e.sector)}</div>` : '<span class="tag">🎉 Новая продажа</span>'}<div class="pav">${av(e)}</div><div class="nm">${esc(e.name)}</div>
     <div class="sm num">+<span id="psum">0 ₸</span></div>${e.title ? `<div class="tt">${esc(e.title)}</div>` : ''}
-    ${e.place ? `<div class="pl">${e.place} место · ${money(e.total)} за период</div>` : ''}</div>`;
+    ${e.place ? `<div class="pl">${e.place} место · ${money(e.total)} за месяц</div>` : ''}</div>`;
   document.body.appendChild(el);
   { const q = el.querySelector('.psec'); // длинное название сектора уменьшаем, пока не влезет
     if (q) { let f = parseFloat(getComputedStyle(q).fontSize); const fits = () => q.scrollWidth <= q.clientWidth + 1 && q.offsetHeight <= f * 1.05 * 2 + 26; if (q.scrollWidth > q.clientWidth + 1) q.style.whiteSpace = 'normal'; while (!fits() && f > 22) { f -= 2; q.style.fontSize = f + 'px'; } } }
