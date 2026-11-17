@@ -343,6 +343,7 @@ body{background:#EEF0F7}
 .row2.fr{grid-template-columns:repeat(auto-fit,minmax(420px,1fr));align-items:start}.rep{white-space:pre-wrap;font:13px/1.5 Inter,system-ui,sans-serif;background:#F7F8FC;border-radius:12px;padding:12px 14px;margin:0 0 8px;max-height:420px;overflow:auto}
 .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
 @media (max-width:1000px){.floor{grid-template-columns:1fr}.row3{grid-template-columns:1fr}}
+.secoff{background:#F7F8FC;border-radius:12px;padding:10px 12px;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -650,10 +651,13 @@ pages.board = (id, tab = 'main') => {
     const st = S.boards.find(x => x.id === b.id);
     const mem = st ? st.members : [];
     const depKids = {}; S.deps.forEach(d => { (depKids[d.parent] = depKids[d.parent] || []).push(d); });
+    const root = S.deps.find(d => !d.parent), secList = () => root ? S.deps.filter(d => d.parent === root.id) : [];
+    const subOf = id => { const out = new Set([id]); let grow = true; while (grow) { grow = false; S.deps.forEach(d => { if (out.has(d.parent) && !out.has(d.id)) { out.add(d.id); grow = true; } }); } return out; };
     const tree = (p, lvl) => (depKids[p] || []).map(d => `<label class="ck" style="padding-left:${lvl * 20}px"><input type="checkbox" data-dep="${d.id}" ${b.departments.includes(d.id) ? 'checked' : ''}> ${esc(d.name)}</label>` + tree(d.id, lvl + 1)).join('');
     const pool = S.users.filter(u => u.active && !b.members.includes(u.id)).sort((a, c) => a.name.localeCompare(c.name, 'ru'));
     h += `<div class="card"><h3>Отделы из Bitrix24</h3><p class="hint">Все активные сотрудники отмеченных отделов (и подотделов) участвуют в рейтинге — даже без продаж. Если ничего не выбрано и нет ручных участников — на доске все, у кого есть продажи за период.</p>
-        <label class="ck" style="margin:6px 0 10px">${sw(K + '.autoSectors')} Новые секторы из Bitrix24 добавлять автоматически (если их сотрудники ведут сделки)</label>
+        <label class="ck" style="margin:6px 0 10px">${sw(K + '.autoSectors')} Все секторы Bitrix24 на табло автоматически (новые появляются сами)</label>
+        ${b.autoSectors !== false ? `<div class="secoff"><div class="hint" style="margin-bottom:6px">Секторы (отделы первого уровня). Снимите галочку с отдела, который не продаёт:</div>${secList().map(d => `<label class="ck"><input type="checkbox" data-secon="${d.id}" ${(b.offSectors || []).includes(d.id) ? '' : 'checked'}> ${esc(d.name)} <span class="hint">· ${S.users.filter(u => u.active && u.deps.some(x => subOf(d.id).has(x))).length} чел.</span></label>`).join('') || '<div class="empty">Нет данных об отделах</div>'}</div>` : ''}
         <div class="dept">${tree('', 0) || '<div class="empty">Нет данных об отделах</div>'}</div></div>
       <div class="card"><h3>Добавить вручную</h3><div style="display:flex;gap:8px"><select class="in" id="addU"><option value="">Выберите сотрудника…</option>${pool.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select><button class="btn" id="addUB">Добавить</button></div>
         ${b.members.length ? `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${b.members.map(id => `<span class="pill">${esc(uName(id))} <a href="javascript:void 0" data-rmm="${id}" style="color:var(--red)">×</a></span>`).join('')}</div>` : ''}</div>
@@ -671,6 +675,7 @@ pages.board = (id, tab = 'main') => {
   document.querySelectorAll('[data-addbonus]').forEach(el => el.onclick = () => { getP(cfg, el.dataset.addbonus).push({ id: uid(), name: 'Бонус недели', period: 'week', metric: 'sum', tiers: [{ min: '', amount: '' }] }); setDirty(); route(); });
   document.querySelectorAll('[data-del]').forEach(el => el.onclick = () => { const p = el.dataset.del.split('.'); const j = +p.pop(); getP(cfg, p.join('.')).splice(j, 1); setDirty(); route(); });
   document.querySelectorAll('[data-set]').forEach(el => el.onclick = () => { setP(cfg, el.dataset.set, el.dataset.v); setDirty(); route(); });
+  document.querySelectorAll('[data-secon]').forEach(el => el.onchange = () => { const s = new Set(b.offSectors || []); el.checked ? s.delete(el.dataset.secon) : s.add(el.dataset.secon); b.offSectors = [...s]; setDirty(); });
   document.querySelectorAll('[data-dep]').forEach(el => el.onchange = () => { const s = new Set(b.departments); el.checked ? s.add(el.dataset.dep) : s.delete(el.dataset.dep); b.departments = [...s]; setDirty(); });
   document.querySelectorAll('[data-rmm]').forEach(el => el.onclick = () => { b.members = b.members.filter(x => x !== el.dataset.rmm); setDirty(); route(); });
   document.querySelectorAll('[data-ex]').forEach(el => el.onclick = () => { b.exclude = [...new Set([...b.exclude, el.dataset.ex])]; b.members = b.members.filter(x => x !== el.dataset.ex); setDirty(); el.closest('tr').style.opacity = .35; });
