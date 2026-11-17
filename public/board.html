@@ -765,6 +765,14 @@ document.addEventListener('click', async e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.dlm').forEach(x => x.remove()); });
 
+/* ===== live: сервер присылает сигнал «данные изменились» — табло обновляется сразу, без ожидания ===== */
+(() => {
+  if (!window.EventSource) return;
+  let t = null; const es = new EventSource('/api/live');
+  const go = () => { clearTimeout(t); t = setTimeout(() => { try { load(); } catch {} }, 300); };
+  es.addEventListener('data', go); es.addEventListener('config', go);
+})();
+
 /* ===== экран ТВ не засыпает =====
    1) Screen Wake Lock API (Chrome, Edge, Android TV, новые Samsung/LG) — перезапрашивается при возврате на вкладку;
    2) запасной путь для старых ТВ-браузеров: крошечное беззвучное видео по кругу (ТВ считает, что идёт воспроизведение);
@@ -896,12 +904,14 @@ function runCounters() {
 const placesPrev = { d: null, p: null };
 let introDone = false;
 const updText = () => D.error ? '' : 'обновлено ' + new Date(D.syncedAt).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit' });
+let loadT = null, loading = false;
 async function load() {
+  if (loading) return; loading = true; clearTimeout(loadT);
   try {
     const r = await fetch(`/api/board/${KEY}` + (D ? `?since=${seq}` : ''), { cache: 'no-store' });
     const j = await r.json();
-    if (!r.ok) { $('#app').innerHTML = `<div class="center"><div><b>Лидерборд не найден</b>Проверьте ссылку в кабинете</div></div>`; return setTimeout(load, 30000); }
-    if (j.paused) { $('#app').innerHTML = `<div class="center"><div><b>${esc(j.name)}</b>Лидерборд на паузе</div></div>`; D = null; return setTimeout(load, 15000); }
+    if (!r.ok) { $('#app').innerHTML = `<div class="center"><div><b>Лидерборд не найден</b>Проверьте ссылку в кабинете</div></div>`; loading = false; loadT = setTimeout(load, 30000); return; }
+    if (j.paused) { $('#app').innerHTML = `<div class="center"><div><b>${esc(j.name)}</b>Лидерборд на паузе</div></div>`; D = null; loading = false; loadT = setTimeout(load, 15000); return; }
     const first = !D; D = j;
     // перерисовываем только при реальных изменениях — иначе анимации и бегущая строка «прыгают»
     const key = JSON.stringify({ ...j, syncedAt: 0, events: 0, seq: 0 });
@@ -912,7 +922,7 @@ async function load() {
     seq = j.seq;
     if (first) askSound();
   } catch (e) { console.warn(e); }
-  setTimeout(load, 5000);
+  loading = false; loadT = setTimeout(load, 5000);
 }
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 200); });
 load();

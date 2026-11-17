@@ -731,6 +731,7 @@ function upload(id, f) {
   r.readAsDataURL(f);
 }
 
+document.addEventListener('click', e => { if (e.target.id === 'bxCopy') navigator.clipboard.writeText($('#bxHook').value).then(() => toast('Скопировано')); });
 pages.settings = () => {
   const s = cfg.settings, M = S.meta || {};
   const cats = {}; (M.stages || []).forEach(st => { (cats[st.category] = cats[st.category] || []).push(st); });
@@ -742,6 +743,10 @@ pages.settings = () => {
       ${S.syncedAt ? ` · последняя синхронизация ${new Date(S.syncedAt).toLocaleTimeString('ru-RU')}` : ''} · хранилище: <b>${S.store === 'supabase' ? 'Supabase' : S.store === 'postgres' ? 'Postgres' : 'файл (временное!)'}</b></p>
       ${S.store === 'file' ? '<div class="warn">База не подключена — настройки сохранятся только до перезапуска сервера. Добавьте SUPABASE_DB_URL в переменные Render.</div>' : ''}
       <button class="btn l" id="resync">↻ Синхронизировать сейчас</button></div>
+    <div class="card"><h3>⚡ Мгновенное обновление (live)</h3>
+      <p class="hint">Табло и кабинет обновляются сами, как только меняются данные. Без этой настройки изменения из Bitrix24 приходят за ~30 секунд; с ней — за 2–3 секунды после закрытия сделки.</p>
+      <p>Bitrix24 → <b>Разработчикам → Другое → Исходящий вебхук</b>. В поле «URL обработчика» вставьте адрес ниже и отметьте события: <b>Создание сделки, Обновление сделки, Удаление сделки</b> (по желанию — <b>Завершение звонка</b>). Сохраните.</p>
+      ${S.bxHook ? `<div style="display:flex;gap:8px"><input class="in" readonly id="bxHook" value="${esc(location.origin + S.bxHook)}"><button class="btn l s" id="bxCopy">Копировать</button></div>` : ''}</div>
     <div class="card"><h3>База Safa (копия CRM)</h3><p class="hint">Сделки, лиды и звонки из Bitrix24 копируются в базу для воронки, выкупа, звонков и AI-ассистента. Обновляется каждые 2 минуты — только изменения.</p>
       <p>${S.wh.error ? `<span class="pill er">Ошибка</span> ${esc(S.wh.error)}` : S.wh.lastRun ? '<span class="pill ok">Работает</span>' : '<span class="pill">Первая загрузка…</span>'}${S.wh.progress ? ' · ' + esc(S.wh.progress) : ''} · ${S.wh.counts.deal} сделок · ${S.wh.counts.lead} лидов · ${S.wh.counts.call} звонков · ${S.wh.persisted ? 'хранится в Postgres' : '<b>без Postgres — только в памяти</b>'}</p>
       ${S.wh.callsError ? `<div class="warn">${esc(S.wh.callsError)}</div>` : ''}
@@ -1436,6 +1441,19 @@ function route() {
   go[sec.id]();
 }
 addEventListener('hashchange', route);
+// live: при изменении данных тихо обновляем состояние; страницы просмотра перерисовываются, если вы ничего не вводите
+(() => {
+  if (!window.EventSource) return;
+  const es = new EventSource('/api/live'); let t = null;
+  const RO = ['', 'home', 'sales', 'team', 'calls', 'money', 'factory'];
+  const go = () => { clearTimeout(t); t = setTimeout(async () => {
+    const r = location.hash.split('/')[1] || '';
+    const busy = document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+    if (busy || document.querySelector('.ov, .modal, .dlm') || !RO.includes(r) || document.hidden) return;
+    const y = scrollY; try { await loadState(); route(); setTimeout(() => scrollTo(0, y), 400); } catch {}
+  }, 800); };
+  es.addEventListener('data', go); es.addEventListener('config', go);
+})();
 loadState().then(route).catch(e => { $('#main').innerHTML = `<div class="warn">Ошибка загрузки: ${esc(e.message)}</div>`; });
 </script>
 </body>

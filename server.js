@@ -57,8 +57,11 @@ async function sync() {
         events = events.filter(e => now - e.at < 15 * 60e3).slice(-200);
       }
       seen = ids;
-      Object.assign(cache, { deals, users, userMap, deps, range: { from, to }, syncedAt: Date.now(), error: '' });
+      const sig = deals.length + ':' + deals.reduce((a, d) => a + (+d.sum || 0) + (+d.id || 0), 0) + ':' + users.map(u => u.id + u.name + u.photo + u.deps.join(',')).join('|').length + ':' + users.length + ':' + deps.map(d => d.id + d.name + d.parent).join('|');
+      const changed = sig !== cache.sig;
+      Object.assign(cache, { deals, users, userMap, deps, range: { from, to }, syncedAt: Date.now(), error: '', sig });
       saveSnap();
+      if (changed) livePush('data');
     } catch (e) {
       cache.error = String(e.message || e);
       console.error('sync:', cache.error);
@@ -142,6 +145,28 @@ async function runDupeDelete(pairs, stage) {
   }
   cache.deals = cache.deals.filter(d => wh.byId('deal', d.id) || !pairs.some(x => x.src.id === d.id));
   sync();
+}
+/* ===== live-обновление: сервер сам сообщает табло и кабинету, что данные изменились (Server-Sent Events) ===== */
+const liveClients = new Set();
+function livePush(kind) {
+  const msg = `event: ${kind}\ndata: ${Date.now()}\n\n`;
+  for (const r of liveClients) { try { r.write(msg); } catch { liveClients.delete(r); } }
+}
+function liveOpen(req, res) {
+  res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });
+  res.write('retry: 3000\n\n'); liveClients.add(res);
+  const ping = setInterval(() => { try { res.write(': ping\n\n'); } catch {} }, 20e3);
+  req.on('close', () => { clearInterval(ping); liveClients.delete(res); });
+}
+// входящее событие Bitrix24 (исходящий вебхук: сделка добавлена/изменена/удалена, звонок завершён) → синхронизация сразу
+const bxHookToken = () => { let t = store.get('bx:hook'); if (!t) { t = crypto.randomBytes(16).toString('hex'); store.set('bx:hook', t); } return t; };
+let kickT = null, kickRun = false;
+function kick(why) {
+  clearTimeout(kickT);
+  kickT = setTimeout(async () => {
+    if (kickRun) return kick(why); kickRun = true;
+    try { await sync(); loop(); wh.sync && wh.sync().catch(() => {}); } finally { kickRun = false; }
+  }, 1500);
 }
 function loop() {
   clearTimeout(timer);
@@ -273,6 +298,14 @@ async function handle(req, res) {
     return res.end(Buffer.from(b64, 'base64'));
   }
 
+  // --- live-поток для табло (публичный, без данных — только сигнал «обновись») ---
+  if (p === '/api/live') return liveOpen(req, res);
+  // --- Bitrix24: исходящий вебхук (адрес с секретным ключом из «Настройки → Система») ---
+  if ((m = p.match(/^\/api\/bx\/(\w+)\/?$/))) {
+    const t = bxHookToken(), ok = m[1].length === t.length && crypto.timingSafeEqual(Buffer.from(m[1]), Buffer.from(t));
+    if (!ok) return send(res, 403, { error: 'bad token' });
+    kick('bitrix'); return send(res, 200, { ok: true });
+  }
   // --- Wazzup: вебхук сообщений (адрес с секретным ключом, ставится при подключении в настройках) ---
   if ((m = p.match(/^\/api\/wz\/(\w+)\/?$/))) {
     const t = wz.token(), ok = m[1].length === t.length && crypto.timingSafeEqual(Buffer.from(m[1]), Buffer.from(t));
@@ -334,7 +367,7 @@ async function handle(req, res) {
       boards: cfg.boards.map(b => ({ id: b.id, members: C.computeBoard(b, ctx()).members })),
       dealUids: [...new Set(cache.deals.map(d => d.uid))],
       secOf: C.sectorMap(ctx()), me: auth.publicUser(user), sectors: C.sectorsOf(cache.deps).map(d => ({ id: d.id, name: d.name })),
-      accounts: isOwner ? auth.list() : undefined, ownerLogin: isOwner ? auth.ownerLogin() : undefined, wzCh: Object.fromEntries(wz.status().channels.map(x => [x.id, wz.channelName(x.id)])), attPen: isOwner ? att.penalties(cfg) : undefined, wh: wh.status(), ai: !!process.env.ANTHROPIC_API_KEY,
+      accounts: isOwner ? auth.list() : undefined, ownerLogin: isOwner ? auth.ownerLogin() : undefined, bxHook: isOwner ? '/api/bx/' + bxHookToken() : undefined, wzCh: Object.fromEntries(wz.status().channels.map(x => [x.id, wz.channelName(x.id)])), attPen: isOwner ? att.penalties(cfg) : undefined, wh: wh.status(), ai: !!process.env.ANTHROPIC_API_KEY,
     });
   }
   if (p === '/api/admin/config' && req.method === 'PUT') {
@@ -343,7 +376,7 @@ async function handle(req, res) {
     cfg = C.normalize({ settings: body.settings, managers: body.managers, boards: body.boards, penalties: body.penalties || [], sectorBoards: cfg.sectorBoards || [], presetV: cfg.presetV, oneBoardV2: cfg.oneBoardV2, brandV3: cfg.brandV3 });
     await store.set('config', cfg); wh.setCfg(cfg); att.touch(); cai.setCfg(cfg);
     if (JSON.stringify([cfg.settings.stages, cfg.settings.dateField]) !== prevStages) seen = null;
-    sync().then(loop);
+    sync().then(loop); livePush('config');
     return send(res, 200, { ok: true, cfg });
   }
   if ((m = p.match(/^\/api\/admin\/photo\/(\w+)$/))) {
@@ -351,6 +384,7 @@ async function handle(req, res) {
     const { data } = JSON.parse(await readBody(req));
     if (!/^data:image\/(png|jpeg|webp|gif);base64,/.test(data || '')) return send(res, 400, { error: 'Нужна картинка' });
     await store.set('photo:' + m[1], { data, ts: Date.now() });
+    livePush('config');
     return send(res, 200, { ok: true, url: `/photo/${m[1]}?v=${Date.now()}` });
   }
   // Сверка кассы за день: какие сделки Bitrix24 попали / не попали в рейтинг и почему
