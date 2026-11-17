@@ -605,7 +605,7 @@ async function handle(req, res) {
           uid: deal.uid, manager: nm(deal.uid), sector: secName[secOf[deal.uid]] || '', cr: deal.cr, won: kassa.has(deal.st) || deal.sem === 'S', lost: deal.sem === 'F' } : null,
         soldSum: sold.reduce((a, d) => a + d.sum, 0), sold: sold.length > 0 };
     }).filter(r => !r.deal || !r.deal.uid || A.has(r.deal.uid) || isOwner);
-    const agg = list => ({ leads: list.length, new: list.filter(r => !r.repeat).length, repeat: list.filter(r => r.repeat).length, deals: list.filter(r => r.deal).length,
+    const agg = list => ({ leads: list.length, firstChat: list.filter(r => !r.waBefore).length, new: list.filter(r => !r.repeat).length, repeat: list.filter(r => r.repeat).length, deals: list.filter(r => r.deal).length,
       sold: list.filter(r => r.sold).length, soldSum: list.reduce((a, r) => a + r.soldSum, 0), noAnswer: list.filter(r => r.ansMin == null).length,
       ansMed: (a => a.length ? a.sort((x, y) => x - y)[a.length >> 1] : null)(list.filter(r => r.ansMin != null).map(r => r.ansMin)) });
     const group = key => Object.entries(rows.reduce((m, r) => { (m[key(r)] = m[key(r)] || []).push(r); return m; }, {}));
