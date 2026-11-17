@@ -16,6 +16,7 @@ const cai = require('./lib/callai');
 const EF = require('./lib/efficiency');
 const wz = require('./lib/wazzup');
 const bots = require('./lib/bots');
+const BUILD = String(Date.now()); // версия сервера: открытые табло перезагружаются сами после деплоя
 
 const PORT = process.env.PORT || 3000;
 const PASS = process.env.DASH_PASSWORD || '';
@@ -283,7 +284,7 @@ async function handle(req, res) {
     // «Топ месяца» — всегда за текущий календарный месяц, даже если у доски свой период
     const M = C.monthRange(data.period.today);
     const month = M.from === from && M.to === to ? { from, to, rows: null } : { ...M, rows: C.computeBoard({ ...b, auto: true }, ctx()).rows };
-    return send(res, 200, { ...data, month, members: undefined, _all: undefined, events: ev, seq, syncedAt: cache.syncedAt, error: cache.error, company: cfg.settings.company });
+    return send(res, 200, { ...data, build: BUILD, month, members: undefined, _all: undefined, events: ev, seq, syncedAt: cache.syncedAt, error: cache.error, company: cfg.settings.company });
   }
   if (p === '/live.mp4' || p === '/live.webm') {
     const buf = fs.readFileSync(path.join(PUB, p.slice(1))), type = p.endsWith('webm') ? 'video/webm' : 'video/mp4';

@@ -814,7 +814,10 @@ function keepSound() {   // неслышимый тон: медиасессия 
 }
 nsv.addEventListener('playing', wakeState); nsv.addEventListener('pause', () => { setTimeout(keepAwake, 500); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
-['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { keepAwake(); keepSound(); }, { passive: true }));
+// после нажатия пульта видео играет со звуком (дорожка — тишина): ТВ-браузеры (LG webOS, Samsung Tizen) тогда точно
+// считают, что идёт воспроизведение, и не включают свою заставку через 2–3 минуты
+function unmuteKeep() { try { if (nsv.muted) { nsv.muted = false; nsv.volume = 1; const p = nsv.play(); if (p && p.catch) p.catch(() => { nsv.muted = true; nsv.play().catch(() => {}); }); } } catch {} }
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { keepAwake(); keepSound(); unmuteKeep(); }, { passive: true }));
 setInterval(keepAwake, 20e3);
 keepAwake(); setTimeout(keepAwake, 1500);
 const BOOT = Date.now();
@@ -932,6 +935,8 @@ async function load() {
     const j = await r.json();
     if (!r.ok) { $('#app').innerHTML = `<div class="center"><div><b>Лидерборд не найден</b>Проверьте ссылку в кабинете</div></div>`; loading = false; loadT = setTimeout(load, 30000); return; }
     if (j.paused) { $('#app').innerHTML = `<div class="center"><div><b>${esc(j.name)}</b>Лидерборд на паузе</div></div>`; D = null; loading = false; loadT = setTimeout(load, 15000); return; }
+    // новая версия сайта (после деплоя) — перезагружаемся, чтобы на ТВ всегда был свежий код
+    if (j.build) { if (!window.BUILD0) window.BUILD0 = j.build; else if (j.build !== window.BUILD0 && !showing) { location.reload(); return; } }
     const first = !D; D = j;
     // перерисовываем только при реальных изменениях — иначе анимации и бегущая строка «прыгают»
     const key = JSON.stringify({ ...j, syncedAt: 0, events: 0, seq: 0 });
