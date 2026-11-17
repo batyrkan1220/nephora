@@ -675,13 +675,13 @@ function render() {
     <div class="cols3">
       <div class="col cs"><div class="ch"><span class="ci">${ICO.sec}</span><b>Битва секторов</b><span>по кассе дня</span></div>
         <div class="slst ${SEC.length > (PT ? 2 : 3) ? 'many' : ''}" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
-        ${T.plan ? `<div class="cfoot num"><div><span>План компании</span><b>${money(T.sum)} <em>/ ${short(T.plan)} ₸</em></b></div>${bar(T.sum, T.plan)}</div>` : ''}</div>
+</div>
       <div class="col cd"><div class="ch"><span class="ci">${ICO.day}</span><b>Топ-${N} сегодня</b><span>касса за день</span></div>
         <div class="lst" id="l2">${TOPD.map((r, i) => mgrRow(r, i, true, TOPD[0].daySum)).join('')}${Array.from({ length: Math.max(0, N - TOPD.length) }, (_, k) => slot(TOPD.length + k)).join('')}</div></div>
       <div class="col cp"><div class="ch"><span class="ci">${ICO.per}</span><b>Топ-${N} месяца</b><span>${MONTHS[+MON.from.slice(5, 7) - 1]}</span></div>
         <div class="lst" id="l3">${TOPP.length ? TOPP.map((r, i) => mgrRow(r, i, false, TOPP[0].sum)).join('') : '<div class="li none">Пока нет продаж за месяц</div>'}</div></div>
     </div>
-    ${REC.length && !PH ? `<div class="tickr" data-k="${esc(REC.map(x => x.name + x.sum).join('|'))}"><span class="tl">Последние продажи</span><div class="tw2"><div class="tm" style="--d:${Math.max(25, REC.length * 6)}s">${[...REC, ...REC].map(x => `<span class="ti"><b>${esc(x.name)}</b>${x.dep ? ` <small>${esc(x.dep)}</small>` : ''} <em class="num">+${money(x.sum)}</em></span>`).join('')}</div></div></div>` : ''}`;
+    ${REC.length && !PH ? `<div class="tickr" data-k="${esc(REC.map(x => x.name + x.sum).join('|'))}"><div class="tw2"><div class="tm" style="--d:${Math.max(25, REC.length * 6)}s">${[...REC, ...REC].map(x => `<span class="ti"><b>${esc(x.name)}</b>${x.dep ? ` <small>${esc(x.dep)}</small>` : ''} <em class="num">+${money(x.sum)}</em></span>`).join('')}</div></div></div>` : ''}`;
   tick();
   if (!introDone) { $('#app').classList.add('intro'); introDone = true; setTimeout(() => $('#app') && $('#app').classList.remove('intro'), 4000); }
   runCounters();
