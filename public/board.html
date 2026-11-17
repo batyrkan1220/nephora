@@ -622,7 +622,7 @@ function render() {
   const secCard = (x, i) => {
     const pct = x.plan ? x.sum / x.plan * 100 : 0, c = secColor(x.id);
     return `<div class="scd ${i === 0 && x.daySum ? 'lead' : ''}" style="--c:${c};--t:${tint(c, .1)};--t2:${tint(c, .2)};--i:${i}">
-      <div class="sh1"><span class="sr num">${i + 1}</span><b>${esc(x.name)}</b>${i === 0 && x.daySum ? '<span class="tag"><i class="fl">🔥</i> 1 место дня</span>' : ''}<small>${x.managers} ${plural(x.managers, 'менеджер', 'менеджера', 'менеджеров')}</small></div>
+      <div class="sh1"><span class="sr num">${i + 1}</span><b>${esc(x.name)}</b>${i === 0 && x.daySum ? '<span class="tag"><i class="fl">🔥</i> 1 место дня</span>' : ''}<small>${(n => `${n} ${plural(n, 'менеджер', 'менеджера', 'менеджеров')}`)(Math.max(x.managers, x.staff || 0))}</small></div>
       <div class="sbody">
         <div class="sdat"><small>Касса сегодня</small><b class="num dlk" data-sector="${x.id}" data-scope="day" data-nm="Сектор ${esc(x.name)}" title="Сделки в CRM">${CU('s-' + x.id, x.daySum)}</b>
           <div class="sline num">за месяц <b>${short(x.sum)}</b>${x.plan ? ` из ${short(x.plan)} ₸ · осталось <b>${short(Math.max(0, x.plan - x.sum))}</b>` : ' ₸ · план не задан'}</div>
