@@ -285,6 +285,15 @@ async function handle(req, res) {
     const month = M.from === from && M.to === to ? { from, to, rows: null } : { ...M, rows: C.computeBoard({ ...b, auto: true }, ctx()).rows };
     return send(res, 200, { ...data, month, members: undefined, _all: undefined, events: ev, seq, syncedAt: cache.syncedAt, error: cache.error, company: cfg.settings.company });
   }
+  if (p === '/live.mp4' || p === '/live.webm') {
+    const buf = fs.readFileSync(path.join(PUB, p.slice(1))), type = p.endsWith('webm') ? 'video/webm' : 'video/mp4';
+    const rg = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
+    if (rg) { const st = +rg[1] || 0, en = rg[2] ? +rg[2] : buf.length - 1;
+      res.writeHead(206, { 'Content-Type': type, 'Content-Range': `bytes ${st}-${en}/${buf.length}`, 'Accept-Ranges': 'bytes', 'Content-Length': en - st + 1, 'Cache-Control': 'public, max-age=86400' });
+      return res.end(buf.subarray(st, en + 1)); }
+    res.writeHead(200, { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Length': buf.length, 'Cache-Control': 'public, max-age=86400' });
+    return res.end(buf);
+  }
   if (p === '/sale.mp3' || p === '/overtake.mp3') {
     res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400' });
     return res.end(fs.readFileSync(path.join(PUB, p.slice(1))));

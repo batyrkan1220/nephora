@@ -536,6 +536,13 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
 .dli span{font-weight:700;font-size:15px;white-space:nowrap}.dli i{font-style:normal;color:#4B4FE8;font-weight:700}
 .dlt{display:flex;justify-content:space-between;padding:12px 10px 4px;border-top:1px solid #EEF0F7;margin-top:6px;color:#8A8FA8;font-size:13px}.dlt b{color:#151827;font-size:15px}
 .dle{padding:24px;text-align:center;color:#8A8FA8}
+
+/* индикатор «экран не уснёт» (внутри — видео, которое держит ТВ активным) */
+#wake{position:fixed;left:6px;bottom:3px;z-index:30;display:flex;align-items:center;gap:8px;font:600 12px Inter,system-ui,sans-serif;color:#5B6078;
+  background:rgba(255,255,255,.85);border-radius:99px;padding:4px 12px 4px 4px;box-shadow:0 4px 14px -8px rgba(21,24,39,.35);pointer-events:none;transition:opacity .4s}
+#wake video{width:14px;height:14px;border-radius:50%;object-fit:cover;display:block}
+#wake.ok{opacity:.6;background:none;box-shadow:none;padding:0}#wake.ok span{max-width:0;overflow:hidden;white-space:nowrap;transition:max-width .4s}
+#wake.off{background:#FEF3C7;color:#92400E;opacity:1}#wake.off span{max-width:none}
 </style>
 </head>
 <body>
@@ -774,31 +781,44 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') document.que
 })();
 
 /* ===== экран ТВ не засыпает =====
-   1) Screen Wake Lock API (Chrome, Edge, Android TV, новые Samsung/LG) — перезапрашивается при возврате на вкладку;
-   2) запасной путь для старых ТВ-браузеров: крошечное беззвучное видео по кругу (ТВ считает, что идёт воспроизведение);
-   3) каждые 30 с — незаметное движение пикселя, чтобы не сработала заставка «статичная картинка». */
-let wakeLock = null;
+   1) Screen Wake Lock API — запрашивается сразу и перепроверяется каждые 20 с (система снимает его при сворачивании);
+   2) видимое видео по кругу (пульсирующая точка в углу) — ТВ-браузеры не гасят экран, пока идёт воспроизведение;
+   3) после первого нажатия пульта — неслышимый звук (активная медиасессия для Tizen/webOS);
+   4) раз в 6 часов страница тихо перезагружается — у ТВ-браузеров со временем «засыпает» память. */
+let wakeLock = null, keepAudio = null;
+const wk = document.createElement('div'); wk.id = 'wake';
+wk.innerHTML = `<video muted playsinline loop autoplay preload="auto"><source src="/live.webm" type="video/webm"><source src="/live.mp4" type="video/mp4"></video><span></span>`;
+const nsv = wk.querySelector('video'); nsv.muted = true;
+document.addEventListener('DOMContentLoaded', () => document.body.appendChild(wk));
+if (document.body) document.body.appendChild(wk);
+function wakeState() {
+  const vid = !nsv.paused && nsv.readyState > 2, ok = !!wakeLock || vid;
+  wk.className = ok ? 'ok' : 'off';
+  wk.querySelector('span').textContent = ok ? (wakeLock ? 'Экран не уснёт' : 'Экран активен') : 'Нажмите любую кнопку — экран не уснёт';
+  return ok;
+}
 async function keepAwake() {
-  try { if ('wakeLock' in navigator && document.visibilityState === 'visible' && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch {}
-  nsVideo();
+  try { if ('wakeLock' in navigator && document.visibilityState === 'visible' && !wakeLock) {
+    wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; wakeState(); });
+  } } catch {}
+  if (nsv.paused) { try { const p = nsv.play(); if (p && p.catch) p.catch(() => {}); } catch {} }
+  wakeState();
 }
-let nsv = null;
-function nsVideo() {
-  if (!nsv) {
-    nsv = document.createElement('video');
-    nsv.setAttribute('playsinline', ''); nsv.setAttribute('muted', ''); nsv.muted = true; nsv.loop = true;
-    nsv.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:-1';
-    nsv.innerHTML = '<source type="video/webm" src="data:video/webm;base64,GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChYECGFOAZwEAAAAAAAH9EU2bdLpNu4tTq4QVSalmU6yBoU27i1OrhBZUrmtTrIHYTbuMU6uEElTDZ1OsggEeTbuMU6uEHFO7a1OsggHn7AEAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmsirXsYMPQkBNgI1MYXZmNjAuMTYuMTAwV0GNTGF2ZjYwLjE2LjEwMESJiECfQAAAAAAAFlSua8GuAQAAAAAAADjXgQFzxYi8mn+UW38RXpyBACK1nIN1bmSIgQCGhVZfVlA4g4EBI+ODhDuaygDgibCBELqBEJqBAhJUw2f8c3OgY8CAZ8iaRaOHRU5DT0RFUkSHjUxhdmY2MC4xNi4xMDBzc9ZjwItjxYi8mn+UW38RXmfIoUWjh0VOQ09ERVJEh5RMYXZjNjAuMzEuMTAyIGxpYnZweGfIoUWjiERVUkFUSU9ORIeTMDA6MDA6MDIuMDAwMDAwMDAwAB9DtnXD54EAo6OBAACAEAIAnQEqEAAQAABHCIWFiJmEiAICAAwNYAD+/6tQgKOZgQPoALEBAAEQEAAYADA/9AwAAAD+/6tQgBxTu2uRu4+zgQC3iveBAfGCAZ/wgQM="><source type="video/mp4" src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAMpbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAlN0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAfQAAAAAAABAAAAAAHLbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAgABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABdm1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAATZzdGJsAAAAtnN0c2QAAAAAAAAAAQAAAKZhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFUxhdmM2MC4zMS4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAALGF2Y0MBQsAK/+EAFWdCwAraewEQAAADABAAAAMAIPEiagEABGjOD8gAAAAQcGFzcAAAAAEAAAABAAAAFGJ0cnQAAAAAAAAKMAAACjAAAAAYc3R0cwAAAAAAAAABAAAAAgAAQAAAAAAUc3RzcwAAAAAAAAABAAAAAQAAABxzdHNjAAAAAAAAAAEAAAABAAAAAgAAAAEAAAAcc3RzegAAAAAAAAAAAAAAAgAAAoMAAAAJAAAAFHN0Y28AAAAAAAAAAQAAA1kAAABidWR0YQAAAFptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAAC1pbHN0AAAAJal0b28AAAAdZGF0YQAAAAEAAAAATGF2ZjYwLjE2LjEwMAAAAAhmcmVlAAAClG1kYXQAAAJtBgX//2ncRem95tlIt5Ys2CDZI+7veDI2NCAtIGNvcmUgMTY0IHIzMTA4IDMxZTE5ZjkgLSBILjI2NC9NUEVHLTQgQVZDIGNvZGVjIC0gQ29weWxlZnQgMjAwMy0yMDIzIC0gaHR0cDovL3d3dy52aWRlb2xhbi5vcmcveDI2NC5odG1sIC0gb3B0aW9uczogY2FiYWM9MCByZWY9MSBkZWJsb2NrPTE6MDowIGFuYWx5c2U9MHgxOjB4MSBtZT1oZXggc3VibWU9MiBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0wIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MCA4eDhkY3Q9MCBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0wIHRocmVhZHM9MSBsb29rYWhlYWRfdGhyZWFkcz0xIHNsaWNlZF90aHJlYWRzPTAgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZWQ9MCBibHVyYXlfY29tcGF0PTAgY29uc3RyYWluZWRfaW50cmE9MCBiZnJhbWVzPTAgd2VpZ2h0cD0wIGtleWludD0yNTAga2V5aW50X21pbj0xIHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9MTAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAADmWIhAW///8PRQABT3+AAAAABUGaIBX1">';
-    document.body.appendChild(nsv);
-  }
-  if (nsv.paused) { const p = nsv.play(); if (p && p.catch) p.catch(() => {}); }
+function keepSound() {   // неслышимый тон: медиасессия активна, ТВ не считает, что «ничего не происходит»
+  try {
+    if (keepAudio || !(window.AudioContext || window.webkitAudioContext)) return;
+    const ctx = audio || new (window.AudioContext || window.webkitAudioContext)(); audio = audio || ctx;
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 30; g.gain.value = 0.0001;
+    o.connect(g); g.connect(ctx.destination); o.start(); keepAudio = o; if (ctx.state === 'suspended') ctx.resume();
+  } catch {}
 }
+nsv.addEventListener('playing', wakeState); nsv.addEventListener('pause', () => { setTimeout(keepAwake, 500); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
-['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, keepAwake, { passive: true }));
-const nudge = document.createElement('i'); nudge.style.cssText = 'position:fixed;right:0;top:0;width:1px;height:1px;background:rgba(0,0,0,.02);pointer-events:none;z-index:99';
-document.addEventListener('DOMContentLoaded', () => document.body.appendChild(nudge));
-setInterval(() => { nudge.style.right = nudge.style.right === '0px' ? '1px' : '0px'; keepAwake(); }, 30e3);
-keepAwake();
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { keepAwake(); keepSound(); }, { passive: true }));
+setInterval(keepAwake, 20e3);
+keepAwake(); setTimeout(keepAwake, 1500);
+const BOOT = Date.now();
+setInterval(() => { if (Date.now() - BOOT > 6 * 3600e3 && !showing) location.reload(); }, 60e3);
 
 /* ===== полный экран: кнопка, клавиша F и автоматически при первом касании/нажатии пульта =====
    (браузер не даёт открыть полный экран без действия пользователя — поэтому первое касание его и включает) */
