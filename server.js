@@ -580,6 +580,41 @@ async function handle(req, res) {
     }
     return send(res, 200, wz.status());
   }
+  // WhatsApp-лиды по дням: сколько написало, сколько новых/повторных, с какого номера, что в CRM (сделка, стадия, менеджер, сумма)
+  if (p === '/api/admin/wz/leads') {
+    const q = url.searchParams, today = C.todayKey(cfg.settings.tz), c = ctx(), tz = cfg.settings.tz;
+    const from = q.get('from') || C.monthRange(today).from, to = q.get('to') || today;
+    const A = AN.allowedUids(c, scope, { sector: q.get('sector') || '', uid: q.get('uid') || '' });
+    const meta = Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x]));
+    const kassa = new Set(cfg.settings.stages || []), nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || '';
+    const secOf = C.sectorMap(c), secName = Object.fromEntries((c.deps || []).map(d => [d.id, d.name]));
+    // сделки по номеру телефона (из названия «Сделка по обращению в WhatsApp (7705…)»)
+    const byPhone = {};
+    wh.all('deal').forEach(d => { const ph = wz.phoneOf(d.t); if (ph) (byPhone[ph] = byPhone[ph] || []).push(d); });
+    Object.values(byPhone).forEach(a => a.sort((x, y) => +new Date(x.cr) - +new Date(y.cr)));
+    const base = bx.portal(), H = 3600e3;
+    const rows = wz.leads(from, to, tz).map(L => {
+      const ds = byPhone[L.phone] || [];
+      const earlier = ds.filter(d => +new Date(d.cr) < L.at - H);                         // сделки до обращения → клиент уже был в CRM
+      const deal = ds.find(d => +new Date(d.cr) >= L.at - H && +new Date(d.cr) <= L.at + 3 * 24 * H) || ds[ds.length - 1] || null;
+      const repeat = !!L.waBefore || earlier.length > 0;
+      const st = deal ? meta[deal.st] || {} : {};
+      const sold = ds.filter(d => +new Date(d.cr) >= L.at - H && (kassa.has(d.st) || d.sem === 'S'));
+      return { ...L, repeat, why: L.waBefore ? 'писал(а) ' + new Date(L.waBefore).toISOString().slice(0, 10) : earlier.length ? 'есть в CRM с ' + earlier[0].cr.slice(0, 10) + ` (${earlier.length} сд.)` : '',
+        crmBefore: earlier.length, deal: deal ? { id: deal.id, url: base ? `${base}/crm/deal/details/${deal.id}/` : '', stage: st.name || deal.st, cat: st.category || '', sum: deal.sum,
+          uid: deal.uid, manager: nm(deal.uid), sector: secName[secOf[deal.uid]] || '', cr: deal.cr, won: kassa.has(deal.st) || deal.sem === 'S', lost: deal.sem === 'F' } : null,
+        soldSum: sold.reduce((a, d) => a + d.sum, 0), sold: sold.length > 0 };
+    }).filter(r => !r.deal || !r.deal.uid || A.has(r.deal.uid) || isOwner);
+    const agg = list => ({ leads: list.length, new: list.filter(r => !r.repeat).length, repeat: list.filter(r => r.repeat).length, deals: list.filter(r => r.deal).length,
+      sold: list.filter(r => r.sold).length, soldSum: list.reduce((a, r) => a + r.soldSum, 0), noAnswer: list.filter(r => r.ansMin == null).length,
+      ansMed: (a => a.length ? a.sort((x, y) => x - y)[a.length >> 1] : null)(list.filter(r => r.ansMin != null).map(r => r.ansMin)) });
+    const group = key => Object.entries(rows.reduce((m, r) => { (m[key(r)] = m[key(r)] || []).push(r); return m; }, {}));
+    const days = group(r => r.day).map(([d, l]) => ({ day: d, ...agg(l), byCh: l.reduce((m, r) => { m[r.chName] = (m[r.chName] || 0) + 1; return m; }, {}) })).sort((a, b) => a.day.localeCompare(b.day));
+    const channels = group(r => r.chName).map(([n, l]) => ({ name: n, ...agg(l) })).sort((a, b) => b.leads - a.leads);
+    const managers = group(r => r.deal && r.deal.manager || '— без сделки').map(([n, l]) => ({ name: n, uid: (l.find(r => r.deal) || { deal: {} }).deal.uid || '', ...agg(l) })).sort((a, b) => b.leads - a.leads);
+    const hf = wz.historyFrom();
+    return send(res, 200, { from, to, connected: wz.status().connected, historyFrom: hf ? new Date(hf).toISOString().slice(0, 10) : null, total: agg(rows), days, channels, managers, rows: rows.slice(0, 2000) });
+  }
   if (p === '/api/admin/wz/report') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz), c = ctx();
     const A = AN.allowedUids(c, scope, { sector: q.get('sector') || '', uid: q.get('uid') || '' });
