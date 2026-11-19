@@ -661,7 +661,12 @@ function setRotation() {
   const v = D && D.board.screen.orientation === 'vertical' && innerWidth > innerHeight;
   document.documentElement.classList.toggle('rot', !!v);
 }
-function tick() { const c = $('#clock'); if (c) c.innerHTML = new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit', second: '2-digit' }).split('').map(ch => /\d/.test(ch) ? `<span>${ch}</span>` : ch).join(''); }
+// время Казахстана: единый UTC+5 (с 2024 г.). Не через базу часовых поясов (у старых ТВ-браузеров там ещё UTC+6)
+// и по часам сервера, а не телевизора (у ТВ часы часто сбиты)
+let skew = 0;
+const kzNow = () => Date.now() + skew;
+const kzTime = (ts, sec) => new Date(ts + 5 * 3600e3).toISOString().slice(11, sec ? 19 : 16);
+function tick() { const c = $('#clock'); if (c) c.innerHTML = kzTime(kzNow(), true).split('').map(ch => /\d/.test(ch) ? `<span>${ch}</span>` : ch).join(''); }
 setInterval(tick, 1000);
 
 function render() { setTimeout(ribbons, 0); return render0(); }
@@ -832,7 +837,7 @@ function askSound() {
 // обратный отсчёт до конца акции (до 23:59:59 последнего дня по времени компании)
 setInterval(() => {
   const el = document.getElementById('prcd'); if (!el || !D) return;
-  const end = new Date(el.dataset.to + 'T23:59:59' + (D.tzOffset || '+05:00')).getTime(), ms = end - Date.now();
+  const end = new Date(el.dataset.to + 'T23:59:59+05:00').getTime(), ms = end - kzNow();
   if (ms <= 0) { el.textContent = 'акция завершена'; return; }
   const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4), sec = Math.floor(ms % 6e4 / 1e3), p2 = n => String(n).padStart(2, '0');
   el.textContent = 'до конца ' + (d ? d + ' д ' : '') + p2(h) + ':' + p2(m) + ':' + p2(sec);
@@ -1064,7 +1069,7 @@ function runCounters() {
 /* ===== движение мест в топах ===== */
 const placesPrev = { d: null, p: null };
 let introDone = false;
-const updText = () => D.error ? '' : 'обновлено ' + new Date(D.syncedAt).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit' });
+const updText = () => D.error ? '' : 'обновлено ' + kzTime(D.syncedAt);
 let loadT = null, loading = false;
 async function load() {
   if (loading) return; loading = true; clearTimeout(loadT);
@@ -1075,6 +1080,7 @@ async function load() {
     if (j.paused) { $('#app').innerHTML = `<div class="center"><div><b>${esc(j.name)}</b>Лидерборд на паузе</div></div>`; D = null; loading = false; loadT = setTimeout(load, 15000); return; }
     // новая версия сайта (после деплоя) — перезагружаемся, чтобы на ТВ всегда был свежий код
     if (j.build) { if (!window.BUILD0) window.BUILD0 = j.build; else if (j.build !== window.BUILD0 && !showing) { location.reload(); return; } }
+    if (j.now) skew = j.now - Date.now();
     const first = !D; D = j;
     // перерисовываем только при реальных изменениях — иначе анимации и бегущая строка «прыгают»
     const key = JSON.stringify({ ...j, syncedAt: 0, events: 0, seq: 0 });
