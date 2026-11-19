@@ -542,7 +542,7 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
   background:rgba(255,255,255,.85);border-radius:99px;padding:4px 12px 4px 4px;box-shadow:0 4px 14px -8px rgba(21,24,39,.35);pointer-events:none;transition:opacity .4s}
 #wake video{width:14px;height:14px;border-radius:50%;object-fit:cover;display:block}
 #wake.ok{opacity:.6;background:none;box-shadow:none;padding:0}#wake.ok span{max-width:0;overflow:hidden;white-space:nowrap;transition:max-width .4s}
-#wake.off{background:#FEF3C7;color:#92400E;opacity:1}#wake.off span{max-width:none}
+#wake.off{opacity:.6;background:none;box-shadow:none;padding:0}#wake span{display:none}
 
 /* чёткость: на ТВ, которые рисуют в низком разрешении, — плотнее шрифты и без тонких полутонов */
 html{text-rendering:optimizeLegibility}
@@ -932,7 +932,7 @@ if (document.body) document.body.appendChild(wk);
 function wakeState() {
   const vid = !nsv.paused && nsv.readyState > 2, ok = !!wakeLock || vid;
   wk.className = ok ? 'ok' : 'off';
-  wk.querySelector('span').textContent = ok ? (wakeLock ? 'Экран не уснёт' : 'Экран активен') : 'Нажмите любую кнопку — экран не уснёт';
+  wk.querySelector('span').textContent = '';
   return ok;
 }
 async function keepAwake() {
