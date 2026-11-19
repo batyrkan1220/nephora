@@ -669,7 +669,7 @@ const kzTime = (ts, sec) => new Date(ts + 5 * 3600e3).toISOString().slice(11, se
 function tick() { const c = $('#clock'); if (c) c.innerHTML = kzTime(kzNow(), true).split('').map(ch => /\d/.test(ch) ? `<span>${ch}</span>` : ch).join(''); }
 setInterval(tick, 1000);
 
-function render() { setTimeout(ribbons, 0); return render0(); }
+function render() { const r = render0(); prTick(); setTimeout(ribbons, 0); return r; }
 function render0() {
   if (!D) return;
   setRotation();
@@ -835,13 +835,14 @@ function askSound() {
 }
 
 // обратный отсчёт до конца акции (до 23:59:59 последнего дня по времени компании)
-setInterval(() => {
+function prTick() {
   const el = document.getElementById('prcd'); if (!el || !D) return;
   const end = new Date(el.dataset.to + 'T23:59:59+05:00').getTime(), ms = end - kzNow();
   if (ms <= 0) { el.textContent = 'акция завершена'; return; }
   const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4), sec = Math.floor(ms % 6e4 / 1e3), p2 = n => String(n).padStart(2, '0');
   el.textContent = 'до конца ' + (d ? d + ' д ' : '') + p2(h) + ':' + p2(m) + ':' + p2(sec);
-}, 1000);
+}
+setInterval(prTick, 1000);
 
 /* ===== акция: две праздничные ленты по бокам — от шапки до низа табло, извиваются (SVG, лёгкая анимация) ===== */
 function ribbons() {
@@ -852,6 +853,8 @@ function ribbons() {
   const H = hd.getBoundingClientRect(), S1 = cs.getBoundingClientRect(), D1 = cd.getBoundingClientRect(), P1 = cp.getBoundingClientRect(), W = innerWidth, VH = innerHeight;
   // ленты — в промежутках между колонками: «Битва секторов | Топ сегодня» и «Топ сегодня | Топ месяца»
   const g1 = [S1.right, D1.left], g2 = [D1.right, P1.left];
+  const AP = (document.getElementById('app') || document.body).getBoundingClientRect();
+  const g0 = [AP.left, S1.left], g3 = [P1.right, AP.right];   // внешние поля слева и справа
   const gut = Math.max(12, Math.min(g1[1] - g1[0], g2[1] - g2[0])), top = H.bottom - 6, bot = Math.max(S1.bottom, D1.bottom, P1.bottom) - 4, len = bot - top;
   const red = getComputedStyle(document.documentElement).getPropertyValue('--pr').trim() || '#F14635';
   const one = (cx, flip) => {
@@ -875,7 +878,7 @@ function ribbons() {
   if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.id = 'ribbons'; document.body.appendChild(svg); }
   svg.setAttribute('viewBox', `0 0 ${W} ${VH}`); svg.setAttribute('width', W); svg.setAttribute('height', VH);
   svg.innerHTML = `<defs><linearGradient id="rbDark" x1="0" x2="1"><stop offset="0" stop-color="#9E1B12"/><stop offset=".5" stop-color="#C9281C"/><stop offset="1" stop-color="#9E1B12"/></linearGradient></defs>`
-    + one((g1[0] + g1[1]) / 2, false) + one((g2[0] + g2[1]) / 2, true);
+    + one((g0[0] + g0[1]) / 2, true) + one((g1[0] + g1[1]) / 2, false) + one((g2[0] + g2[1]) / 2, true) + one((g3[0] + g3[1]) / 2, false);
 }
 addEventListener('resize', () => setTimeout(ribbons, 200));
 
