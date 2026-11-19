@@ -871,9 +871,6 @@ function ribbons() {
     // хвост «ласточкин хвост» внизу и узелок наверху
     const ex = X(len - 18), ew = wMax * .5, ey = top + len - 18;
     segs += `<path d="M${ex - ew} ${ey}L${ex + ew} ${ey}L${ex + ew} ${ey + 12}L${ex} ${ey + 7}L${ex - ew} ${ey + 12}Z" fill="${red}"/>`;
-    // аккуратный бантик сверху
-    const bx = X(0), by = top + 6;
-    segs += `<path d="M${bx} ${by}C${bx - 9} ${by - 7} ${bx - 12} ${by + 5} ${bx} ${by}C${bx + 12} ${by + 5} ${bx + 9} ${by - 7} ${bx} ${by}Z" fill="${red}"/><circle cx="${bx}" cy="${by}" r="2.6" fill="#fff"/>`;
     return `<g class="rb ${flip ? 'r' : 'l'}" style="transform-origin:${cx}px ${top}px">${segs}</g>`;
   };
   if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.id = 'ribbons'; document.body.appendChild(svg); }
