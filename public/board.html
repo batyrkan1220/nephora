@@ -581,6 +581,23 @@ html.promo .hd{flex-wrap:nowrap;justify-content:flex-end;min-height:6.2em}
 html.promo .hd>.ttl{margin-right:auto}
 html.promo .hd>.prb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;padding:0}
 html.promo .hd>.stat,html.promo .hd>.clock{flex:none}
+/* акция: карточки кассы дня/месяца в стиле красной шапки */
+html.promo .hd>.stat{border-radius:1.1em;padding:.6em 1.15em .65em;min-width:10.5em;max-width:13em;position:relative;overflow:hidden;box-shadow:none}
+html.promo .hd>.stat small{font-size:.66em;font-weight:800;letter-spacing:.09em;text-transform:uppercase;opacity:1}
+html.promo .hd>.stat b{font-size:1.85em;font-weight:800;letter-spacing:-.02em}
+html.promo .hd>.stat.kp{background:linear-gradient(160deg,rgba(255,255,255,.24),rgba(255,255,255,.07));box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4);color:#fff}
+html.promo .hd>.stat.kp small{color:#FFE08A}
+html.promo .hd>.stat.kb{background:#fff;color:var(--pr);box-shadow:0 .7em 1.6em -.9em rgba(0,0,0,.45)}
+html.promo .hd>.stat.kb::before{content:"";position:absolute;left:0;right:0;top:0;height:.28em;background:linear-gradient(90deg,#FFC93C,#FF8A3D,#FFC93C)}
+html.promo .hd>.stat.kb small{color:color-mix(in srgb,var(--pr) 75%,#000)}
+html.promo .hd>.stat.kb b{color:var(--pr)}
+html.promo .hd>.stat .pb{margin-top:.35em}
+html.promo .hd>.stat .tr{background:rgba(255,255,255,.28)}
+html.promo .hd>.stat.kp .tr i{background:linear-gradient(90deg,#FFE08A,#FFC93C)}
+html.promo .hd>.stat.kb .tr{background:color-mix(in srgb,var(--pr) 14%,#fff)}
+html.promo .hd>.stat.kb .tr i{background:linear-gradient(90deg,var(--pr),#FF8A3D)}
+html.promo .hd>.stat .pc{color:inherit;font-weight:800}
+html.promo .hd>.clock{background:rgba(0,0,0,.16);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.25);color:#fff;font-weight:700;border-radius:1.1em}
 </style>
 </head>
 <body>
@@ -698,10 +715,10 @@ function render() {
       ${prOn ? `<div class="prb"><span class="prs s1">✦</span><span class="prs s2">✦</span><span class="prs s3">✦</span>
         <div class="prt">${esc(PR.title || '')}</div><div class="prbig num">${esc(PR.big || '')}</div>
         <div class="prsub">${esc(PR.sub || '')}${PR.to ? ` · <span id="prcd" data-to="${PR.to}"></span>` : ''}</div></div>` : ''}
-      ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · план ${short(T.dayPlan)} ₸</small><b class="num dlk" data-scope="day" data-nm="Вся компания" title="Сделки и что не попало в кассу">${CU('h-day', T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
-        : `<div class="stat kp"><small>Касса сегодня · вся компания</small><b class="num dlk" data-scope="day" data-nm="Вся компания" title="Сделки и что не попало в кассу">${CU('h-day', T.daySum)}</b></div>`}
+      ${T.dayPlan ? `<div class="stat plan kp"><small>${prOn ? 'Касса сегодня' : 'Касса сегодня'} · план ${short(T.dayPlan)} ₸</small><b class="num dlk" data-scope="day" data-nm="Вся компания" title="Сделки и что не попало в кассу">${CU('h-day', T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
+        : `<div class="stat kp"><small>${prOn ? 'Касса сегодня' : 'Касса сегодня · вся компания'}</small><b class="num dlk" data-scope="day" data-nm="Вся компания" title="Сделки и что не попало в кассу">${CU('h-day', T.daySum)}</b></div>`}
       ${T.plan ? `<div class="stat plan kb"><small>Касса за месяц · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
-        : `<div class="stat kb"><small>Касса за месяц · вся компания</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
+        : `<div class="stat kb"><small>${prOn ? 'Касса за месяц' : 'Касса за месяц · вся компания'}</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
       
       
