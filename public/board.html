@@ -598,6 +598,18 @@ html.promo .hd>.stat.kb .tr{background:color-mix(in srgb,var(--pr) 14%,#fff)}
 html.promo .hd>.stat.kb .tr i{background:linear-gradient(90deg,var(--pr),#FF8A3D)}
 html.promo .hd>.stat .pc{color:inherit;font-weight:800}
 html.promo .hd>.clock{background:rgba(0,0,0,.16);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.25);color:#fff;font-weight:700;border-radius:1.1em}
+/* акция: чистый сплошной красный, без градиентов, узоров и блёсток */
+html.promo .hd{background:var(--pr);box-shadow:none}
+html.promo .hd::before,html.promo .prs{display:none}
+html.promo .prbig{text-shadow:none}
+html.promo .hd>.stat.kp{background:rgba(255,255,255,.16);box-shadow:none}
+html.promo .hd>.stat.kp small{color:rgba(255,255,255,.85)}
+html.promo .hd>.stat.kb{box-shadow:none}
+html.promo .hd>.stat.kb::before{display:none}
+html.promo .hd>.stat.kb small{color:var(--pr)}
+html.promo .hd>.stat.kp .tr i{background:#fff}
+html.promo .hd>.stat.kb .tr i{background:var(--pr)}
+html.promo .hd>.clock{background:rgba(255,255,255,.16);box-shadow:none}
 </style>
 </head>
 <body>
