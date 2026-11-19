@@ -610,6 +610,10 @@ html.promo .hd>.stat.kb small{color:var(--pr)}
 html.promo .hd>.stat.kp .tr i{background:#fff}
 html.promo .hd>.stat.kb .tr i{background:var(--pr)}
 html.promo .hd>.clock{background:rgba(255,255,255,.16);box-shadow:none}
+#ribbons{position:fixed;left:0;top:0;z-index:3;pointer-events:none;overflow:visible}
+#ribbons .rb{animation:rbSway 4.5s ease-in-out infinite}
+#ribbons .rb.r{animation-delay:-2.2s}
+@keyframes rbSway{0%,100%{transform:rotate(.35deg)}50%{transform:rotate(-.35deg)}}
 </style>
 </head>
 <body>
@@ -659,7 +663,8 @@ function setRotation() {
 function tick() { const c = $('#clock'); if (c) c.innerHTML = new Date().toLocaleTimeString('ru-RU', { timeZone: 'Asia/Almaty', hour: '2-digit', minute: '2-digit', second: '2-digit' }).split('').map(ch => /\d/.test(ch) ? `<span>${ch}</span>` : ch).join(''); }
 setInterval(tick, 1000);
 
-function render() {
+function render() { setTimeout(ribbons, 0); return render0(); }
+function render0() {
   if (!D) return;
   setRotation();
   const sc = D.board.screen, cols = sc.cols, T = D.team, P = D.period;
@@ -831,6 +836,37 @@ setInterval(() => {
   const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4), sec = Math.floor(ms % 6e4 / 1e3), p2 = n => String(n).padStart(2, '0');
   el.textContent = 'до конца ' + (d ? d + ' д ' : '') + p2(h) + ':' + p2(m) + ':' + p2(sec);
 }, 1000);
+
+/* ===== акция: две праздничные ленты по бокам — от шапки до низа табло, извиваются (SVG, лёгкая анимация) ===== */
+function ribbons() {
+  let svg = document.getElementById('ribbons');
+  if (!document.documentElement.classList.contains('promo')) { if (svg) svg.remove(); return; }
+  const hd = document.querySelector('.hd'), app = document.getElementById('app'); if (!hd || !app) return;
+  const H = hd.getBoundingClientRect(), A = app.getBoundingClientRect(), W = innerWidth, VH = innerHeight;
+  const gut = Math.max(14, H.left - A.left || 0), top = H.bottom - 6, bot = A.bottom - 8, len = bot - top;
+  const red = getComputedStyle(document.documentElement).getPropertyValue('--pr').trim() || '#F14635';
+  const one = (cx, flip) => {
+    const amp = Math.min(gut * .28, 9), wMax = Math.min(gut * .55, 22), lam = Math.max(120, len / 6.5);
+    let segs = '', y = 0, step = 5;
+    const X = y => cx + amp * Math.sin((y / lam + (flip ? .5 : 0)) * 2 * Math.PI);
+    const Wd = y => wMax * (.28 + .72 * Math.abs(Math.cos((y / lam) * 2 * Math.PI)));
+    const back = y => Math.cos((y / lam) * 2 * Math.PI) < 0;
+    for (; y < len - 18; y += step) {
+      const y2 = Math.min(y + step + .6, len - 18), a = X(y), b = X(y2), wa = Wd(y) / 2, wb = Wd(y2) / 2;
+      segs += `<path d="M${(a - wa).toFixed(1)} ${(top + y).toFixed(1)}L${(a + wa).toFixed(1)} ${(top + y).toFixed(1)}L${(b + wb).toFixed(1)} ${(top + y2).toFixed(1)}L${(b - wb).toFixed(1)} ${(top + y2).toFixed(1)}Z" fill="${back(y) ? 'url(#rbDark)' : red}"/>`;
+    }
+    // хвост «ласточкин хвост» внизу и узелок наверху
+    const ex = X(len - 18), ew = wMax * .5, ey = top + len - 18;
+    segs += `<path d="M${ex - ew} ${ey}L${ex + ew} ${ey}L${ex + ew} ${ey + 22}L${ex} ${ey + 12}L${ex - ew} ${ey + 22}Z" fill="${red}"/>`;
+    segs += `<circle cx="${X(0)}" cy="${top + 2}" r="${Math.min(gut * .32, 11)}" fill="${red}" stroke="#fff" stroke-width="2"/>`;
+    return `<g class="rb ${flip ? 'r' : 'l'}" style="transform-origin:${cx}px ${top}px">${segs}</g>`;
+  };
+  if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.id = 'ribbons'; document.body.appendChild(svg); }
+  svg.setAttribute('viewBox', `0 0 ${W} ${VH}`); svg.setAttribute('width', W); svg.setAttribute('height', VH);
+  svg.innerHTML = `<defs><linearGradient id="rbDark" x1="0" x2="1"><stop offset="0" stop-color="#9E1B12"/><stop offset=".5" stop-color="#C9281C"/><stop offset="1" stop-color="#9E1B12"/></linearGradient></defs>`
+    + one(A.left + gut / 2, false) + one(A.right - gut / 2, true);
+}
+addEventListener('resize', () => setTimeout(ribbons, 200));
 
 /* ===== клик по сумме → список сделок со ссылками в CRM (Bitrix24) ===== */
 const skippedHtml = j => !(j.skipped || []).length ? '' : `<div class="dls"><b>Не попали в кассу сегодня (${j.skipped.length})</b><small>Заказы, связанные с сегодняшним днём, которые табло не считает — и почему</small></div>`
