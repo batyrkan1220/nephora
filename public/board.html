@@ -855,15 +855,16 @@ function ribbons() {
   const g1 = [S1.right, D1.left], g2 = [D1.right, P1.left];
   const AP = (document.getElementById('app') || document.body).getBoundingClientRect();
   const g0 = [AP.left, S1.left], g3 = [P1.right, AP.right];   // внешние поля слева и справа
-  const gut = Math.max(12, Math.min(g1[1] - g1[0], g2[1] - g2[0])), top = H.bottom - 6, bot = Math.max(S1.bottom, D1.bottom, P1.bottom) - 4, len = bot - top;
+  const gut = Math.max(12, Math.min(g1[1] - g1[0], g2[1] - g2[0])), top = 0, bot = Math.max(S1.bottom, D1.bottom, P1.bottom) - 4, len = bot - top;
   const red = getComputedStyle(document.documentElement).getPropertyValue('--pr').trim() || '#F14635';
-  const one = (cx, flip) => {
+  const one = (cx, flip, under) => {   // under — лента проходит «под» шапкой: в её пределах не рисуется
     const amp = Math.min(gut * .14, 6), wMax = Math.min(gut * .22, 9), lam = Math.max(150, len / 5);
     let segs = '', y = 0, step = 5;
     const X = y => cx + amp * Math.sin((y / lam + (flip ? .5 : 0)) * 2 * Math.PI);
     const Wd = y => wMax * (.35 + .65 * Math.abs(Math.cos((y / lam) * 2 * Math.PI)));
     const back = y => Math.cos((y / lam) * 2 * Math.PI) < 0;
     for (; y < len - 18; y += step) {
+      if (under && top + y + step > H.top + 2 && top + y < H.bottom - 2) continue;
       const y2 = Math.min(y + step + .6, len - 18), a = X(y), b = X(y2), wa = Wd(y) / 2, wb = Wd(y2) / 2;
       segs += `<path d="M${(a - wa).toFixed(1)} ${(top + y).toFixed(1)}L${(a + wa).toFixed(1)} ${(top + y).toFixed(1)}L${(b + wb).toFixed(1)} ${(top + y2).toFixed(1)}L${(b - wb).toFixed(1)} ${(top + y2).toFixed(1)}Z" fill="${back(y) ? 'url(#rbDark)' : red}"/>`;
     }
@@ -871,14 +872,14 @@ function ribbons() {
     const ex = X(len - 18), ew = wMax * .5, ey = top + len - 18;
     segs += `<path d="M${ex - ew} ${ey}L${ex + ew} ${ey}L${ex + ew} ${ey + 12}L${ex} ${ey + 7}L${ex - ew} ${ey + 12}Z" fill="${red}"/>`;
     // аккуратный бантик сверху
-    const bx = X(0), by = top + 12;
+    const bx = X(0), by = top + 6;
     segs += `<path d="M${bx} ${by}C${bx - 9} ${by - 7} ${bx - 12} ${by + 5} ${bx} ${by}C${bx + 12} ${by + 5} ${bx + 9} ${by - 7} ${bx} ${by}Z" fill="${red}"/><circle cx="${bx}" cy="${by}" r="2.6" fill="#fff"/>`;
     return `<g class="rb ${flip ? 'r' : 'l'}" style="transform-origin:${cx}px ${top}px">${segs}</g>`;
   };
   if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.id = 'ribbons'; document.body.appendChild(svg); }
   svg.setAttribute('viewBox', `0 0 ${W} ${VH}`); svg.setAttribute('width', W); svg.setAttribute('height', VH);
   svg.innerHTML = `<defs><linearGradient id="rbDark" x1="0" x2="1"><stop offset="0" stop-color="#9E1B12"/><stop offset=".5" stop-color="#C9281C"/><stop offset="1" stop-color="#9E1B12"/></linearGradient></defs>`
-    + one((g0[0] + g0[1]) / 2, true) + one((g1[0] + g1[1]) / 2, false) + one((g2[0] + g2[1]) / 2, true) + one((g3[0] + g3[1]) / 2, false);
+    + one((g0[0] + g0[1]) / 2, true) + one((g1[0] + g1[1]) / 2, false, true) + one((g2[0] + g2[1]) / 2, true, true) + one((g3[0] + g3[1]) / 2, false);
 }
 addEventListener('resize', () => setTimeout(ribbons, 200));
 
