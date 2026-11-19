@@ -754,6 +754,7 @@ function render0() {
       ${T.plan ? `<div class="stat plan kb"><small>Касса за месяц · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
         : `<div class="stat kb"><small>${prOn ? 'Касса за месяц' : 'Касса за месяц · вся компания'}</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
+      <button class="tbtn" id="testSale" title="Тестовая продажа: попап и звук только на этом экране">🔊<span>Тест<br>заказ</span></button>
       
       
       
