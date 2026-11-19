@@ -614,6 +614,7 @@ html.promo .hd>.clock{background:rgba(255,255,255,.16);box-shadow:none}
 #ribbons .rb{animation:rbSway 4.5s ease-in-out infinite}
 #ribbons .rb.r{animation-delay:-2.2s}
 @keyframes rbSway{0%,100%{transform:rotate(.35deg)}50%{transform:rotate(-.35deg)}}
+html.promo .cols3{column-gap:2.6vw}
 </style>
 </head>
 <body>
@@ -841,12 +842,15 @@ setInterval(() => {
 function ribbons() {
   let svg = document.getElementById('ribbons');
   if (!document.documentElement.classList.contains('promo')) { if (svg) svg.remove(); return; }
-  const hd = document.querySelector('.hd'), app = document.getElementById('app'); if (!hd || !app) return;
-  const H = hd.getBoundingClientRect(), A = app.getBoundingClientRect(), W = innerWidth, VH = innerHeight;
-  const gut = Math.max(14, H.left - A.left || 0), top = H.bottom - 6, bot = A.bottom - 8, len = bot - top;
+  const hd = document.querySelector('.hd'), cs = document.querySelector('.col.cs'), cd = document.querySelector('.col.cd'), cp = document.querySelector('.col.cp');
+  if (!hd || !cs || !cd || !cp) { if (svg) svg.innerHTML = ''; return; }
+  const H = hd.getBoundingClientRect(), S1 = cs.getBoundingClientRect(), D1 = cd.getBoundingClientRect(), P1 = cp.getBoundingClientRect(), W = innerWidth, VH = innerHeight;
+  // ленты — в промежутках между колонками: «Битва секторов | Топ сегодня» и «Топ сегодня | Топ месяца»
+  const g1 = [S1.right, D1.left], g2 = [D1.right, P1.left];
+  const gut = Math.max(12, Math.min(g1[1] - g1[0], g2[1] - g2[0])), top = H.bottom - 6, bot = Math.max(S1.bottom, D1.bottom, P1.bottom) - 4, len = bot - top;
   const red = getComputedStyle(document.documentElement).getPropertyValue('--pr').trim() || '#F14635';
   const one = (cx, flip) => {
-    const amp = Math.min(gut * .28, 9), wMax = Math.min(gut * .55, 22), lam = Math.max(120, len / 6.5);
+    const amp = Math.min(gut * .18, 7), wMax = Math.min(gut * .6, 22), lam = Math.max(110, len / 7);
     let segs = '', y = 0, step = 5;
     const X = y => cx + amp * Math.sin((y / lam + (flip ? .5 : 0)) * 2 * Math.PI);
     const Wd = y => wMax * (.28 + .72 * Math.abs(Math.cos((y / lam) * 2 * Math.PI)));
@@ -864,7 +868,7 @@ function ribbons() {
   if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.id = 'ribbons'; document.body.appendChild(svg); }
   svg.setAttribute('viewBox', `0 0 ${W} ${VH}`); svg.setAttribute('width', W); svg.setAttribute('height', VH);
   svg.innerHTML = `<defs><linearGradient id="rbDark" x1="0" x2="1"><stop offset="0" stop-color="#9E1B12"/><stop offset=".5" stop-color="#C9281C"/><stop offset="1" stop-color="#9E1B12"/></linearGradient></defs>`
-    + one(A.left + gut / 2, false) + one(A.right - gut / 2, true);
+    + one((g1[0] + g1[1]) / 2, false) + one((g2[0] + g2[1]) / 2, true);
 }
 addEventListener('resize', () => setTimeout(ribbons, 200));
 
