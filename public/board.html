@@ -553,6 +553,29 @@ html.lowres .li .nm,html.lowres .rr .nm,html.lowres .mg .nm{font-weight:600}html
 .resinfo b{font-size:30px}.resinfo span{font-size:22px;color:#A5A8FF}.resinfo small{font-size:15px;opacity:.6}
 .dls{margin:14px 10px 4px;padding-top:12px;border-top:2px dashed #FDE68A}.dls b{display:block;font-size:14px;color:#B45309}.dls small{color:#8A8FA8;font-size:12px}
 .dli.skip{background:#FFFBEB;margin-top:6px}.dli.skip em{display:block;font-style:normal;font-size:12px;color:#B45309;font-weight:600;margin-top:2px}
+
+/* ===== праздничная шапка (акция) ===== */
+html.promo .hd{position:relative;background:radial-gradient(120% 160% at 0% 0%,color-mix(in srgb,var(--pr) 85%,#fff) 0%,var(--pr) 45%,color-mix(in srgb,var(--pr) 70%,#000) 100%);
+  background-color:var(--pr);border-radius:1.4em;padding:.9em 1.1em;color:#fff;box-shadow:0 1.2em 2.4em -1.4em color-mix(in srgb,var(--pr) 80%,#000);overflow:hidden;align-items:center}
+html.promo .hd::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.18;
+  background-image:radial-gradient(circle at 20% 30%,#fff 0 .12em,transparent .13em),radial-gradient(circle at 70% 70%,#fff 0 .1em,transparent .11em),radial-gradient(circle at 45% 15%,#fff 0 .08em,transparent .09em);
+  background-size:7em 5em,9em 6em,5em 4em}
+html.promo .hd>*{position:relative}
+html.promo .ttl h1,html.promo .ttl h1 b{color:#fff}
+html.promo .per{color:rgba(255,255,255,.85)}html.promo .per .lv{background:#fff;color:var(--pr)}html.promo .per .lv i{background:var(--pr)}
+html.promo .stat{background:rgba(255,255,255,.14);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+html.promo .stat small{color:rgba(255,255,255,.8)}html.promo .stat b{color:#fff}
+html.promo .stat.kb{background:#fff;color:var(--pr)}html.promo .stat.kb small{color:color-mix(in srgb,var(--pr) 70%,#000)}html.promo .stat.kb b{color:var(--pr)}
+html.promo .clock{background:rgba(255,255,255,.14);color:#fff}
+html.promo .tbtn{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+.prb{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:.2em 1.6em;margin:0 auto;min-width:14em;line-height:1}
+.prt{font-weight:900;letter-spacing:.06em;font-size:1.25em}
+.prbig{font-weight:900;font-size:2.9em;letter-spacing:-.02em;margin:.06em 0;text-shadow:0 .06em 0 rgba(0,0,0,.15)}
+.prsub{font-weight:800;font-size:.9em;letter-spacing:.06em;opacity:.95}
+.prsub span{font-weight:600;letter-spacing:0;opacity:.85}
+.prs{position:absolute;color:#fff;opacity:.85;animation:prTw 2.6s ease-in-out infinite}
+.prs.s1{left:.3em;top:.2em;font-size:.9em}.prs.s2{right:.6em;top:.6em;font-size:.7em;animation-delay:.8s}.prs.s3{right:2.2em;bottom:.1em;font-size:1em;animation-delay:1.5s}
+@keyframes prTw{0%,100%{transform:scale(.7) rotate(0);opacity:.4}50%{transform:scale(1.1) rotate(20deg);opacity:1}}
 </style>
 </head>
 <body>
@@ -661,10 +684,16 @@ function render() {
   const REC = D.recent || [];
 
   const oldTick = $('.tickr'); if (oldTick) oldTick.remove();
+  const PR = D.board.screen.promo || {}, prOn = PR.on && (!PR.from || D.period.today >= PR.from) && (!PR.to || D.period.today <= PR.to);
+  document.documentElement.classList.toggle('promo', !!prOn);
+  if (prOn) document.documentElement.style.setProperty('--pr', PR.color || '#E53935');
   $('#app').innerHTML = `
     <div class="hd">
       <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>
         <div class="per num"><span class="lv"><i></i>LIVE</span>${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : `<span id="upd">${updText()}</span>`}</div></div>
+      ${prOn ? `<div class="prb"><span class="prs s1">✦</span><span class="prs s2">✦</span><span class="prs s3">✦</span>
+        <div class="prt">${esc(PR.title || '')}</div><div class="prbig num">${esc(PR.big || '')}</div>
+        <div class="prsub">${esc(PR.sub || '')}${PR.to ? ` · <span id="prcd" data-to="${PR.to}"></span>` : ''}</div></div>` : ''}
       ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · план ${short(T.dayPlan)} ₸</small><b class="num dlk" data-scope="day" data-nm="Вся компания" title="Сделки и что не попало в кассу">${CU('h-day', T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
         : `<div class="stat kp"><small>Касса сегодня · вся компания</small><b class="num dlk" data-scope="day" data-nm="Вся компания" title="Сделки и что не попало в кассу">${CU('h-day', T.daySum)}</b></div>`}
       ${T.plan ? `<div class="stat plan kb"><small>Касса за месяц · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
@@ -760,6 +789,15 @@ function askSound() {
   soundOk = true;
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume().catch(() => {}); loadSale(); loadOvt(); } catch {}
 }
+
+// обратный отсчёт до конца акции (до 23:59:59 последнего дня по времени компании)
+setInterval(() => {
+  const el = document.getElementById('prcd'); if (!el || !D) return;
+  const end = new Date(el.dataset.to + 'T23:59:59' + (D.tzOffset || '+05:00')).getTime(), ms = end - Date.now();
+  if (ms <= 0) { el.textContent = 'акция завершена'; return; }
+  const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4), sec = Math.floor(ms % 6e4 / 1e3), p2 = n => String(n).padStart(2, '0');
+  el.textContent = 'до конца ' + (d ? d + ' д ' : '') + p2(h) + ':' + p2(m) + ':' + p2(sec);
+}, 1000);
 
 /* ===== клик по сумме → список сделок со ссылками в CRM (Bitrix24) ===== */
 const skippedHtml = j => !(j.skipped || []).length ? '' : `<div class="dls"><b>Не попали в кассу сегодня (${j.skipped.length})</b><small>Заказы, связанные с сегодняшним днём, которые табло не считает — и почему</small></div>`
