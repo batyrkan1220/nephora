@@ -615,6 +615,17 @@ html.promo .hd>.clock{background:rgba(255,255,255,.16);box-shadow:none}
 #ribbons .rb.r{animation-delay:-2.2s}
 @keyframes rbSway{0%,100%{transform:rotate(.35deg)}50%{transform:rotate(-.35deg)}}
 html.promo .cols3{column-gap:2.6vw}
+/* акция: попап продажи — сплошной красный, бейдж акции, крупная «0·0·24» водяным знаком */
+html.promo .pop{background:rgba(60,8,4,.55)}
+html.promo .pop .card{background:var(--pr);box-shadow:0 40px 90px -30px color-mix(in srgb,var(--pr) 90%,#000)}
+html.promo .pop .psec,html.promo .pop .tag{color:var(--pr)}
+html.promo .pop .pl{background:rgba(255,255,255,.2)}
+.pprm{position:absolute;left:0;right:0;top:0;display:flex;justify-content:center;align-items:center;gap:.6em;padding:10px 0 8px;background:#fff;color:var(--pr);font-weight:900;letter-spacing:.06em;font-size:15px}
+.pprm span{font-size:17px;letter-spacing:0}
+.pwm{position:absolute;right:-.08em;bottom:-.28em;font-size:170px;font-weight:900;color:#fff;opacity:.09;line-height:1;pointer-events:none;letter-spacing:-.04em}
+html.promo .pop .card{padding-top:66px}
+html.promo .pop .card>*:not(.pprm):not(.pwm){position:relative}
+html.promo .pop .av{color:var(--pr)}
 </style>
 </head>
 <body>
@@ -988,7 +999,8 @@ function next() {
   showing = true;
   if (e.kind === 'overtake') return overtakeShow(e);
   const el = document.createElement('div'); el.className = 'pop';
-  el.innerHTML = `<div class="rays"></div><div class="card">${e.sector ? `<div class="psec">${/^сектор/i.test(e.sector) ? esc(e.sector) : 'Сектор ' + esc(e.sector)}</div>` : '<span class="tag">🎉 Новая продажа</span>'}<div class="pav">${av(e)}</div><div class="nm">${esc(e.name)}</div>
+  const PRm = document.documentElement.classList.contains('promo') ? (D.board.screen.promo || {}) : null;
+  el.innerHTML = `<div class="rays"></div><div class="card">${PRm ? `<div class="pprm"><b>${esc(PRm.title || '')}</b><span class="num">${esc(PRm.big || '')}</span></div><div class="pwm num">${esc(PRm.big || '')}</div>` : ''}${e.sector ? `<div class="psec">${/^сектор/i.test(e.sector) ? esc(e.sector) : 'Сектор ' + esc(e.sector)}</div>` : '<span class="tag">🎉 Новая продажа</span>'}<div class="pav">${av(e)}</div><div class="nm">${esc(e.name)}</div>
     <div class="sm num">+<span id="psum">0 ₸</span></div>${e.title ? `<div class="tt">${esc(e.title)}</div>` : ''}
     ${e.place ? `<div class="pl">${e.place} место · ${money(e.total)} за месяц</div>` : ''}</div>`;
   document.body.appendChild(el);
@@ -997,7 +1009,7 @@ function next() {
   { const t0 = performance.now(), to = Math.round(e.sum || 0), ps = el.querySelector('#psum');
     const st = n => { const p = Math.min(1, (n - t0) / 1600), v = Math.round(to * (1 - Math.pow(1 - p, 4))); ps.textContent = money(v); if (p < 1) requestAnimationFrame(st); };
     requestAnimationFrame(st); }
-  const colors = ['#4B4FE8', '#8B8EF6', '#ffffff', '#7CEB9B', '#FBBF24', '#C7C9FA'];
+  const colors = document.documentElement.classList.contains('promo') ? ['#F14635', '#ffffff', '#FFC93C', '#C9281C', '#ffffff', '#FF8A7A'] : ['#4B4FE8', '#8B8EF6', '#ffffff', '#7CEB9B', '#FBBF24', '#C7C9FA'];
   for (let i = 0; i < 90; i++) {
     const c = document.createElement('i'); c.className = 'cf';
     c.style.cssText = `left:${Math.random() * 100}vw;background:${colors[i % colors.length]};animation-duration:${2.5 + Math.random() * 2.5}s;animation-delay:${Math.random() * .8}s;border-radius:${Math.random() > .5 ? '50%' : '2px'}`;
