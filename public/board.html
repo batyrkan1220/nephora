@@ -551,6 +551,8 @@ html.lowres small,html.lowres .sline,html.lowres .pill,html.lowres .tag,html.low
 html.lowres .li .nm,html.lowres .rr .nm,html.lowres .mg .nm{font-weight:600}html.lowres .scd b{font-weight:700}
 .resinfo{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;background:#151827;color:#fff;border-radius:20px;padding:28px 36px;text-align:center;font-family:Inter,system-ui,sans-serif;display:flex;flex-direction:column;gap:8px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5)}
 .resinfo b{font-size:30px}.resinfo span{font-size:22px;color:#A5A8FF}.resinfo small{font-size:15px;opacity:.6}
+.dls{margin:14px 10px 4px;padding-top:12px;border-top:2px dashed #FDE68A}.dls b{display:block;font-size:14px;color:#B45309}.dls small{color:#8A8FA8;font-size:12px}
+.dli.skip{background:#FFFBEB;margin-top:6px}.dli.skip em{display:block;font-style:normal;font-size:12px;color:#B45309;font-weight:600;margin-top:2px}
 </style>
 </head>
 <body>
@@ -663,8 +665,8 @@ function render() {
     <div class="hd">
       <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>
         <div class="per num"><span class="lv"><i></i>LIVE</span>${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : `<span id="upd">${updText()}</span>`}</div></div>
-      ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · план ${short(T.dayPlan)} ₸</small><b class="num">${CU('h-day', T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
-        : `<div class="stat kp"><small>Касса сегодня · вся компания</small><b class="num">${CU('h-day', T.daySum)}</b></div>`}
+      ${T.dayPlan ? `<div class="stat plan kp"><small>Касса сегодня · план ${short(T.dayPlan)} ₸</small><b class="num dlk" data-scope="day" data-nm="Вся компания" title="Сделки и что не попало в кассу">${CU('h-day', T.daySum)}</b>${bar(T.daySum, T.dayPlan)}</div>`
+        : `<div class="stat kp"><small>Касса сегодня · вся компания</small><b class="num dlk" data-scope="day" data-nm="Вся компания" title="Сделки и что не попало в кассу">${CU('h-day', T.daySum)}</b></div>`}
       ${T.plan ? `<div class="stat plan kb"><small>Касса за месяц · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
         : `<div class="stat kb"><small>Касса за месяц · вся компания</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
@@ -760,6 +762,8 @@ function askSound() {
 }
 
 /* ===== клик по сумме → список сделок со ссылками в CRM (Bitrix24) ===== */
+const skippedHtml = j => !(j.skipped || []).length ? '' : `<div class="dls"><b>Не попали в кассу сегодня (${j.skipped.length})</b><small>Заказы, связанные с сегодняшним днём, которые табло не считает — и почему</small></div>`
+  + j.skipped.map(d => `<a class="dli skip" ${d.url ? `href="${d.url}" target="_blank" rel="noopener"` : ''}><div><b>${esc(d.t || 'Сделка #' + d.id)}</b><small>#${d.id}${d.who ? ' · ' + esc(d.who) : ''} · ${esc(d.stage)}</small><em>${esc(d.why)}</em></div><span class="num">${money(d.sum)}</span><i>↗</i></a>`).join('');
 document.addEventListener('click', async e => {
   const t = e.target.closest('.dlk'); if (!t || !D) return;
   const q = new URLSearchParams({ scope: t.dataset.scope }); if (t.dataset.uid) q.set('uid', t.dataset.uid); if (t.dataset.sector) q.set('sector', t.dataset.sector);
@@ -775,7 +779,8 @@ document.addEventListener('click', async e => {
     el.querySelector('.dll').innerHTML = (j.deals || []).length ? j.deals.map(d => `<a class="dli" ${d.url ? `href="${d.url}" target="_blank" rel="noopener"` : ''}>
         <div><b>${esc(d.t || 'Сделка #' + d.id)}</b><small>#${d.id} · ${d.dk.split('-').reverse().join('.')}${d.who ? ' · ' + esc(d.who) : ''}</small></div><span class="num">${money(d.sum)}</span><i>↗</i></a>`).join('')
       + `<div class="dlt"><span>${j.deals.length} ${plural(j.deals.length, 'сделка', 'сделки', 'сделок')}</span><b class="num">${money(j.sum)}</b></div>`
-      : '<div class="dle">Сделок нет</div>';
+      + skippedHtml(j)
+      : '<div class="dle">Сделок нет</div>' + skippedHtml(j);
   } catch { el.querySelector('.dll').innerHTML = '<div class="dle">Не удалось загрузить</div>'; }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.dlm').forEach(x => x.remove()); });

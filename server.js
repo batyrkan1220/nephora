@@ -268,7 +268,26 @@ async function handle(req, res) {
     const nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || '';
     const list = c.deals.filter(ok).sort((a, z) => z.dk.localeCompare(a.dk) || z.sum - a.sum)
       .map(d => ({ id: d.id, sum: d.sum, dk: d.dk, t: mask(d.title), who: uid ? '' : nm(d.uid), url: base ? `${base}/crm/deal/details/${d.id}/` : '' }));
-    return send(res, 200, { from: scope === 'day' ? today : from, to: scope === 'day' ? today : to, sum: list.reduce((a, d) => a + d.sum, 0), deals: list });
+    // что связано с сегодняшним днём, но в кассу не попало (только для всей компании за день) — с причиной
+    let skipped = [];
+    if (scope === 'day' && !uid && !sector) {
+      const kassa = new Set(cfg.settings.stages || []), meta = Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x]));
+      const stName = id => meta[id] ? meta[id].category + ' → ' + meta[id].name : id, counted = new Set(list.map(d => d.id));
+      const dfmt = new Intl.DateTimeFormat('en-CA', { timeZone: c.settings.tz }), dayOf = v => { const t = v ? new Date(v) : null; return t && !isNaN(t) ? dfmt.format(t) : ''; };
+      for (const d of wh.all('deal')) {
+        if (counted.has(d.id)) continue;
+        const od = d.od || '', moved = dayOf(d.mv || d.md), created = dayOf(d.cr);
+        let why = '';
+        if (od === today && !kassa.has(d.st)) why = d.sem === 'F' ? 'дата заказа сегодня, но сделка закрыта как отказ' : 'дата заказа сегодня, но стадия не входит в кассу';
+        else if (od === today && kassa.has(d.st) && !mem.has(d.uid)) why = 'менеджер не участвует в табло (скрыт или исключён)';
+        else if (kassa.has(d.st) && !od && (moved === today || created === today)) why = 'в кассовой стадии, но дата заказа не заполнена';
+        else if (kassa.has(d.st) && od && od !== today && moved === today) why = 'перешла в кассу сегодня, но дата заказа — ' + od.split('-').reverse().join('.');
+        if (!why) continue;
+        skipped.push({ id: d.id, sum: d.sum, t: mask(d.t), who: nm(d.uid), stage: stName(d.st), why, url: base ? `${base}/crm/deal/details/${d.id}/` : '' });
+      }
+      skipped.sort((a, z) => z.sum - a.sum); skipped = skipped.slice(0, 80);
+    }
+    return send(res, 200, { from: scope === 'day' ? today : from, to: scope === 'day' ? today : to, sum: list.reduce((a, d) => a + d.sum, 0), deals: list, skipped });
   }
   if ((m = p.match(/^\/api\/board\/([\w-]+)$/))) {
     const b = cfg.boards.find(x => x.key === m[1]);
