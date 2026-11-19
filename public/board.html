@@ -689,8 +689,7 @@ function render() {
   if (prOn) document.documentElement.style.setProperty('--pr', PR.color || '#E53935');
   $('#app').innerHTML = `
     <div class="hd">
-      <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>
-        <div class="per num"><span class="lv"><i></i>LIVE</span>${esc(D.company || '')} · ${fd(P.from)} — ${fd(P.to)} · осталось раб. дней: ${P.daysLeft} · ${D.error ? `<span class="err">Bitrix24: ${esc(D.error)}</span>` : `<span id="upd">${updText()}</span>`}</div></div>
+      <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>${D.error ? `<div class="per num"><span class="err">Bitrix24: ${esc(D.error)}</span></div>` : ''}</div>
       ${prOn ? `<div class="prb"><span class="prs s1">✦</span><span class="prs s2">✦</span><span class="prs s3">✦</span>
         <div class="prt">${esc(PR.title || '')}</div><div class="prbig num">${esc(PR.big || '')}</div>
         <div class="prsub">${esc(PR.sub || '')}${PR.to ? ` · <span id="prcd" data-to="${PR.to}"></span>` : ''}</div></div>` : ''}
@@ -699,9 +698,9 @@ function render() {
       ${T.plan ? `<div class="stat plan kb"><small>Касса за месяц · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
         : `<div class="stat kb"><small>Касса за месяц · вся компания</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
-      <button class="tbtn" id="testSale" title="Показать тестовую продажу на этом экране">🎉<span>Тест<br>продажа</span></button>
-      <button class="tbtn fs" id="fsBtn" title="Полный экран (F)">⛶<span>Полный<br>экран</span></button>
-      ${(D.sectors || []).length > 1 ? `<button class="tbtn war" id="testWar" title="Показать «ОБГОН!» битвы секторов на этом экране">🔥<span>Тест<br>битва</span></button>` : ''}
+      
+      
+      
     </div>
     <div class="cols3">
       <div class="col cs"><div class="ch"><span class="ci">${ICO.sec}</span><b>Битва секторов</b><span>по кассе дня</span></div>
