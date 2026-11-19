@@ -778,10 +778,10 @@ function render0() {
 const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 10 || h >= 20) ? b : c; };
 
 /* ===== звук и попап ===== */
-/* звук продажи: public/sale.mp3 («Cha-Ching»), через Web Audio — после одного клика на экране */
+/* звук продажи: public/sale.mp3 (музыка заказа, 9.5 с), через Web Audio — после одного клика на экране */
 let saleBuf = null, saleLoading = null;
 // файлы звуков скачиваются сразу при открытии страницы (до первого касания), декодируются один раз
-const RAW = { sale: fetch('/sale.mp3').then(r => r.arrayBuffer()).catch(() => null), ovt: fetch('/overtake.mp3').then(r => r.arrayBuffer()).catch(() => null) };
+const RAW = { sale: fetch('/sale.mp3?v=2').then(r => r.arrayBuffer()).catch(() => null), ovt: fetch('/overtake.mp3').then(r => r.arrayBuffer()).catch(() => null) };
 const rawCopy = k => RAW[k].then(ab => { if (!ab) throw new Error('нет файла'); return ab.slice(0); });
 function loadSale() {
   if (saleBuf || saleLoading || !audio) return saleLoading;
