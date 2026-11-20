@@ -541,11 +541,8 @@ html.rot #app{inset:auto;left:0;top:0;width:100vh;height:100vw;transform:transla
 .dle{padding:24px;text-align:center;color:#8A8FA8}
 
 /* индикатор «экран не уснёт» (внутри — видео, которое держит ТВ активным) */
-#wake{position:fixed;left:6px;bottom:3px;z-index:30;display:flex;align-items:center;gap:8px;font:600 12px Inter,system-ui,sans-serif;color:#5B6078;
-  background:rgba(255,255,255,.85);border-radius:99px;padding:4px 12px 4px 4px;box-shadow:0 4px 14px -8px rgba(21,24,39,.35);pointer-events:none;transition:opacity .4s}
-#wake video{width:14px;height:14px;border-radius:50%;object-fit:cover;display:block}
-#wake.ok{opacity:.6;background:none;box-shadow:none;padding:0}#wake.ok span{max-width:0;overflow:hidden;white-space:nowrap;transition:max-width .4s}
-#wake.off{opacity:.6;background:none;box-shadow:none;padding:0}#wake span{display:none}
+#wake{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.012}
+#wake video{width:100%;height:100%;object-fit:cover;display:block}#wake span{display:none}
 
 /* чёткость: на ТВ, которые рисуют в низком разрешении, — плотнее шрифты и без тонких полутонов */
 html{text-rendering:optimizeLegibility}
@@ -951,7 +948,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') document.que
    4) раз в 6 часов страница тихо перезагружается — у ТВ-браузеров со временем «засыпает» память. */
 let wakeLock = null, keepAudio = null;
 const wk = document.createElement('div'); wk.id = 'wake';
-wk.innerHTML = `<video muted playsinline loop autoplay preload="auto"><source src="/live.webm" type="video/webm"><source src="/live.mp4" type="video/mp4"></video><span></span>`;
+wk.innerHTML = `<video muted playsinline loop autoplay preload="auto"><source src="/live.webm?v=2" type="video/webm"><source src="/live.mp4?v=2" type="video/mp4"></video><span></span>`;
 const nsv = wk.querySelector('video'); nsv.muted = true;
 document.addEventListener('DOMContentLoaded', () => document.body.appendChild(wk));
 if (document.body) document.body.appendChild(wk);
@@ -983,6 +980,10 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 function unmuteKeep() { try { if (nsv.muted) { nsv.muted = false; nsv.volume = 1; const p = nsv.play(); if (p && p.catch) p.catch(() => { nsv.muted = true; nsv.play().catch(() => {}); }); } } catch {} }
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { keepAwake(); keepSound(); unmuteKeep(); }, { passive: true }));
 setInterval(keepAwake, 20e3);
+// медиасессия: ТВ видит «идёт воспроизведение» (как у плеера) и не включает заставку/сон
+try { if ('mediaSession' in navigator) { navigator.mediaSession.metadata = new MediaMetadata({ title: 'Safa Leaderboard', artist: 'Safa group' }); navigator.mediaSession.playbackState = 'playing'; } } catch {}
+// «пульс» раз в минуту: перезапуск видео, если ТВ его тихо остановил, и перезапрос wake lock
+setInterval(() => { try { if (nsv.paused || nsv.ended) { nsv.currentTime = 0; nsv.play().catch(() => {}); } if (audio && audio.state === 'suspended') audio.resume(); } catch {} keepAwake(); }, 60e3);
 keepAwake(); setTimeout(keepAwake, 1500);
 const BOOT = Date.now();
 setInterval(() => { if (Date.now() - BOOT > 6 * 3600e3 && !showing) location.reload(); }, 60e3);

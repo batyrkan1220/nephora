@@ -394,9 +394,9 @@ async function handle(req, res) {
     const buf = fs.readFileSync(path.join(PUB, p.slice(1))), type = p.endsWith('webm') ? 'video/webm' : 'video/mp4';
     const rg = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
     if (rg) { const st = +rg[1] || 0, en = rg[2] ? +rg[2] : buf.length - 1;
-      res.writeHead(206, { 'Content-Type': type, 'Content-Range': `bytes ${st}-${en}/${buf.length}`, 'Accept-Ranges': 'bytes', 'Content-Length': en - st + 1, 'Cache-Control': 'public, max-age=86400' });
+      res.writeHead(206, { 'Content-Type': type, 'Content-Range': `bytes ${st}-${en}/${buf.length}`, 'Accept-Ranges': 'bytes', 'Content-Length': en - st + 1, 'Cache-Control': 'public, max-age=31536000, immutable' });
       return res.end(buf.subarray(st, en + 1)); }
-    res.writeHead(200, { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Length': buf.length, 'Cache-Control': 'public, max-age=86400' });
+    res.writeHead(200, { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Length': buf.length, 'Cache-Control': 'public, max-age=31536000, immutable' });
     return res.end(buf);
   }
   // шрифт — свой (без Google Fonts), кэш навсегда
