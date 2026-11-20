@@ -1502,7 +1502,7 @@ function officeHTML(d) {
   const total = bots.reduce((a, b) => a + (b.open || 0), 0) || 1;
   return `<div class="office full" id="ofc">
     <div class="hud"><span class="live">${OF.demo ? 'Боты работают' : d.running ? 'Боты работают' : 'Онлайн'}</span><span>🏢 <b>Бизнес центр «Астана»</b></span><span>Открытых задач <b id="ofOpen">${open}</b></span><span>Решено за сутки <b id="ofDone">${done24}</b></span></div>
-    <div class="hudr"><button class="ob ${OF.demo ? 'on' : ''}" id="ofDemo">${OF.demo ? '🎬 Демо' : '📡 Реальные данные'}</button><button class="ob" id="ofFs">⛶ Во весь экран</button></div>
+    <div class="hudr"><button class="ob" id="ofFs">⛶ Во весь экран</button></div>
     <div class="room" id="room">
       <div class="flr"></div><div class="rug" style="left:40px;top:250px;width:1240px;height:640px"></div>
       <div class="wall b">
@@ -1540,7 +1540,10 @@ function officeStart(d) {
   el.ondblclick = e => { if (e.target.closest('.ob')) return; Object.assign(V, { rz: -38, rx: 57, zm: 1 }); apply(); };
   el.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); } }, true);
   $('#ofFs').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else el.requestFullscreen && el.requestFullscreen().catch(() => {}); };
-  $('#ofDemo').onclick = () => { OF.demo = !OF.demo; try { localStorage.setItem('ofDemo', OF.demo ? '1' : '0'); } catch {} pages.factory(); };
+  // скрытое переключение показ/реальные данные: клавиши Shift+D (или 5 быстрых тапов по часам)
+  const toggle = () => { OF.demo = !OF.demo; try { localStorage.setItem('ofDemo', OF.demo ? '1' : '0'); } catch {} pages.factory(); };
+  document.onkeydown = e => { if (e.shiftKey && (e.key === 'D' || e.key === 'В') && document.body.contains(el)) toggle(); };
+  let taps = []; $('#ofClock').addEventListener('pointerup', () => { const n = Date.now(); taps = taps.filter(t => n - t < 2000); taps.push(n); if (taps.length >= 5) { taps = []; toggle(); } });
   el.querySelectorAll('.mon3,.tag3').forEach(x => x.onclick = () => { if (!OF.demo && x.dataset.bot !== 'report') { FB.bot = x.dataset.bot; FB.st = 'open'; location.hash = '#/factory/tasks'; } });
   const mons = [...el.querySelectorAll('.lns')].map(n => ({ n, id: n.dataset.id, L: JSON.parse(n.dataset.lines), i: 0, ch: 0 }));
   const paint = m => { const rows = m.n.children, k = m.L.length;
