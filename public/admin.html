@@ -674,11 +674,25 @@ pages.home = async () => {
       <div class="card"><div class="chd"><div><h3>Эффективность команды</h3><p>средний индекс ${E && E.team != null ? E.team : '—'} из 100</p></div><a href="#/team/eff">Подробнее →</a></div>
         ${E ? E.top.map(r => person(r, `<span class="sc ${scCls(r.index)}">${r.index}</span>`, 'лучший')).join('') + E.low.map(r => person(r, `<span class="sc ${scCls(r.index)}">${r.index}</span>`, GN[r.weak] || '')).join('') : '<div class="empty">Нет данных</div>'}</div>
     </div>
+    <div class="card" id="tvToday"><div class="chd"><div><h3>📺 Заказы сегодня на табло</h3><p>если на ТВ пропустили — нажмите «Показать на экране снова»</p></div></div><div class="empty">Загрузка…</div></div>
     ${R.today.length || R.recent.length ? `<div class="hg3" style="grid-template-columns:1fr 1fr">
       <div class="card"><div class="chd"><div><h3>Лидеры сегодня</h3></div></div>${R.today.map((r, k) => person(r, money(r.daySum), r.dayCnt + ' прод.', k + 1)).join('') || '<div class="empty">Сегодня продаж ещё нет</div>'}</div>
       <div class="card"><div class="chd"><div><h3>Последние продажи</h3></div></div>${R.recent.map(d => `<div class="lr">${av(d.name, uPhoto(d.uid))}<div class="n"><b>${esc(d.title || 'Сделка #' + d.id)}</b><small>${esc(d.name)}</small></div><div class="v">${money(d.sum)}</div></div>`).join('')}</div></div>` : ''}`;
-  homeTimer = setTimeout(() => { if ((location.hash || '#/').replace(/^#\/?/, '') === '' && !dirty && !document.querySelector('.ovl')) route(); }, 60000);
+  homeTimer = setTimeout(() => { if ((location.hash || '#/').replace(/^#\/?/, '') === '' && !dirty && !document.querySelector('.ovl')) route(); }, 60000);  tvToday();
 };
+async function tvToday() {
+  const box = $('#tvToday'); if (!box) return;
+  let R; try { R = await api('/api/admin/tv/today'); } catch (e) { box.querySelector('.empty').textContent = 'Ошибка: ' + e.message; return; }
+  const tm = t => t ? new Date(t).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' }) : '';
+  box.innerHTML = `<div class="chd"><div><h3>📺 Заказы сегодня на табло</h3><p>${R.rows.length} заказ(ов) · ${money(R.rows.reduce((a, r) => a + (r.sum || 0), 0))} · если на ТВ пропустили — покажите снова</p></div></div>
+    ${R.rows.length ? R.rows.map(r => `<div class="lr">${av(r.name, uPhoto(r.uid))}<div class="n"><b>${esc(r.name)}</b><small>${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.id}</a>` : '#' + r.id} · ${esc(r.title || '')}${r.shownAt ? ' · на табло в ' + tm(r.shownAt) : ''}${r.replayed ? ' · повтор в ' + tm(r.replayed) : ''}</small></div>
+      <div class="v">${money(r.sum)}</div><button class="btn s" data-replay="${r.id}" style="margin-left:10px;white-space:nowrap">▶ Показать на экране снова</button></div>`).join('') : '<div class="empty">Сегодня заказов ещё нет</div>'}`;
+  box.querySelectorAll('[data-replay]').forEach(b => b.onclick = async () => {
+    b.disabled = true; b.textContent = 'Отправлено на ТВ…';
+    try { await api('/api/admin/tv/replay', { method: 'POST', body: JSON.stringify({ id: b.dataset.replay }) }); toast('Заказ покажется на табло через пару секунд'); setTimeout(tvToday, 4000); }
+    catch (e) { toast('Ошибка: ' + e.message); b.disabled = false; b.textContent = '▶ Показать на экране снова'; }
+  });
+}
 const niceStep = mx => { const r = mx / 4, p = Math.pow(10, Math.floor(Math.log10(r || 1))); return [1, 2, 2.5, 5, 10].map(k => k * p).find(v => v >= r) || r; };
 const shortK = n => n >= 1e6 ? (Math.round(n / 1e5) / 10).toString().replace('.', ',') + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(Math.round(n));
 const SRCN = { CALL: 'Звонок', WEB: 'Сайт', EMAIL: 'E-mail', ADVERTISING: 'Реклама', PARTNER: 'Партнёр', RECOMMENDATION: 'Рекомендация', REPEAT_SALE: 'Повторная продажа', OTHER: 'Другое', STORE: 'Магазин', WEBFORM: 'CRM-форма', CALLBACK: 'Обратный звонок', TRADE_SHOW: 'Выставка', 'не указан': 'Не указан' };

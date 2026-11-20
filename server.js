@@ -576,6 +576,25 @@ async function handle(req, res) {
   if (p === '/api/admin/resync' && req.method === 'POST') {
     cache.meta = null; await sync(); return send(res, 200, { ok: !cache.error, error: cache.error, syncedAt: cache.syncedAt });
   }
+  // заказы сегодня на табло + «показать на экране снова» (если на ТВ пропустили попап)
+  if (p === '/api/admin/tv/today') {
+    const b = cfg.boards.find(x => x.active) || cfg.boards[0]; if (!b) return send(res, 200, { rows: [] });
+    const c = ctx(), data = C.computeBoard(b, c), today = data.period.today, mem = new Set(data.members);
+    const nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || 'Менеджер', base = bx.portal();
+    const mask = t => String(t || '').replace(/(\d{4})\d{4}(\d{2})/g, '$1****$2');
+    const shown = Object.fromEntries(events.filter(e => !e.test).map(e => [e.id, e.at]));
+    const rows = c.deals.filter(d => d.dk === today && mem.has(d.uid)).sort((a, z) => (shown[z.id] || 0) - (shown[a.id] || 0) || +z.id - +a.id)
+      .map(d => ({ id: d.id, uid: d.uid, name: nm(d.uid), sum: d.sum, title: mask(d.title), shownAt: shown[d.id] || null, replayed: (store.get('tv:replay') || {})[d.id] || null, url: base ? `${base}/crm/deal/details/${d.id}/` : '' }));
+    return send(res, 200, { board: b.name, today, rows });
+  }
+  if (p === '/api/admin/tv/replay' && req.method === 'POST') {
+    const body = JSON.parse(await readBody(req, 1e4) || '{}'), b = cfg.boards.find(x => x.active) || cfg.boards[0];
+    const c = ctx(), d = c.deals.find(x => String(x.id) === String(body.id)); if (!b || !d) return send(res, 404, { error: 'Сделка не найдена' });
+    events.push({ seq: ++seq, at: Date.now(), ...d, replay: true });
+    const rp = { ...(store.get('tv:replay') || {}) }; rp[d.id] = Date.now(); for (const k of Object.keys(rp)) if (Date.now() - rp[k] > 2 * 864e5) delete rp[k]; store.set('tv:replay', rp);
+    livePush('data');
+    return send(res, 200, { ok: true });
+  }
   if ((m = p.match(/^\/api\/admin\/board\/(\w+)\/test-sale$/)) && req.method === 'POST') {
     const b = cfg.boards.find(x => x.id === m[1]); if (!b) return send(res, 404, { error: 'not found' });
     const data = C.computeBoard(b, ctx()); const r = data.rows[0];
