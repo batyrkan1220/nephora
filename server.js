@@ -120,9 +120,9 @@ function fromAdmin(q, scope) {
   const log = wh.transfers().filter(x => x.from === A && x.to !== A && day(x.at) >= from && day(x.at) <= to);
   const logDeal = new Map(); log.forEach(x => { if (x.e === 'deal') logDeal.set(x.id, x); });
   // сделки, созданные на Админе за период (создатель — Админ): где они сейчас
-  // считаем только «Новая сделка»: сделки основной воронки (там, где стадия «Новая»), созданные на Админе; сделки других воронок (логистика и т.п.) не входят
-  const NEW = 'NEW', newCat = '0';
-  const deals = wh.all('deal').filter(d => d.crd >= from && d.crd <= to && d.cat === String(newCat) && (d.cb === A || logDeal.has(d.id)));
+  // «Новая сделка»: всё, что создаётся на Админе, попадает в «Общая → Новая»; проданные потом уходят в логистику — их тоже считаем
+  const NEW = 'NEW';
+  const deals = wh.all('deal').filter(d => d.crd >= from && d.crd <= to && (d.cb === A || logDeal.has(d.id)));
   const by = {}, days = {};
   let onAdmin = 0, given = 0;
   for (const d of deals) {

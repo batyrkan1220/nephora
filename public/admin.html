@@ -621,7 +621,7 @@ pages.fromAdmin = async () => {
   const dt = v => new Date(v).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' });
   const quick = [['Сегодня', S.today, S.today], ['Вчера', addD(S.today, -1), addD(S.today, -1)], ['7 дней', addD(S.today, -6), S.today], ['Этот месяц', S.today.slice(0, 8) + '01', S.today]];
   $('#view').innerHTML = `
-    <div class="card"><div class="chd"><div><h3>Распределение с аккаунта «${esc(R.admin)}» <small class="hint">${esc(R.adminEmail || '')} · ID ${esc(R.adminId || '')}</small></h3><p>Только «Новая сделка»: новые сделки основной воронки, созданные на «${esc(R.admin)}» (WhatsApp, заявки), и кому их передали. Сделки логистики и других воронок не считаются. Период — по дате создания.</p></div></div>
+    <div class="card"><div class="chd"><div><h3>Распределение с аккаунта «${esc(R.admin)}» <small class="hint">${esc(R.adminEmail || '')} · ID ${esc(R.adminId || '')}</small></h3><p>Только «Новая сделка»: сделки, которые поступили на «${esc(R.admin)}» в стадию «Новая» (WhatsApp, заявки), и кому их передали. Период — по дате создания.</p></div></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <input class="in" type="date" id="faF" value="${FA.from}" style="width:160px"> — <input class="in" type="date" id="faT" value="${FA.to}" style="width:160px">
         ${quick.map(([n, a, b]) => `<button class="btn l s" data-fa="${a}|${b}">${n}</button>`).join('')}</div></div>
