@@ -308,6 +308,81 @@ body{background:#EEF0F7}
 /* меню закреплено: не прокручивается вместе со страницей */
 @media (min-width:1001px){aside{position:sticky;top:16px;align-self:start;height:calc(100vh - 32px);overflow-y:auto}}
 
+/* ===== ИИ завод: 3D-офис ===== */
+.office{position:relative;height:640px;margin-bottom:18px;border-radius:22px;overflow:hidden;perspective:1900px;perspective-origin:50% 30%;--rx:57deg;--rz:-38deg;--sc:.8;
+  background:radial-gradient(120% 90% at 50% 0%,#2B3163 0%,#151833 55%,#0C0E20 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.office .hud{position:absolute;left:18px;top:16px;z-index:5;color:#C9CDF2;font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
+.office .hud span{background:rgba(255,255,255,.08);backdrop-filter:blur(6px);padding:6px 11px;border-radius:999px}.office .hud b{color:#fff}
+.office .hud .live{color:#4ADE80}.office .hud .live:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ADE80;margin-right:6px;animation:blink 1.4s infinite}
+.room{position:absolute;left:50%;top:56%;width:960px;height:660px;margin:-330px 0 0 -480px;transform-style:preserve-3d;transform:scale(var(--sc)) rotateX(var(--rx)) rotateZ(var(--rz));transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.room *{transform-style:preserve-3d}
+.flr{position:absolute;inset:0;background:
+  repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 1px,transparent 1px 120px),
+  repeating-linear-gradient(0deg,#C9A27A 0 22px,#C29A71 22px 23px,#CDA77F 23px 45px,#BF966C 45px 46px);
+  box-shadow:0 0 0 14px #8E6B4C,0 60px 120px rgba(0,0,0,.6)}
+.rug{position:absolute;border-radius:18px;background:repeating-linear-gradient(45deg,#3B4277 0 14px,#353C6E 14px 28px);box-shadow:inset 0 0 0 6px #4B53A0;opacity:.9}
+.wall{position:absolute;background:linear-gradient(180deg,#E9EBF5,#DADDEC)}
+.wall.b{left:0;top:-330px;width:960px;height:330px;transform-origin:50% 100%;transform:rotateX(-90deg)}
+.wall.r{left:960px;top:0;width:330px;height:660px;transform-origin:0 50%;transform:rotateY(-90deg);background:linear-gradient(90deg,#D6D9EA,#E4E6F2)}
+.wall:after{content:"";position:absolute;left:0;right:0;bottom:0;height:16px;background:#B9BDD3}
+.wall.r:after{top:0;bottom:0;left:0;right:auto;width:16px;height:auto}
+.win{position:absolute;top:46px;height:150px;border:8px solid #fff;border-radius:6px;overflow:hidden;box-shadow:inset 0 0 0 2px #C9CDE0}
+.win .sky{position:absolute;inset:0}
+.win svg{position:absolute;left:0;bottom:0;width:100%;height:70%}
+.wscr{position:absolute;left:470px;top:40px;width:320px;height:170px;background:#0F1230;border:8px solid #22264A;border-radius:10px;color:#fff;padding:12px 16px;box-shadow:0 0 40px rgba(99,102,241,.35)}
+.wscr h5{margin:0 0 6px;font-size:13px;letter-spacing:.12em;color:#A5B4FC}
+.wscr .big{font-size:46px;font-weight:800;line-height:1}.wscr .big small{font-size:14px;color:#A5B4FC;font-weight:600;margin-left:6px}
+.wscr .bars{display:flex;gap:6px;align-items:flex-end;height:46px;margin-top:10px}.wscr .bars i{flex:1;border-radius:4px 4px 0 0;background:var(--c);animation:bar 3s ease-in-out infinite alternate}
+@keyframes bar{from{filter:brightness(.8)}to{filter:brightness(1.25)}}
+.clock{position:absolute;left:830px;top:60px;width:90px;height:90px;border-radius:50%;background:#fff;border:6px solid #2B2F45}
+.clock i{position:absolute;left:50%;bottom:50%;width:4px;margin-left:-2px;background:#2B2F45;border-radius:2px;transform-origin:50% 100%}
+.clock i.h{height:24px}.clock i.m{height:34px;width:3px;margin-left:-1.5px}.clock i.s{height:36px;width:1.5px;margin-left:-.75px;background:#EF4444}
+.board{position:absolute;left:150px;top:40px;width:340px;height:200px;background:#fff;border:8px solid #9AA0BC;border-radius:8px;padding:12px 16px;color:#2B2F45;font:600 12px/1.55 Inter,system-ui,sans-serif;overflow:hidden}
+.board h5{margin:0 0 6px;font-size:14px;color:#151827}.board div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.box{position:absolute}
+.box>.t,.box>.f,.box>.s{position:absolute}
+.box>.t{inset:0;transform:translateZ(var(--h))}
+.box>.f{left:0;top:100%;width:100%;height:var(--h);transform-origin:50% 0;transform:rotateX(90deg)}
+.box>.s{left:0;top:0;width:var(--h);height:100%;transform-origin:0 50%;transform:rotateY(-90deg)}
+.desk3 .t{background:linear-gradient(135deg,#FFFFFF,#ECEEF6);border-radius:6px;box-shadow:inset 0 0 0 2px #D7DAE8}
+.desk3 .f{background:linear-gradient(180deg,#C7CBE0,#A9AECB)}.desk3 .s{background:#B6BAD4}
+.desk3 .kb{position:absolute;width:86px;height:26px;background:#2B2F45;border-radius:4px;transform:translateZ(calc(var(--h) + 2px));box-shadow:inset 0 0 0 3px #3B4060}
+.desk3 .kb:after{content:"";position:absolute;inset:6px;background:repeating-linear-gradient(90deg,#596085 0 6px,transparent 6px 9px);opacity:.8}
+.desk3 .mug{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--c);transform:translateZ(calc(var(--h) + 2px));box-shadow:0 0 0 3px #fff}
+.desk3 .glow{position:absolute;border-radius:50%;background:radial-gradient(var(--c),transparent 70%);opacity:.35;transform:translateZ(calc(var(--h) + 1px));animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{50%{opacity:.6}}
+.shadow{position:absolute;border-radius:50%;background:radial-gradient(rgba(0,0,0,.35),transparent 70%)}
+.bb{position:absolute;transform-origin:50% 100%;transform:translateZ(var(--z,0px)) rotateZ(calc(-1 * var(--rz))) rotateX(calc(-1 * var(--rx)))}
+.bb.bob{animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{margin-top:-8px}}
+.mon3{width:200px;background:#151833;border:7px solid #2B2F45;border-radius:10px;color:#E6E8FF;padding:8px 10px;font:500 11px/1.45 Inter,system-ui,sans-serif;box-shadow:0 0 34px -6px var(--c);cursor:pointer;position:relative}
+.mon3:after{content:"";position:absolute;left:50%;bottom:-26px;width:16px;height:20px;margin-left:-8px;background:#2B2F45;border-radius:0 0 4px 4px}
+.mon3 .mh{display:flex;justify-content:space-between;align-items:center;color:var(--c);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:10px;margin-bottom:5px;filter:brightness(1.4)}
+.mon3 .led{width:7px;height:7px;border-radius:50%;background:#4ADE80;box-shadow:0 0 8px #4ADE80;animation:blink 1.2s infinite}.mon3 .led.idle{background:#FACC15;box-shadow:0 0 8px #FACC15;animation:none}.mon3 .led.err{background:#EF4444;box-shadow:0 0 8px #EF4444}
+.mon3 .ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.06);min-height:16px}
+.mon3 .ln.cur{color:#fff}.mon3 .ln.cur:after{content:"▍";color:var(--c);animation:blink .8s steps(1) infinite;margin-left:1px}
+.mon3 .scan{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden}.mon3 .scan i{display:block;height:100%;width:30%;background:var(--c);animation:scan 1.6s linear infinite}
+.mon3 .scan.idle i{animation-duration:6s;opacity:.5}
+@keyframes scan{from{transform:translateX(-100%)}to{transform:translateX(340%)}}
+@keyframes blink{50%{opacity:.25}}
+.tag3{display:flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:5px 14px 5px 5px;font:800 15px Inter,system-ui,sans-serif;color:#151827;box-shadow:0 10px 24px -8px rgba(0,0,0,.5);white-space:nowrap;cursor:pointer}
+.tag3 b{min-width:30px;height:30px;padding:0 6px;border-radius:999px;background:var(--c);color:#fff;display:grid;place-items:center;font-size:14px}
+.tag3 small{font-weight:600;color:#8A8FA8;font-size:11px}
+.bot3{width:150px;height:170px;display:block}
+.bot3 .hd{transform-origin:75px 58px;animation:rbLook 7s ease-in-out infinite}
+.bot3 .eye{transform-origin:center;transform-box:fill-box;animation:rbBlink 4.5s infinite}
+.bot3 .al{transform-origin:44px 92px;animation:rbType .28s ease-in-out infinite alternate}.bot3 .ar{transform-origin:106px 92px;animation:rbType .28s ease-in-out .14s infinite alternate}
+.bot3.idle .al,.bot3.idle .ar{animation-duration:1.6s}.bot3.idle .hd{animation-duration:12s}
+.bot3 .ant{animation:blink 1s infinite}
+@keyframes rbLook{0%,100%{transform:rotate(0)}20%{transform:rotate(-7deg)}45%{transform:rotate(0)}70%{transform:rotate(6deg) translateY(1px)}}
+@keyframes rbBlink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+@keyframes rbType{from{transform:rotate(-5deg)}to{transform:rotate(5deg) translateY(2px)}}
+.plant .pot{width:44px;height:40px;background:#E07A5F;border-radius:4px 4px 10px 10px;margin:0 auto}
+.fly{position:absolute;width:26px;height:18px;border-radius:3px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);pointer-events:none;z-index:6}
+.fly:before{content:"";position:absolute;left:4px;right:4px;top:5px;height:2px;background:var(--c);box-shadow:0 5px 0 #CBD0E4}
+.office .hint3{position:absolute;right:18px;bottom:14px;z-index:5;color:#8D92C4;font-size:11px}
+@media (max-width:1000px){.office{height:520px}}
+
 /* ===== ИИ завод ===== */
 .floor{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:22px;padding:34px 28px 26px;margin-bottom:18px;border-radius:22px;overflow:hidden;
   background:linear-gradient(180deg,#F7F8FC,#EEF0F7);box-shadow:inset 0 0 0 1px #E4E6F0}
@@ -1339,6 +1414,99 @@ const robot = (c, busy) => `<svg class="rbt ${busy ? 'busy' : ''}" viewBox="0 0 
     <circle cx="51" cy="27" r="5" fill="#151827"/><circle cx="69" cy="27" r="5" fill="#151827"/><circle cx="52.5" cy="25.5" r="1.6" fill="#fff"/><circle cx="70.5" cy="25.5" r="1.6" fill="#fff"/>
     <rect x="57" y="1" width="6" height="8" rx="3" fill="${c}"/></g>
   <path d="M40 78l8-12h28l8 12z" fill="#2B2F45"/><rect x="48" y="68" width="24" height="2" fill="${c}" class="scr"/></svg>`;
+
+// 3D-офис ботов: пол, стены, столы — настоящие 3D-плоскости; боты, мониторы и таблички — «билборды», всегда лицом к зрителю
+const bot3 = (c, idle) => `<svg class="bot3 ${idle ? 'idle' : ''}" viewBox="0 0 150 170">
+  <rect x="28" y="70" width="94" height="88" rx="18" fill="#2B2F45"/><rect x="36" y="78" width="78" height="70" rx="14" fill="#3B4060"/>
+  <rect x="47" y="84" width="56" height="54" rx="16" fill="${c}"/><rect x="58" y="96" width="34" height="20" rx="6" fill="#fff" opacity=".92"/>
+  <rect x="62" y="104" width="26" height="3" rx="1.5" fill="${c}" class="ant"/>
+  <rect x="30" y="90" width="15" height="40" rx="7.5" fill="${c}" class="al"/><rect x="105" y="90" width="15" height="40" rx="7.5" fill="${c}" class="ar"/>
+  <g class="hd"><rect x="73" y="4" width="4" height="12" rx="2" fill="#9AA0BC"/><circle cx="75" cy="5" r="5" fill="${c}" class="ant"/>
+    <rect x="42" y="14" width="66" height="56" rx="26" fill="#F4F5FA" stroke="#D5D8E6" stroke-width="2.5"/>
+    <rect x="50" y="26" width="50" height="30" rx="14" fill="#151833"/>
+    <ellipse class="eye" cx="64" cy="41" rx="6" ry="7" fill="${c}"/><ellipse class="eye" cx="86" cy="41" rx="6" ry="7" fill="${c}"/>
+    <circle cx="66" cy="38" r="2" fill="#fff"/><circle cx="88" cy="38" r="2" fill="#fff"/>
+    <rect x="36" y="34" width="8" height="16" rx="4" fill="${c}"/><rect x="106" y="34" width="8" height="16" rx="4" fill="${c}"/></g></svg>`;
+const box3 = (cls, x, y, w, d, h, inner = '') => `<div class="box ${cls}" style="left:${x}px;top:${y}px;width:${w}px;height:${d}px;--h:${h}px"><div class="s"></div><div class="f"></div><div class="t"></div>${inner}</div>`;
+const bb = (x, y, z, w, hgt, html, cls = '') => `<div class="bb ${cls}" style="left:${x - w / 2}px;top:${y - hgt}px;width:${w}px;height:${hgt}px;--z:${z}px">${html}</div>`;
+let OFC = null;
+function officeHTML(d, BI, ago) {
+  const now = new Date(), hr = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Almaty', hour: 'numeric', hour12: false }).format(now);
+  const sky = hr >= 7 && hr < 17 ? 'linear-gradient(#7CC4FF,#CDEBFF)' : hr >= 17 && hr < 20 ? 'linear-gradient(#FF9A6B,#FFD39A)' : hr >= 5 && hr < 7 ? 'linear-gradient(#6C7BD8,#FFC7A1)' : 'linear-gradient(#0B1240,#273070)';
+  const night = hr < 6 || hr >= 20;
+  const city = `<svg viewBox="0 0 300 100" preserveAspectRatio="none"><path fill="${night ? '#141A45' : '#8FA3C7'}" d="M0 100V60h20V40h18v20h14V25h22v35h10V48h16v52zM96 100V30h26v70zM122 100V55h20V20h24v80zM166 100V45h18v-10h16v65zM200 100V58h22V30h20v70zM242 100V50h24v-12h14v62h20v0z"/>
+    ${night ? Array.from({ length: 26 }, (_, i) => `<rect x="${(i * 37) % 290 + 4}" y="${40 + (i * 23) % 50}" width="4" height="5" fill="#FDE68A" opacity=".85"/>`).join('') : ''}</svg>`;
+  const open = d.tasks.filter(t => t.status === 'open').length;
+  const done24 = d.tasks.filter(t => t.status !== 'open' && Date.now() - (t.doneAt || t.at) < 864e5).length;
+  const workers = d.bots.filter(b => b.id !== 'report');
+  const rep = d.bots.find(b => b.id === 'report');
+  const POS = [[120, 300], [470, 300], [120, 520], [470, 520]];
+  const desks = d.bots.map((b, i) => {
+    const [x, y] = POS[i % 4], c = b.color, idle = !d.running && !(b.open > 0) && b.id !== 'report';
+    const lines = b.id === 'report' ? (d.report ? d.report.text.split('\n').filter(Boolean).slice(1, 6) : ['Отчёт собирается утром…'])
+      : (d.tasks.filter(t => t.bot === b.id && t.status === 'open').slice(0, 12).map(t => t.title));
+    const status = b.error ? 'err' : (d.running || b.open > 0 || b.id === 'report') ? '' : 'idle';
+    return box3('desk3', x, y, 250, 100, 74, `<div class="glow" style="left:60px;top:-10px;width:150px;height:90px"></div><div class="kb" style="left:120px;top:22px"></div><div class="mug" style="left:214px;top:60px"></div>`)
+        .replace('class="box desk3"', `class="box desk3" style="--c:${c}"`).replace(`style="--c:${c}" style="`, `style="--c:${c};`)
+      + `<div class="shadow" style="left:${x + 80}px;top:${y - 40}px;width:140px;height:70px"></div>`
+      + bb(x + 170, y + 4, 0, 150, 170, `<div style="--c:${c}">${bot3(c, idle)}</div>`)
+      + bb(x + 76, y + 50, 74, 200, 150, `<div class="mon3" style="--c:${c}" data-bot="${b.id}"><div class="mh"><span>${BI[b.id] || '🤖'} ${esc(b.role)}</span><span class="led ${status}"></span></div>
+          <div class="lns" data-lines='${esc(JSON.stringify(lines.length ? lines : ['✓ Всё в порядке — новых проблем нет']))}'>${[0, 1, 2, 3].map(() => '<div class="ln"></div>').join('')}</div>
+          <div class="scan ${status}"><i></i></div></div>`)
+      + bb(x + 170, y - 150, 175, 260, 44, `<div class="tag3" style="--c:${c}" data-bot="${b.id}"><b>${b.id === 'report' ? (d.report ? '✓' : '·') : b.open}</b>${esc(b.name)} <small>${b.error ? '⚠ ошибка' : ago(b.id === 'report' ? (d.report || {}).at : b.last)}</small></div>`, 'bob');
+  }).join('');
+  const total = workers.reduce((a, b) => a + (b.open || 0), 0) || 1;
+  return `<div class="office" id="ofc">
+    <div class="hud"><span class="live">${d.running ? 'Боты работают' : 'Онлайн'}</span><span>Открытых задач <b>${open}</b></span><span>Решено за сутки <b>${done24}</b></span><span>Проверка каждые <b>10 мин</b></span></div>
+    <div class="room" id="room">
+      <div class="flr"></div><div class="rug" style="left:70px;top:230px;width:720px;height:420px"></div>
+      <div class="wall b">
+        <div class="win" style="left:30px;width:100px"><div class="sky" style="background:${sky}"></div>${city}</div>
+        <div class="board"><h5>📋 Задачи на сегодня</h5>${workers.map(b => `<div><b style="color:${b.color}">●</b> ${esc(b.name)}: ${b.open} откр.</div>`).join('')}${rep && d.report ? `<div style="color:#8A8FA8">📊 ${esc(d.report.text.split('\n')[1] || '')}</div>` : ''}</div>
+        <div class="wscr"><h5>SAFA AI · ОТКРЫТО</h5><div class="big">${open}<small>задач</small></div>
+          <div class="bars">${workers.map(b => `<i style="--c:${b.color};height:${Math.max(8, Math.round((b.open || 0) / total * 100))}%"></i>`).join('')}</div></div>
+        <div class="clock" id="ofClock"><i class="h"></i><i class="m"></i><i class="s"></i></div>
+      </div>
+      <div class="wall r"><div class="win" style="left:80px;width:170px"><div class="sky" style="background:${sky}"></div>${city}</div></div>
+      ${desks}
+      ${bb(880, 120, 0, 70, 130, `<div class="plant"><svg viewBox="0 0 70 90" width="70" height="90"><path d="M35 60C10 50 8 20 20 10c6 18 12 28 15 50zM35 60c25-10 27-40 15-50-6 18-12 28-15 50zM35 62C20 40 30 15 35 0c5 15 15 40 0 62z" fill="#3FA34D"/></svg><div class="pot"></div></div>`)}
+      ${bb(880, 600, 0, 70, 130, `<div class="plant"><svg viewBox="0 0 70 90" width="70" height="90"><path d="M35 60C10 50 8 20 20 10c6 18 12 28 15 50zM35 60c25-10 27-40 15-50-6 18-12 28-15 50zM35 62C20 40 30 15 35 0c5 15 15 40 0 62z" fill="#2F8F3F"/></svg><div class="pot" style="background:#6366F1"></div></div>`)}
+    </div>
+    <div class="hint3">нажмите на монитор бота — его задачи ниже · двигайте мышью, чтобы осмотреть офис</div></div>`;
+}
+function officeStart() {
+  if (OFC) { clearInterval(OFC.t); clearInterval(OFC.c); }
+  const el = $('#ofc'); if (!el) return;
+  const fit = () => { const w = el.clientWidth; el.style.setProperty('--sc', Math.max(.42, Math.min(.86, w / 1250)).toFixed(3)); };
+  fit(); window.addEventListener('resize', fit);
+  el.onmousemove = e => { const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5;
+    el.style.setProperty('--rz', (-38 + px * 14).toFixed(2) + 'deg'); el.style.setProperty('--rx', (57 + py * 8).toFixed(2) + 'deg'); };
+  el.onmouseleave = () => { el.style.setProperty('--rz', '-38deg'); el.style.setProperty('--rx', '57deg'); };
+  // мониторы: строки печатаются по буквам и прокручиваются
+  const mons = [...el.querySelectorAll('.lns')].map(n => ({ n, L: JSON.parse(n.dataset.lines), i: 0, ch: 0 }));
+  const paint = m => { const rows = m.n.children, k = m.L.length;
+    for (let r = 0; r < rows.length; r++) { const idx = m.i - (rows.length - 1 - r); const txt = idx >= 0 && idx < Infinity ? m.L[((idx % k) + k) % k] : '';
+      rows[r].className = 'ln' + (r === rows.length - 1 ? ' cur' : ''); rows[r].textContent = r === rows.length - 1 ? txt.slice(0, m.ch) : (idx >= 0 ? txt : ''); } };
+  mons.forEach(m => { m.i = Math.min(3, m.L.length - 1); m.ch = 999; paint(m); m.i++; m.ch = 0; });
+  OFC = { t: setInterval(() => {
+    if (!document.body.contains(el)) { clearInterval(OFC.t); clearInterval(OFC.c); window.removeEventListener('resize', fit); return; }
+    mons.forEach(m => { const full = m.L[m.i % m.L.length]; if (m.ch < full.length) { m.ch += 2; paint(m); } else if (Math.random() < .06) {
+      m.i++; m.ch = 0; paint(m); if (m.L.length > 1 || !/Всё в порядке/.test(m.L[0])) flyTask(el, m.n.closest('.mon3')); } });
+  }, 70), c: setInterval(tick, 1000) };
+  function tick() { const c = $('#ofClock'); if (!c) return; const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Almaty', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).formatToParts(new Date());
+    const v = k => +p.find(x => x.type === k).value, h = v('hour') % 12, mi = v('minute'), se = v('second');
+    c.querySelector('.h').style.transform = `rotate(${h * 30 + mi / 2}deg)`; c.querySelector('.m').style.transform = `rotate(${mi * 6}deg)`; c.querySelector('.s').style.transform = `rotate(${se * 6}deg)`; }
+  tick();
+}
+// найденная задача «улетает» с монитора бота на доску задач
+function flyTask(el, mon) {
+  const tgt = el.querySelector('.wscr'); if (!mon || !tgt) return;
+  const r0 = el.getBoundingClientRect(), a = mon.getBoundingClientRect(), b = tgt.getBoundingClientRect();
+  const f = document.createElement('div'); f.className = 'fly'; f.style.setProperty('--c', getComputedStyle(mon).getPropertyValue('--c'));
+  f.style.left = (a.left - r0.left + a.width / 2) + 'px'; f.style.top = (a.top - r0.top) + 'px'; el.appendChild(f);
+  f.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${(b.left - a.left) / 2}px,${(b.top - a.top) / 2 - 80}px) scale(1.2) rotate(-12deg)`, opacity: 1 },
+    { transform: `translate(${b.left - a.left + b.width / 2 - a.width / 2}px,${b.top - a.top + 40}px) scale(.5)`, opacity: 0 }], { duration: 1600, easing: 'cubic-bezier(.3,.6,.3,1)' }).onfinish = () => f.remove();
+}
 pages.factory = async () => {
   $('#view').innerHTML = head('ИИ завод', 'Боты-сотрудники проверяют свои участки по данным Bitrix24 каждые 10 минут и ставят задачи людям. В CRM боты ничего не меняют.') + '<div class="card"><div class="empty">Загрузка…</div></div>';
   let d;
@@ -1359,7 +1527,7 @@ pages.factory = async () => {
   const bname = id => (d.bots.find(b => b.id === id) || {}).name || id;
   $('#view').innerHTML = head('ИИ завод', 'Боты-сотрудники проверяют свои участки по данным Bitrix24 каждые 10 минут и ставят задачи людям. В CRM боты ничего не меняют.',
       own ? `<button class="btn" id="fRun">${d.running ? 'Боты работают…' : 'Запустить проверку'}</button>` : '') + `
-    <div class="floor">${d.bots.map(deskOf).join('')}</div>
+    ${officeHTML(d, BI, ago)}
     <div class="card"><div class="fbar"><nav class="seg">${[['all', 'Все'], ...d.bots.filter(b => b.id !== 'report').map(b => [b.id, b.name])].map(([k, n]) => `<button data-fb="${k}" class="${FB.bot === k ? 'on' : ''}">${n} <i>${cnt(k)}</i></button>`).join('')}</nav>
       <nav class="seg">${[['open', 'Открытые'], ['done', 'Выполненные'], ['all', 'Все']].map(([k, n]) => `<button data-fs="${k}" class="${FB.st === k ? 'on' : ''}">${n}</button>`).join('')}</nav></div>
       <div class="tasks">${tl.length ? tl.map(t => `<div class="tk ${t.status}" style="--c:${(d.bots.find(b => b.id === t.bot) || {}).color}">
@@ -1385,7 +1553,8 @@ pages.factory = async () => {
         <p><button class="btn" id="fsSave">Сохранить</button></p></div></div>` : ''}`;
   document.querySelectorAll('[data-fb]').forEach(b => b.onclick = () => { FB.bot = b.dataset.fb; pages.factory(); });
   document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { FB.st = b.dataset.fs; pages.factory(); });
-  document.querySelectorAll('.desk').forEach(x => x.onclick = () => { if (x.dataset.bot !== 'report') { FB.bot = x.dataset.bot; FB.st = 'open'; pages.factory(); } });
+  document.querySelectorAll('.mon3,.tag3').forEach(x => x.onclick = () => { if (x.dataset.bot !== 'report') { FB.bot = x.dataset.bot; FB.st = 'open'; pages.factory(); } });
+  officeStart();
   const setSt = (id, status) => api('/api/admin/bots/task/' + id, { method: 'POST', body: JSON.stringify({ status }) }).then(pages.factory).catch(e => toast('Ошибка: ' + e.message));
   document.querySelectorAll('[data-done]').forEach(b => b.onclick = () => setSt(b.dataset.done, 'done'));
   document.querySelectorAll('[data-undo]').forEach(b => b.onclick = () => setSt(b.dataset.undo, 'open'));
