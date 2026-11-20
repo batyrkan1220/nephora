@@ -311,7 +311,7 @@ body{background:#EEF0F7}
 /* ===== ИИ завод: 3D-офис ===== */
 .office{position:relative;height:640px;margin-bottom:18px;border-radius:22px;overflow:hidden;perspective:1900px;perspective-origin:50% 30%;--rx:57deg;--rz:-38deg;--sc:.8;
   background:radial-gradient(120% 90% at 50% 0%,#2B3163 0%,#151833 55%,#0C0E20 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
-.office .hud{position:absolute;left:18px;top:16px;z-index:5;color:#C9CDF2;font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
+.office .hud{position:absolute;left:18px;top:16px;max-width:calc(100% - 330px);z-index:5;color:#C9CDF2;font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
 .office .hud span{background:rgba(255,255,255,.08);backdrop-filter:blur(6px);padding:6px 11px;border-radius:999px}.office .hud b{color:#fff}
 .office .hud .live{color:#4ADE80}.office .hud .live:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ADE80;margin-right:6px;animation:blink 1.4s infinite}
 .room{position:absolute;left:50%;top:56%;width:960px;height:660px;margin:-330px 0 0 -480px;transform-style:preserve-3d;transform:scale(var(--sc)) rotateX(var(--rx)) rotateZ(var(--rz));transition:transform .5s cubic-bezier(.2,.7,.2,1)}
@@ -337,7 +337,7 @@ body{background:#EEF0F7}
 .clock{position:absolute;left:830px;top:60px;width:90px;height:90px;border-radius:50%;background:#fff;border:6px solid #2B2F45}
 .clock i{position:absolute;left:50%;bottom:50%;width:4px;margin-left:-2px;background:#2B2F45;border-radius:2px;transform-origin:50% 100%}
 .clock i.h{height:24px}.clock i.m{height:34px;width:3px;margin-left:-1.5px}.clock i.s{height:36px;width:1.5px;margin-left:-.75px;background:#EF4444}
-.board{position:absolute;left:150px;top:40px;width:340px;height:200px;background:#fff;border:8px solid #9AA0BC;border-radius:8px;padding:12px 16px;color:#2B2F45;font:600 12px/1.55 Inter,system-ui,sans-serif;overflow:hidden}
+.board{position:absolute;left:140px;top:24px;width:320px;height:210px;background:#fff;border:8px solid #9AA0BC;border-radius:8px;padding:12px 16px;color:#2B2F45;font:600 12px/1.55 Inter,system-ui,sans-serif;overflow:hidden}
 .board h5{margin:0 0 6px;font-size:14px;color:#151827}.board div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .box{position:absolute}
 .box>.t,.box>.f,.box>.s{position:absolute}
@@ -1496,7 +1496,7 @@ function officeHTML(d) {
       + bb(x + 74, y + 46, 58, 180, 150, `<div class="mon3" style="--c:${c}" data-bot="${b.id}"><div class="mh"><span>${BI[b.id] || '🤖'} ${esc(b.role)}</span><span class="led ${status}"></span></div>
           <div class="lns" data-id="${b.id}" data-lines='${esc(JSON.stringify(lines.length ? lines : ['✓ Всё в порядке — новых проблем нет']))}'>${[0, 1, 2, 3].map(() => '<div class="ln"></div>').join('')}</div>
           <div class="scan ${status}"><i></i></div></div>`)
-      + bb(x + W / 2, y - 170, 250, 280, 44, `<div class="tag3" style="--c:${c}" data-bot="${b.id}"><b data-cnt="${b.id}">${b.id === 'report' ? '✓' : b.open}</b>${esc(b.name)} <small data-ago="${b.id}">${b.error && !OF.demo ? '⚠ ошибка' : b.id === 'report' ? 'отчёты' : ago(b.last)}</small></div>`, 'bob');
+      + bb(x + W - 68, y - 6, 0, 280, 262, `<div style="display:flex;justify-content:center"><div class="tag3" style="--c:${c}" data-bot="${b.id}"><b data-cnt="${b.id}">${b.id === 'report' ? '✓' : b.open}</b>${esc(b.name)} <small data-ago="${b.id}">${b.error && !OF.demo ? '⚠ ошибка' : b.id === 'report' ? 'отчёты' : ago(b.last)}</small></div></div>`, 'bob');
   }).join('');
   const total = bots.reduce((a, b) => a + (b.open || 0), 0) || 1;
   return `<div class="office full" id="ofc">
