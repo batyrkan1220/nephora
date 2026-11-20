@@ -309,12 +309,13 @@ body{background:#EEF0F7}
 @media (min-width:1001px){aside{position:sticky;top:16px;align-self:start;height:calc(100vh - 32px);overflow-y:auto}}
 
 /* ===== ИИ завод: 3D-офис ===== */
-.office{position:relative;height:640px;margin-bottom:18px;border-radius:22px;overflow:hidden;perspective:1900px;perspective-origin:50% 30%;--rx:57deg;--rz:-38deg;--sc:.8;
+.office{position:relative;height:640px;touch-action:none;user-select:none;cursor:grab;margin-bottom:18px;border-radius:22px;overflow:hidden;perspective:1900px;perspective-origin:50% 30%;--rx:57deg;--rz:-38deg;--sc:.8;
   background:radial-gradient(120% 90% at 50% 0%,#2B3163 0%,#151833 55%,#0C0E20 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
 .office .hud{position:absolute;left:18px;top:16px;max-width:calc(100% - 330px);z-index:5;color:#C9CDF2;font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
 .office .hud span{background:rgba(255,255,255,.08);backdrop-filter:blur(6px);padding:6px 11px;border-radius:999px}.office .hud b{color:#fff}
 .office .hud .live{color:#4ADE80}.office .hud .live:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ADE80;margin-right:6px;animation:blink 1.4s infinite}
-.room{position:absolute;left:50%;top:56%;width:960px;height:660px;margin:-330px 0 0 -480px;transform-style:preserve-3d;transform:scale(var(--sc)) rotateX(var(--rx)) rotateZ(var(--rz));transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.office .room{transition:none}
+.room{position:absolute;left:50%;top:58%;width:1340px;height:920px;margin:-460px 0 0 -670px;transform-style:preserve-3d;transform:scale(calc(var(--sc) * var(--zm,1))) rotateX(var(--rx)) rotateZ(var(--rz));transition:transform .5s cubic-bezier(.2,.7,.2,1)}
 .room *{transform-style:preserve-3d}
 .flr{position:absolute;inset:0;background:
   repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 1px,transparent 1px 120px),
@@ -322,22 +323,22 @@ body{background:#EEF0F7}
   box-shadow:0 0 0 14px #8E6B4C,0 60px 120px rgba(0,0,0,.6)}
 .rug{position:absolute;border-radius:18px;background:repeating-linear-gradient(45deg,#3B4277 0 14px,#353C6E 14px 28px);box-shadow:inset 0 0 0 6px #4B53A0;opacity:.9}
 .wall{position:absolute;background:linear-gradient(180deg,#E9EBF5,#DADDEC)}
-.wall.b{left:0;top:-330px;width:960px;height:330px;transform-origin:50% 100%;transform:rotateX(-90deg)}
-.wall.r{left:960px;top:0;width:330px;height:660px;transform-origin:0 50%;transform:rotateY(-90deg);background:linear-gradient(90deg,#D6D9EA,#E4E6F2)}
+.wall.b{left:0;top:-380px;width:1340px;height:380px;transform-origin:50% 100%;transform:rotateX(-90deg)}
+.wall.r{left:1340px;top:0;width:380px;height:920px;transform-origin:0 50%;transform:rotateY(-90deg);background:linear-gradient(90deg,#D6D9EA,#E4E6F2)}
 .wall:after{content:"";position:absolute;left:0;right:0;bottom:0;height:16px;background:#B9BDD3}
 .wall.r:after{top:0;bottom:0;left:0;right:auto;width:16px;height:auto}
 .win{position:absolute;top:46px;height:150px;border:8px solid #fff;border-radius:6px;overflow:hidden;box-shadow:inset 0 0 0 2px #C9CDE0}
 .win .sky{position:absolute;inset:0}
 .win svg{position:absolute;left:0;bottom:0;width:100%;height:70%}
-.wscr{position:absolute;left:470px;top:40px;width:320px;height:170px;background:#0F1230;border:8px solid #22264A;border-radius:10px;color:#fff;padding:12px 16px;box-shadow:0 0 40px rgba(99,102,241,.35)}
+.wscr{position:absolute;left:680px;top:60px;width:380px;height:200px;background:#0F1230;border:8px solid #22264A;border-radius:10px;color:#fff;padding:12px 16px;box-shadow:0 0 40px rgba(99,102,241,.35)}
 .wscr h5{margin:0 0 6px;font-size:13px;letter-spacing:.12em;color:#A5B4FC}
 .wscr .big{font-size:46px;font-weight:800;line-height:1}.wscr .big small{font-size:14px;color:#A5B4FC;font-weight:600;margin-left:6px}
 .wscr .bars{display:flex;gap:6px;align-items:flex-end;height:46px;margin-top:10px}.wscr .bars i{flex:1;border-radius:4px 4px 0 0;background:var(--c);animation:bar 3s ease-in-out infinite alternate}
 @keyframes bar{from{filter:brightness(.8)}to{filter:brightness(1.25)}}
-.clock{position:absolute;left:830px;top:60px;width:90px;height:90px;border-radius:50%;background:#fff;border:6px solid #2B2F45}
+.clock{position:absolute;left:1140px;top:90px;width:90px;height:90px;border-radius:50%;background:#fff;border:6px solid #2B2F45}
 .clock i{position:absolute;left:50%;bottom:50%;width:4px;margin-left:-2px;background:#2B2F45;border-radius:2px;transform-origin:50% 100%}
 .clock i.h{height:24px}.clock i.m{height:34px;width:3px;margin-left:-1.5px}.clock i.s{height:36px;width:1.5px;margin-left:-.75px;background:#EF4444}
-.board{position:absolute;left:140px;top:24px;width:320px;height:210px;background:#fff;border:8px solid #9AA0BC;border-radius:8px;padding:12px 16px;color:#2B2F45;font:600 12px/1.55 Inter,system-ui,sans-serif;overflow:hidden}
+.board{position:absolute;left:190px;top:50px;width:420px;height:250px;background:#fff;border:8px solid #9AA0BC;border-radius:8px;padding:12px 16px;color:#2B2F45;font:600 12px/1.55 Inter,system-ui,sans-serif;overflow:hidden}
 .board h5{margin:0 0 6px;font-size:14px;color:#151827}.board div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .box{position:absolute}
 .box>.t,.box>.f,.box>.s{position:absolute}
@@ -391,11 +392,11 @@ body{background:#EEF0F7}
 .ob:hover{background:rgba(255,255,255,.2)}.ob.on{background:#F59E0B;color:#1B1300}
 .board.brand{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;background:linear-gradient(135deg,#fff,#F3F4FA)}
 .board.brand .bl{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#8A8FA8;font-weight:700}
-.board.brand .bn{font-size:44px;font-weight:900;color:#151827;letter-spacing:-.02em;line-height:1.05}
-.board.brand .bp{font-size:38px;font-weight:900;line-height:1.05;background:linear-gradient(90deg,#4B4FE8,#EC4899);-webkit-background-clip:text;background-clip:text;color:transparent}
-.wall.r .wri{position:absolute;left:0;top:0;width:660px;height:330px;transform-origin:0 0;transform:translateX(330px) rotate(90deg)}
-.plq{position:absolute;left:20px;top:60px;width:110px;padding:12px 10px;background:linear-gradient(160deg,#2B2F45,#151833);border:3px solid #C9A227;border-radius:8px;color:#F5D77A;text-align:center;font-family:Inter,system-ui,sans-serif}
-.plq small{display:block;font-size:9px;letter-spacing:.16em}.plq b{display:block;font-size:20px;letter-spacing:.08em;margin:2px 0}.plq span{font-size:9px;color:#C9CDF2}
+.board.brand .bn{font-size:58px;font-weight:900;color:#151827;letter-spacing:-.02em;line-height:1.05}
+.board.brand .bp{font-size:50px;font-weight:900;line-height:1.05;background:linear-gradient(90deg,#4B4FE8,#EC4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wall.r .wri{position:absolute;left:0;top:0;width:920px;height:380px;transform-origin:0 0;transform:translateX(380px) rotate(90deg)}
+.plq{position:absolute;left:40px;top:80px;width:150px;padding:12px 10px;background:linear-gradient(160deg,#2B2F45,#151833);border:3px solid #C9A227;border-radius:8px;color:#F5D77A;text-align:center;font-family:Inter,system-ui,sans-serif}
+.plq small{display:block;font-size:9px;letter-spacing:.16em}.plq b{display:block;font-size:26px;letter-spacing:.08em;margin:2px 0}.plq span{font-size:9px;color:#C9CDF2}
 /* ===== ИИ завод ===== */
 .floor{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:22px;padding:34px 28px 26px;margin-bottom:18px;border-radius:22px;overflow:hidden;
   background:linear-gradient(180deg,#F7F8FC,#EEF0F7);box-shadow:inset 0 0 0 1px #E4E6F0}
@@ -1483,7 +1484,7 @@ function officeHTML(d) {
     : d.bots.map(b => ({ ...b }));
   const open = OF.demo ? bots.reduce((a, b) => a + b.open, 0) : d.tasks.filter(t => t.status === 'open').length;
   const done24 = OF.demo ? DM.N(60, 140) : d.tasks.filter(t => t.status !== 'open' && Date.now() - (t.doneAt || t.at) < 864e5).length;
-  const POS = bots.length > 4 ? [[40, 290], [350, 290], [660, 290], [40, 500], [350, 500], [660, 500]] : [[120, 300], [470, 300], [120, 520], [470, 520]];
+  const POS = bots.length > 4 ? [[90, 400], [520, 400], [950, 400], [90, 760], [520, 760], [950, 760]] : [[180, 420], [760, 420], [180, 760], [760, 760]];
   const W = bots.length > 4 ? 250 : 260;
   const desks = bots.map((b, i) => {
     const [x, y] = POS[i % POS.length], c = b.color, busy = OF.demo || (d && d.running) || b.open > 0 || b.id === 'report';
@@ -1503,28 +1504,41 @@ function officeHTML(d) {
     <div class="hud"><span class="live">${OF.demo ? 'Боты работают' : d.running ? 'Боты работают' : 'Онлайн'}</span><span>🏢 <b>Бизнес центр «Астана»</b></span><span>Открытых задач <b id="ofOpen">${open}</b></span><span>Решено за сутки <b id="ofDone">${done24}</b></span></div>
     <div class="hudr"><button class="ob ${OF.demo ? 'on' : ''}" id="ofDemo">${OF.demo ? '🎬 Демо' : '📡 Реальные данные'}</button><button class="ob" id="ofFs">⛶ Во весь экран</button></div>
     <div class="room" id="room">
-      <div class="flr"></div><div class="rug" style="left:20px;top:220px;width:900px;height:430px"></div>
+      <div class="flr"></div><div class="rug" style="left:40px;top:250px;width:1240px;height:640px"></div>
       <div class="wall b">
-        <div class="win" style="left:24px;width:100px"><div class="sky" style="background:${sky}"></div>${city}</div>
+        <div class="win" style="left:40px;width:120px;top:70px;height:180px"><div class="sky" style="background:${sky}"></div>${city}</div>
         <div class="board brand"><div class="bl">Компания</div><div class="bn">Safa group</div><div class="bl" style="margin-top:10px">Продукция</div><div class="bp">Nephora</div></div>
         <div class="wscr"><h5>SAFA AI · ОТКРЫТО</h5><div class="big"><span id="ofOpen2">${open}</span><small>задач</small></div>
           <div class="bars">${bots.filter(b => b.id !== 'report').map(b => `<i style="--c:${b.color};height:${Math.max(8, Math.round((b.open || 0) / total * 100 * 2.2))}%"></i>`).join('')}</div></div>
         <div class="clock" id="ofClock"><i class="h"></i><i class="m"></i><i class="s"></i></div>
       </div>
-      <div class="wall r"><div class="wri"><div class="plq"><small>БИЗНЕС ЦЕНТР</small><b>АСТАНА</b><span>офис Safa group</span></div><div class="win" style="left:150px;width:150px"><div class="sky" style="background:${sky}"></div>${city}</div></div></div>
+      <div class="wall r"><div class="wri"><div class="plq"><small>БИЗНЕС ЦЕНТР</small><b>АСТАНА</b><span>офис Safa group</span></div><div class="win" style="left:260px;width:220px;top:70px;height:180px"><div class="sky" style="background:${sky}"></div>${city}</div></div></div>
       ${desks}
-      ${bb(925, 150, 0, 70, 130, `<div class="plant"><svg viewBox="0 0 70 90" width="70" height="90"><path d="M35 60C10 50 8 20 20 10c6 18 12 28 15 50zM35 60c25-10 27-40 15-50-6 18-12 28-15 50zM35 62C20 40 30 15 35 0c5 15 15 40 0 62z" fill="#3FA34D"/></svg><div class="pot"></div></div>`)}
+      ${bb(1290, 120, 0, 70, 130, `<div class="plant"><svg viewBox="0 0 70 90" width="70" height="90"><path d="M35 60C10 50 8 20 20 10c6 18 12 28 15 50zM35 60c25-10 27-40 15-50-6 18-12 28-15 50zM35 62C20 40 30 15 35 0c5 15 15 40 0 62z" fill="#3FA34D"/></svg><div class="pot"></div></div>`)}
     </div>
-    <div class="hint3">двигайте мышью, чтобы осмотреть офис</div></div>`;
+    <div class="hint3">тяните — поворот · колесо / два пальца — приближение · двойной тап — сброс</div></div>`;
 }
 function officeStart(d) {
   if (OFC) { clearInterval(OFC.t); clearInterval(OFC.c); }
   const el = $('#ofc'); if (!el) return;
-  const fit = () => { const w = el.clientWidth, h = el.clientHeight; el.style.setProperty('--sc', Math.max(.4, Math.min(1.25, w / 1250, h / 760)).toFixed(3)); };
+  const fit = () => { const w = el.clientWidth, h = el.clientHeight; el.style.setProperty('--sc', Math.max(.3, Math.min(1.1, w / 1750, h / 1050)).toFixed(3)); };
   fit(); window.addEventListener('resize', fit); document.addEventListener('fullscreenchange', () => setTimeout(fit, 60));
-  el.onmousemove = e => { if (e.target.closest('.ob')) return; const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5;
-    el.style.setProperty('--rz', (-38 + px * 14).toFixed(2) + 'deg'); el.style.setProperty('--rx', (57 + py * 8).toFixed(2) + 'deg'); };
-  el.onmouseleave = () => { el.style.setProperty('--rz', '-38deg'); el.style.setProperty('--rx', '57deg'); };
+  // осмотр офиса: тянуть мышью или пальцем — поворот; колесо или два пальца — приближение; двойной тап — сброс
+  const V = { rz: -38, rx: 57, zm: 1 }, P = new Map(); let pinch = 0, moved = false;
+  const apply = () => { el.style.setProperty('--rz', V.rz.toFixed(2) + 'deg'); el.style.setProperty('--rx', V.rx.toFixed(2) + 'deg'); el.style.setProperty('--zm', V.zm.toFixed(3)); };
+  const dist = () => { const [a, b] = [...P.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  el.onpointerdown = e => { if (e.target.closest('.ob')) return; P.set(e.pointerId, { x: e.clientX, y: e.clientY }); moved = false; if (P.size === 2) pinch = dist(); el.style.cursor = 'grabbing'; };
+  el.onpointermove = e => { const p = P.get(e.pointerId); if (!p) return;
+    if (P.size === 1) { const dx = e.clientX - p.x, dy = e.clientY - p.y; if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
+      V.rz = Math.max(-80, Math.min(4, V.rz - dx * .25)); V.rx = Math.max(30, Math.min(72, V.rx - dy * .15)); }
+    p.x = e.clientX; p.y = e.clientY;
+    if (P.size === 2) { const d2 = dist(); if (pinch) V.zm = Math.max(.6, Math.min(2.4, V.zm * d2 / pinch)); pinch = d2; moved = true; }
+    apply(); };
+  const up = e => { P.delete(e.pointerId); pinch = 0; el.style.cursor = ''; };
+  el.onpointerup = up; el.onpointercancel = up; el.onpointerleave = up;
+  el.onwheel = e => { e.preventDefault(); V.zm = Math.max(.6, Math.min(2.4, V.zm * (e.deltaY < 0 ? 1.08 : 1 / 1.08))); apply(); };
+  el.ondblclick = e => { if (e.target.closest('.ob')) return; Object.assign(V, { rz: -38, rx: 57, zm: 1 }); apply(); };
+  el.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); } }, true);
   $('#ofFs').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else el.requestFullscreen && el.requestFullscreen().catch(() => {}); };
   $('#ofDemo').onclick = () => { OF.demo = !OF.demo; try { localStorage.setItem('ofDemo', OF.demo ? '1' : '0'); } catch {} pages.factory(); };
   el.querySelectorAll('.mon3,.tag3').forEach(x => x.onclick = () => { if (!OF.demo && x.dataset.bot !== 'report') { FB.bot = x.dataset.bot; FB.st = 'open'; location.hash = '#/factory/tasks'; } });
