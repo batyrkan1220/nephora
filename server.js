@@ -651,7 +651,12 @@ async function handle(req, res) {
   if (p === '/api/admin/wz/settings') {
     if (req.method === 'POST') {
       const b = JSON.parse(await readBody(req, 1e4) || '{}'), proto = req.headers['x-forwarded-proto'] || 'http';
-      try { return send(res, 200, await wz.connect(b.key, `${proto}://${req.headers.host}/api/wz/${wz.token()}`)); }
+      try {
+        if (b.backfill) { wz.backfill(Date.now() - Math.min(+b.days || 30, 120) * 864e5).catch(() => {}); return send(res, 200, wz.status()); }
+        const before = wz.status().lastAt, R = await wz.connect(b.key, `${proto}://${req.headers.host}/api/wz/${wz.token()}`);
+        wz.backfill(before ? before - 3600e3 : Date.now() - 60 * 864e5).catch(() => {});
+        return send(res, 200, { ...R, backfill: wz.backfillStatus() });
+      }
       catch (e) { return send(res, 400, { error: e.message }); }
     }
     return send(res, 200, wz.status());
@@ -846,5 +851,5 @@ async function handle(req, res) {
   wh.start(cfg).then(warm);
   bots.init({ wh, cai, wz, C, cache, ctx, cfg: () => cfg, dupePairs,
     waLost: () => { const t = C.todayKey(cfg.settings.tz), f = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
-      return waLeads(new URLSearchParams({ from: f, to: t }), { role: 'owner', sectors: null }, true).rows.filter(r => r.lost); }, deal: id => { const b = bx.portal(); return b ? `${b}/crm/deal/details/${id}/` : ''; } }); cai.start(cfg); wz.init().catch(e => console.error('wazzup init', e.message));
+      return waLeads(new URLSearchParams({ from: f, to: t }), { role: 'owner', sectors: null }, true).rows.filter(r => r.lost); }, deal: id => { const b = bx.portal(); return b ? `${b}/crm/deal/details/${id}/` : ''; } }); cai.start(cfg); wz.init().then(() => wz.autoConnect(process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || '')).catch(e => console.error('wazzup init', e.message));
 })();
