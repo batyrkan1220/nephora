@@ -998,7 +998,7 @@ function popup(e) { queue.push(e); if (!showing) next(); }
 function next() {
   const e = queue.shift(); if (!e) { showing = false; return; }
   showing = true;
-  if (e.kind === 'overtake') return overtakeShow(e);
+  if (e.kind === 'overtake') { if (OVT_OFF) return next(); return overtakeShow(e); }
   const el = document.createElement('div'); el.className = 'pop';
   const PRm = document.documentElement.classList.contains('promo') ? (D.board.screen.promo || {}) : null;
   el.innerHTML = `<div class="rays"></div><div class="card">${PRm ? `<div class="pprm"><b>${esc(PRm.title || '')}</b><span class="num">${esc(PRm.big || '')}</span></div><div class="pwm num">${esc(PRm.big || '')}</div>` : ''}${e.sector ? `<div class="psec">${/^сектор/i.test(e.sector) ? esc(e.sector) : 'Сектор ' + esc(e.sector)}</div>` : '<span class="tag">🎉 Новая продажа</span>'}<div class="pav">${av(e)}</div><div class="nm">${esc(e.name)}</div>
@@ -1033,8 +1033,10 @@ function shade(hex, a) { const n = parseInt(hex.slice(1), 16), m = c => Math.rou
 /* ===== жарыс секторов: «ОБГОН!», когда сектор обходит другой по кассе дня ===== */
 let secPrev = null;
 const secOrder = list => (list || []).slice().sort((a, b) => b.daySum - a.daySum || b.sum - a.sum);
+const OVT_OFF = true;
 function overtakeCheck(sectors, evs) {
   const now = secOrder(sectors), old = secPrev; secPrev = now.map(x => ({ id: x.id, daySum: x.daySum }));
+  if (OVT_OFF) return;   // обгон временно отключён по просьбе владельца
   if (!old || now.length < 2 || D.board.screen.overtake === false) return;
   const oldIdx = Object.fromEntries(old.map((x, i) => [x.id, i])), oldSum = Object.fromEntries(old.map(x => [x.id, x.daySum]));
   now.forEach((x, i) => {
