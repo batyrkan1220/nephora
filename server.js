@@ -120,7 +120,9 @@ function fromAdmin(q, scope) {
   const log = wh.transfers().filter(x => x.from === A && x.to !== A && day(x.at) >= from && day(x.at) <= to);
   const logDeal = new Map(); log.forEach(x => { if (x.e === 'deal') logDeal.set(x.id, x); });
   // сделки, созданные на Админе за период (создатель — Админ): где они сейчас
-  const deals = wh.all('deal').filter(d => d.crd >= from && d.crd <= to && (d.cb === A || logDeal.has(d.id)));
+  // считаем только «Новая сделка»: сделки основной воронки (там, где стадия «Новая»), созданные на Админе; сделки других воронок (логистика и т.п.) не входят
+  const NEW = 'NEW', newCat = '0';
+  const deals = wh.all('deal').filter(d => d.crd >= from && d.crd <= to && d.cat === String(newCat) && (d.cb === A || logDeal.has(d.id)));
   const by = {}, days = {};
   let onAdmin = 0, given = 0;
   for (const d of deals) {
@@ -134,7 +136,7 @@ function fromAdmin(q, scope) {
   const leads = wh.all('lead').filter(l => l.crd >= from && l.crd <= to && l.cb === A);
   // сейчас на Админе как на ответственном — независимо от даты (всё, что висит на нём)
   const nowDeals = wh.all('deal').filter(d => d.uid === A), nowLeads = wh.all('lead').filter(l => l.uid === A);
-  const cur = { deals: nowDeals.length, dealsOpen: nowDeals.filter(d => d.sem === 'P').length, dealsWon: nowDeals.filter(d => d.sem === 'S').length, dealsLost: nowDeals.filter(d => d.sem === 'F').length,
+  const cur = { newNow: nowDeals.filter(d => d.st === NEW).length, deals: nowDeals.length, dealsOpen: nowDeals.filter(d => d.sem === 'P').length, dealsWon: nowDeals.filter(d => d.sem === 'S').length, dealsLost: nowDeals.filter(d => d.sem === 'F').length,
     leads: nowLeads.length, leadsOpen: nowLeads.filter(l => l.sem === 'P').length,
     byStage: Object.entries(nowDeals.filter(d => d.sem === 'P').reduce((m, d) => { const k = stName(d.st); m[k] = (m[k] || 0) + 1; return m; }, {})).sort((a, z) => z[1] - a[1]).slice(0, 12) };
   const curLeads = nowLeads.filter(l => l.sem === 'P').sort((a, z) => String(z.cr).localeCompare(String(a.cr))).slice(0, 200)
