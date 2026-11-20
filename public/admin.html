@@ -1449,7 +1449,7 @@ function officeHTML(d, BI, ago) {
     return box3('desk3', x, y, 250, 100, 74, `<div class="glow" style="left:60px;top:-10px;width:150px;height:90px"></div><div class="kb" style="left:120px;top:22px"></div><div class="mug" style="left:214px;top:60px"></div>`)
         .replace('class="box desk3"', `class="box desk3" style="--c:${c}"`).replace(`style="--c:${c}" style="`, `style="--c:${c};`)
       + `<div class="shadow" style="left:${x + 80}px;top:${y - 40}px;width:140px;height:70px"></div>`
-      + bb(x + 170, y + 4, 0, 150, 170, `<div style="--c:${c}">${bot3(c, idle)}</div>`)
+      + bb(x + 165, y - 8, 0, 150, 170, `<div style="--c:${c}">${bot3(c, idle)}</div>`)
       + bb(x + 76, y + 50, 74, 200, 150, `<div class="mon3" style="--c:${c}" data-bot="${b.id}"><div class="mh"><span>${BI[b.id] || '🤖'} ${esc(b.role)}</span><span class="led ${status}"></span></div>
           <div class="lns" data-lines='${esc(JSON.stringify(lines.length ? lines : ['✓ Всё в порядке — новых проблем нет']))}'>${[0, 1, 2, 3].map(() => '<div class="ln"></div>').join('')}</div>
           <div class="scan ${status}"><i></i></div></div>`)
@@ -1485,8 +1485,8 @@ function officeStart() {
   // мониторы: строки печатаются по буквам и прокручиваются
   const mons = [...el.querySelectorAll('.lns')].map(n => ({ n, L: JSON.parse(n.dataset.lines), i: 0, ch: 0 }));
   const paint = m => { const rows = m.n.children, k = m.L.length;
-    for (let r = 0; r < rows.length; r++) { const idx = m.i - (rows.length - 1 - r); const txt = idx >= 0 && idx < Infinity ? m.L[((idx % k) + k) % k] : '';
-      rows[r].className = 'ln' + (r === rows.length - 1 ? ' cur' : ''); rows[r].textContent = r === rows.length - 1 ? txt.slice(0, m.ch) : (idx >= 0 ? txt : ''); } };
+    for (let r = 0; r < rows.length; r++) { const idx = m.i - (rows.length - 1 - r); const show = idx >= 0 && m.i - idx < k, txt = show ? m.L[((idx % k) + k) % k] : '';
+      rows[r].className = 'ln' + (r === rows.length - 1 ? ' cur' : ''); rows[r].textContent = r === rows.length - 1 ? txt.slice(0, m.ch) : txt; } };
   mons.forEach(m => { m.i = Math.min(3, m.L.length - 1); m.ch = 999; paint(m); m.i++; m.ch = 0; });
   OFC = { t: setInterval(() => {
     if (!document.body.contains(el)) { clearInterval(OFC.t); clearInterval(OFC.c); window.removeEventListener('resize', fit); return; }
