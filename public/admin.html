@@ -383,6 +383,19 @@ body{background:#EEF0F7}
 .office .hint3{position:absolute;right:18px;bottom:14px;z-index:5;color:#8D92C4;font-size:11px}
 @media (max-width:1000px){.office{height:520px}}
 
+
+.office.full{height:calc(100vh - 150px);min-height:560px;margin:0}
+.office:fullscreen{height:100vh;border-radius:0}
+.office .hudr{position:absolute;right:18px;top:16px;z-index:7;display:flex;gap:8px}
+.ob{border:0;background:rgba(255,255,255,.1);color:#fff;font:600 13px Inter,system-ui,sans-serif;padding:8px 14px;border-radius:999px;cursor:pointer;backdrop-filter:blur(6px)}
+.ob:hover{background:rgba(255,255,255,.2)}.ob.on{background:#F59E0B;color:#1B1300}
+.board.brand{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;background:linear-gradient(135deg,#fff,#F3F4FA)}
+.board.brand .bl{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#8A8FA8;font-weight:700}
+.board.brand .bn{font-size:44px;font-weight:900;color:#151827;letter-spacing:-.02em;line-height:1.05}
+.board.brand .bp{font-size:38px;font-weight:900;line-height:1.05;background:linear-gradient(90deg,#4B4FE8,#EC4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wall.r .wri{position:absolute;left:0;top:0;width:660px;height:330px;transform-origin:0 0;transform:translateX(330px) rotate(90deg)}
+.plq{position:absolute;left:20px;top:60px;width:110px;padding:12px 10px;background:linear-gradient(160deg,#2B2F45,#151833);border:3px solid #C9A227;border-radius:8px;color:#F5D77A;text-align:center;font-family:Inter,system-ui,sans-serif}
+.plq small{display:block;font-size:9px;letter-spacing:.16em}.plq b{display:block;font-size:20px;letter-spacing:.08em;margin:2px 0}.plq span{font-size:9px;color:#C9CDF2}
 /* ===== ИИ завод ===== */
 .floor{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:22px;padding:34px 28px 26px;margin-bottom:18px;border-radius:22px;overflow:hidden;
   background:linear-gradient(180deg,#F7F8FC,#EEF0F7);box-shadow:inset 0 0 0 1px #E4E6F0}
@@ -1430,75 +1443,118 @@ const bot3 = (c, idle) => `<svg class="bot3 ${idle ? 'idle' : ''}" viewBox="0 0 
 const box3 = (cls, x, y, w, d, h, inner = '') => `<div class="box ${cls}" style="left:${x}px;top:${y}px;width:${w}px;height:${d}px;--h:${h}px"><div class="s"></div><div class="f"></div><div class="t"></div>${inner}</div>`;
 const bb = (x, y, z, w, hgt, html, cls = '') => `<div class="bb ${cls}" style="left:${x - w / 2}px;top:${y - hgt}px;width:${w}px;height:${hgt}px;--z:${z}px">${html}</div>`;
 let OFC = null;
-function officeHTML(d, BI, ago) {
-  const now = new Date(), hr = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Almaty', hour: 'numeric', hour12: false }).format(now);
+const OF = { demo: (() => { try { return localStorage.getItem('ofDemo') !== '0'; } catch { return true; } })() };
+// демо-данные: правдоподобные, но выдуманные (номера скрыты, имена случайные)
+const DM = (() => {
+  const R = a => a[Math.floor(Math.random() * a.length)], N = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const who = ['Айгерим', 'Данияр', 'Асель', 'Ерлан', 'Мадина', 'Нурсултан', 'Дана', 'Алихан', 'Жансая', 'Тимур', 'Аружан', 'Бекзат'];
+  const sec = ['Gold', 'Hunter', 'Alpha', 'Prime', 'Star', 'Elite'];
+  const ph = () => `+7 7${N(0, 7)}• ••• ${N(10, 99)} ${N(10, 99)}`, dl = () => '#' + N(18100, 19400);
+  const T = {
+    calls: [() => `Пропущенный ${ph()} → перезвонить: ${R(who)}`, () => `Звонок ${N(6, 19)} сек — слабый разговор, ${R(who)}`, () => `Недозвон ×${N(3, 5)} по сделке ${dl()} — сменить время`,
+      () => `Клиент ждёт звонка ${N(20, 90)} мин — ${R(who)}`, () => `AI-оценка ${N(38, 55)}/100 — разобрать звонок с ${R(who)}`, () => `✓ Перезвонили ${ph()} за ${N(2, 9)} мин`],
+    logi: [() => `Доставка ${dl()} висит ${N(3, 7)} дн. — уточнить у курьера`, () => `Оплата по ${dl()} не подтверждена банком`, () => `Отказ банка ${dl()} — предложить рассрочку`,
+      () => `Адрес не заполнен — ${dl()}, ${R(who)}`, () => `✓ ${dl()} доставлено и оплачено`, () => `Курьер не взял заказ ${dl()} — сегодня`],
+    wa: [() => `${ph()} написал — не попал в «Новая сделка»`, () => `Ответ через ${N(25, 140)} мин — ${R(who)}`, () => `Повторное обращение ${ph()} → старая сделка ${dl()}`,
+      () => `Без ответа ${N(15, 60)} мин — ${ph()}`, () => `✓ Обращение ${ph()} передано на Админа`, () => `Новый клиент ${ph()} — создана сделка ${dl()}`],
+    kassa: [() => `Сверка Kaspi: ${dl()} ✓ совпадает`, () => `Оплата без сделки — найти владельца`, () => `Возврат по ${dl()} — проверить`, () => `✓ Касса сектора ${R(sec)} сверена`, () => `Дубль оплаты ${dl()} — отметить`],
+    qc: [() => `Разбор звонка ${R(who)}: ${N(70, 96)}/100 ✓`, () => `Скрипт не соблюдён — ${R(who)}, этап «возражения»`, () => `Не названа цена — ${R(who)}`, () => `✓ Лучший звонок дня — ${R(who)}`, () => `Грубость не найдена · ${N(40, 120)} звонков проверено`],
+  };
+  const REP = [() => `Собираю отчёт по звонкам · сектор ${R(sec)}…`, () => `Сверка заказов с логистикой… ${N(60, 99)}%`, () => `Конверсия WhatsApp → сделка ✓`, () => `Рейтинг менеджеров обновлён ✓`,
+    () => `Скорость ответа по секторам ✓`, () => `Выкуп по сектору ${R(sec)} пересчитан ✓`, () => `Посещаемость за смену ✓`, () => `Готовлю утренний отчёт руководителю…`, () => `Отправлено в WhatsApp руководителю ✓`];
+  const BOTS = [
+    { id: 'calls', name: 'Звонок-бот', role: 'Звонки и перезвоны', color: '#4B4FE8' }, { id: 'logi', name: 'Логистика-бот', role: 'Доставка и оплаты', color: '#F59E0B' },
+    { id: 'wa', name: 'WhatsApp-бот', role: 'Потерянные обращения', color: '#25A244' }, { id: 'report', name: 'Есеп-бот', role: 'Отчёты', color: '#0EA5E9' },
+    { id: 'kassa', name: 'Касса-бот', role: 'Сверка оплат', color: '#EC4899' }, { id: 'qc', name: 'Контроль-бот', role: 'Качество звонков', color: '#8B5CF6' }];
+  return { line: id => (id === 'report' ? R(REP) : R(T[id] || T.calls))(), BOTS, N };
+})();
+const BI = { calls: '📞', logi: '🚚', wa: '💬', report: '📊', kassa: '💳', qc: '🎧' };
+function officeHTML(d) {
+  const ago = t => !t ? '—' : Math.round((Date.now() - t) / 60000) < 1 ? 'только что' : Math.round((Date.now() - t) / 60000) + ' мин назад';
+  const hr = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Almaty', hour: 'numeric', hour12: false }).format(new Date());
   const sky = hr >= 7 && hr < 17 ? 'linear-gradient(#7CC4FF,#CDEBFF)' : hr >= 17 && hr < 20 ? 'linear-gradient(#FF9A6B,#FFD39A)' : hr >= 5 && hr < 7 ? 'linear-gradient(#6C7BD8,#FFC7A1)' : 'linear-gradient(#0B1240,#273070)';
-  const night = hr < 6 || hr >= 20;
-  const city = `<svg viewBox="0 0 300 100" preserveAspectRatio="none"><path fill="${night ? '#141A45' : '#8FA3C7'}" d="M0 100V60h20V40h18v20h14V25h22v35h10V48h16v52zM96 100V30h26v70zM122 100V55h20V20h24v80zM166 100V45h18v-10h16v65zM200 100V58h22V30h20v70zM242 100V50h24v-12h14v62h20v0z"/>
-    ${night ? Array.from({ length: 26 }, (_, i) => `<rect x="${(i * 37) % 290 + 4}" y="${40 + (i * 23) % 50}" width="4" height="5" fill="#FDE68A" opacity=".85"/>`).join('') : ''}</svg>`;
-  const open = d.tasks.filter(t => t.status === 'open').length;
-  const done24 = d.tasks.filter(t => t.status !== 'open' && Date.now() - (t.doneAt || t.at) < 864e5).length;
-  const workers = d.bots.filter(b => b.id !== 'report');
-  const rep = d.bots.find(b => b.id === 'report');
-  const POS = [[120, 300], [470, 300], [120, 520], [470, 520]];
-  const desks = d.bots.map((b, i) => {
-    const [x, y] = POS[i % 4], c = b.color, idle = !d.running && !(b.open > 0) && b.id !== 'report';
-    const lines = b.id === 'report' ? (d.report ? d.report.text.split('\n').filter(Boolean).slice(1, 6) : ['Отчёт собирается утром…'])
-      : (d.tasks.filter(t => t.bot === b.id && t.status === 'open').slice(0, 12).map(t => t.title));
-    const status = b.error ? 'err' : (d.running || b.open > 0 || b.id === 'report') ? '' : 'idle';
-    return box3('desk3', x, y, 260, 100, 58, `<div class="glow" style="left:110px;top:-10px;width:150px;height:90px"></div><div class="kb" style="left:150px;top:30px"></div><div class="mug" style="left:228px;top:66px"></div>`)
-        .replace('class="box desk3"', `class="box desk3" style="--c:${c}"`).replace(`style="--c:${c}" style="`, `style="--c:${c};`)
-      + `<div class="shadow" style="left:${x + 80}px;top:${y - 40}px;width:140px;height:70px"></div>`
-      + bb(x + 195, y - 6, 0, 190, 215, `<div style="--c:${c}">${bot3(c, idle)}</div>`)
-      + bb(x + 72, y + 46, 58, 180, 150, `<div class="mon3" style="--c:${c}" data-bot="${b.id}"><div class="mh"><span>${BI[b.id] || '🤖'} ${esc(b.role)}</span><span class="led ${status}"></span></div>
-          <div class="lns" data-lines='${esc(JSON.stringify(lines.length ? lines : ['✓ Всё в порядке — новых проблем нет']))}'>${[0, 1, 2, 3].map(() => '<div class="ln"></div>').join('')}</div>
+  const night = hr < 6 || hr >= 20, fill = night ? '#141A45' : '#8FA3C7';
+  // силуэт Астаны: Байтерек, «Хан Шатыр», башни
+  const city = `<svg viewBox="0 0 300 100" preserveAspectRatio="none"><path fill="${fill}" d="M0 100V62h18V44h16v18h12V30h20v70zM70 100V40h22v60zM96 100V58h10V36h18v64zM176 100V52h18V30h22v70zM220 100V60h20V44h22v56h38v0z"/>
+    <path fill="${fill}" d="M132 100l6-22h2l-2-34c0-6 4-10 9-10s9 4 9 10l-2 34h2l6 22z"/><circle cx="147" cy="31" r="9" fill="${night ? '#FDE68A' : '#F5C542'}"/>
+    <path fill="${fill}" d="M262 100l12-40 12 40z"/>
+    ${night ? Array.from({ length: 24 }, (_, i) => `<rect x="${(i * 41) % 290 + 4}" y="${50 + (i * 23) % 44}" width="4" height="5" fill="#FDE68A" opacity=".85"/>`).join('') : ''}</svg>`;
+  const bots = OF.demo ? DM.BOTS.map(b => ({ ...b, open: b.id === 'report' ? 0 : DM.N(3, 24), last: Date.now() - DM.N(0, 9) * 6e4 }))
+    : d.bots.map(b => ({ ...b }));
+  const open = OF.demo ? bots.reduce((a, b) => a + b.open, 0) : d.tasks.filter(t => t.status === 'open').length;
+  const done24 = OF.demo ? DM.N(60, 140) : d.tasks.filter(t => t.status !== 'open' && Date.now() - (t.doneAt || t.at) < 864e5).length;
+  const POS = bots.length > 4 ? [[40, 290], [350, 290], [660, 290], [40, 500], [350, 500], [660, 500]] : [[120, 300], [470, 300], [120, 520], [470, 520]];
+  const W = bots.length > 4 ? 250 : 260;
+  const desks = bots.map((b, i) => {
+    const [x, y] = POS[i % POS.length], c = b.color, busy = OF.demo || (d && d.running) || b.open > 0 || b.id === 'report';
+    const lines = OF.demo || b.id === 'report' ? Array.from({ length: 4 }, () => DM.line(b.id)) : d.tasks.filter(t => t.bot === b.id && t.status === 'open').slice(0, 12).map(t => t.title);
+    const status = b.error && !OF.demo ? 'err' : busy ? '' : 'idle';
+    return box3('desk3', x, y, W, 100, 58, `<div class="glow" style="left:${W - 150}px;top:-10px;width:150px;height:90px"></div><div class="kb" style="left:${W - 112}px;top:30px"></div><div class="mug" style="left:${W - 32}px;top:66px"></div>`)
+        .replace('class="box desk3" style="', `class="box desk3" style="--c:${c};`)
+      + `<div class="shadow" style="left:${x + W - 160}px;top:${y - 40}px;width:140px;height:70px"></div>`
+      + bb(x + W - 68, y - 6, 0, 190, 215, `<div style="--c:${c}">${bot3(c, !busy)}</div>`)
+      + bb(x + 74, y + 46, 58, 180, 150, `<div class="mon3" style="--c:${c}" data-bot="${b.id}"><div class="mh"><span>${BI[b.id] || '🤖'} ${esc(b.role)}</span><span class="led ${status}"></span></div>
+          <div class="lns" data-id="${b.id}" data-lines='${esc(JSON.stringify(lines.length ? lines : ['✓ Всё в порядке — новых проблем нет']))}'>${[0, 1, 2, 3].map(() => '<div class="ln"></div>').join('')}</div>
           <div class="scan ${status}"><i></i></div></div>`)
-      + bb(x + 150, y - 170, 250, 280, 44, `<div class="tag3" style="--c:${c}" data-bot="${b.id}"><b>${b.id === 'report' ? (d.report ? '✓' : '·') : b.open}</b>${esc(b.name)} <small>${b.error ? '⚠ ошибка' : ago(b.id === 'report' ? (d.report || {}).at : b.last)}</small></div>`, 'bob');
+      + bb(x + W / 2, y - 170, 250, 280, 44, `<div class="tag3" style="--c:${c}" data-bot="${b.id}"><b data-cnt="${b.id}">${b.id === 'report' ? '✓' : b.open}</b>${esc(b.name)} <small data-ago="${b.id}">${b.error && !OF.demo ? '⚠ ошибка' : b.id === 'report' ? 'отчёты' : ago(b.last)}</small></div>`, 'bob');
   }).join('');
-  const total = workers.reduce((a, b) => a + (b.open || 0), 0) || 1;
-  return `<div class="office" id="ofc">
-    <div class="hud"><span class="live">${d.running ? 'Боты работают' : 'Онлайн'}</span><span>Открытых задач <b>${open}</b></span><span>Решено за сутки <b>${done24}</b></span><span>Проверка каждые <b>10 мин</b></span></div>
+  const total = bots.reduce((a, b) => a + (b.open || 0), 0) || 1;
+  return `<div class="office full" id="ofc">
+    <div class="hud"><span class="live">${OF.demo ? 'Боты работают' : d.running ? 'Боты работают' : 'Онлайн'}</span><span>🏢 <b>Бизнес центр «Астана»</b></span><span>Открытых задач <b id="ofOpen">${open}</b></span><span>Решено за сутки <b id="ofDone">${done24}</b></span></div>
+    <div class="hudr"><button class="ob ${OF.demo ? 'on' : ''}" id="ofDemo">${OF.demo ? '🎬 Демо' : '📡 Реальные данные'}</button><button class="ob" id="ofFs">⛶ Во весь экран</button></div>
     <div class="room" id="room">
-      <div class="flr"></div><div class="rug" style="left:70px;top:230px;width:720px;height:420px"></div>
+      <div class="flr"></div><div class="rug" style="left:20px;top:220px;width:900px;height:430px"></div>
       <div class="wall b">
-        <div class="win" style="left:30px;width:100px"><div class="sky" style="background:${sky}"></div>${city}</div>
-        <div class="board"><h5>📋 Задачи на сегодня</h5>${workers.map(b => `<div><b style="color:${b.color}">●</b> ${esc(b.name)}: ${b.open} откр.</div>`).join('')}${rep && d.report ? `<div style="color:#8A8FA8">📊 ${esc(d.report.text.split('\n')[1] || '')}</div>` : ''}</div>
-        <div class="wscr"><h5>SAFA AI · ОТКРЫТО</h5><div class="big">${open}<small>задач</small></div>
-          <div class="bars">${workers.map(b => `<i style="--c:${b.color};height:${Math.max(8, Math.round((b.open || 0) / total * 100))}%"></i>`).join('')}</div></div>
+        <div class="win" style="left:24px;width:100px"><div class="sky" style="background:${sky}"></div>${city}</div>
+        <div class="board brand"><div class="bl">Компания</div><div class="bn">Safa group</div><div class="bl" style="margin-top:10px">Продукция</div><div class="bp">Nephora</div></div>
+        <div class="wscr"><h5>SAFA AI · ОТКРЫТО</h5><div class="big"><span id="ofOpen2">${open}</span><small>задач</small></div>
+          <div class="bars">${bots.filter(b => b.id !== 'report').map(b => `<i style="--c:${b.color};height:${Math.max(8, Math.round((b.open || 0) / total * 100 * 2.2))}%"></i>`).join('')}</div></div>
         <div class="clock" id="ofClock"><i class="h"></i><i class="m"></i><i class="s"></i></div>
       </div>
-      <div class="wall r"><div class="win" style="left:80px;width:170px"><div class="sky" style="background:${sky}"></div>${city}</div></div>
+      <div class="wall r"><div class="wri"><div class="plq"><small>БИЗНЕС ЦЕНТР</small><b>АСТАНА</b><span>офис Safa group</span></div><div class="win" style="left:150px;width:150px"><div class="sky" style="background:${sky}"></div>${city}</div></div></div>
       ${desks}
-      ${bb(880, 120, 0, 70, 130, `<div class="plant"><svg viewBox="0 0 70 90" width="70" height="90"><path d="M35 60C10 50 8 20 20 10c6 18 12 28 15 50zM35 60c25-10 27-40 15-50-6 18-12 28-15 50zM35 62C20 40 30 15 35 0c5 15 15 40 0 62z" fill="#3FA34D"/></svg><div class="pot"></div></div>`)}
-      ${bb(880, 600, 0, 70, 130, `<div class="plant"><svg viewBox="0 0 70 90" width="70" height="90"><path d="M35 60C10 50 8 20 20 10c6 18 12 28 15 50zM35 60c25-10 27-40 15-50-6 18-12 28-15 50zM35 62C20 40 30 15 35 0c5 15 15 40 0 62z" fill="#2F8F3F"/></svg><div class="pot" style="background:#6366F1"></div></div>`)}
+      ${bb(925, 150, 0, 70, 130, `<div class="plant"><svg viewBox="0 0 70 90" width="70" height="90"><path d="M35 60C10 50 8 20 20 10c6 18 12 28 15 50zM35 60c25-10 27-40 15-50-6 18-12 28-15 50zM35 62C20 40 30 15 35 0c5 15 15 40 0 62z" fill="#3FA34D"/></svg><div class="pot"></div></div>`)}
     </div>
-    <div class="hint3">нажмите на монитор бота — его задачи ниже · двигайте мышью, чтобы осмотреть офис</div></div>`;
+    <div class="hint3">двигайте мышью, чтобы осмотреть офис</div></div>`;
 }
-function officeStart() {
+function officeStart(d) {
   if (OFC) { clearInterval(OFC.t); clearInterval(OFC.c); }
   const el = $('#ofc'); if (!el) return;
-  const fit = () => { const w = el.clientWidth; el.style.setProperty('--sc', Math.max(.42, Math.min(.86, w / 1250)).toFixed(3)); };
-  fit(); window.addEventListener('resize', fit);
-  el.onmousemove = e => { const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5;
+  const fit = () => { const w = el.clientWidth, h = el.clientHeight; el.style.setProperty('--sc', Math.max(.4, Math.min(1.25, w / 1250, h / 760)).toFixed(3)); };
+  fit(); window.addEventListener('resize', fit); document.addEventListener('fullscreenchange', () => setTimeout(fit, 60));
+  el.onmousemove = e => { if (e.target.closest('.ob')) return; const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5;
     el.style.setProperty('--rz', (-38 + px * 14).toFixed(2) + 'deg'); el.style.setProperty('--rx', (57 + py * 8).toFixed(2) + 'deg'); };
   el.onmouseleave = () => { el.style.setProperty('--rz', '-38deg'); el.style.setProperty('--rx', '57deg'); };
-  // мониторы: строки печатаются по буквам и прокручиваются
-  const mons = [...el.querySelectorAll('.lns')].map(n => ({ n, L: JSON.parse(n.dataset.lines), i: 0, ch: 0 }));
+  $('#ofFs').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else el.requestFullscreen && el.requestFullscreen().catch(() => {}); };
+  $('#ofDemo').onclick = () => { OF.demo = !OF.demo; try { localStorage.setItem('ofDemo', OF.demo ? '1' : '0'); } catch {} pages.factory(); };
+  el.querySelectorAll('.mon3,.tag3').forEach(x => x.onclick = () => { if (!OF.demo && x.dataset.bot !== 'report') { FB.bot = x.dataset.bot; FB.st = 'open'; location.hash = '#/factory/tasks'; } });
+  const mons = [...el.querySelectorAll('.lns')].map(n => ({ n, id: n.dataset.id, L: JSON.parse(n.dataset.lines), i: 0, ch: 0 }));
   const paint = m => { const rows = m.n.children, k = m.L.length;
-    for (let r = 0; r < rows.length; r++) { const idx = m.i - (rows.length - 1 - r); const show = idx >= 0 && m.i - idx < k, txt = show ? m.L[((idx % k) + k) % k] : '';
+    for (let r = 0; r < rows.length; r++) { const idx = m.i - (rows.length - 1 - r), show = idx >= 0 && m.i - idx < k, txt = show ? m.L[((idx % k) + k) % k] : '';
       rows[r].className = 'ln' + (r === rows.length - 1 ? ' cur' : ''); rows[r].textContent = r === rows.length - 1 ? txt.slice(0, m.ch) : txt; } };
   mons.forEach(m => { m.i = Math.min(3, m.L.length - 1); m.ch = 999; paint(m); m.i++; m.ch = 0; });
+  const live = OF.demo || true;
   OFC = { t: setInterval(() => {
     if (!document.body.contains(el)) { clearInterval(OFC.t); clearInterval(OFC.c); window.removeEventListener('resize', fit); return; }
-    mons.forEach(m => { const full = m.L[m.i % m.L.length]; if (m.ch < full.length) { m.ch += 2; paint(m); } else if (Math.random() < .06) {
-      m.i++; m.ch = 0; paint(m); if (m.L.length > 1 || !/Всё в порядке/.test(m.L[0])) flyTask(el, m.n.closest('.mon3')); } });
+    mons.forEach(m => {
+      const full = m.L[m.i % m.L.length];
+      if (m.ch < full.length) { m.ch += 2; paint(m); return; }
+      if (Math.random() > (OF.demo ? .05 : .03)) return;
+      // демо и Есеп-бот: каждый раз новая строка — бот «продолжает работать»
+      if (OF.demo || m.id === 'report') { m.L.push(DM.line(m.id)); if (m.L.length > 30) { m.L.shift(); m.i--; } }
+      m.i++; m.ch = 0; paint(m);
+      const ok = /^✓|✓$/.test(m.L[m.i % m.L.length]);
+      if (m.id !== 'report' && !/Всё в порядке/.test(m.L[0])) flyTask(el, m.n.closest('.mon3'));
+      if (OF.demo && m.id !== 'report') { const c = el.querySelector(`[data-cnt="${m.id}"]`), o = $('#ofOpen'), o2 = $('#ofOpen2'), dn = $('#ofDone');
+        if (ok) { if (dn) dn.textContent = +dn.textContent + 1; } else { if (c) c.textContent = +c.textContent + 1; if (o) o.textContent = +o.textContent + 1; if (o2) o2.textContent = o.textContent; }
+        const a = el.querySelector(`[data-ago="${m.id}"]`); if (a) a.textContent = 'только что'; }
+    });
   }, 70), c: setInterval(tick, 1000) };
   function tick() { const c = $('#ofClock'); if (!c) return; const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Almaty', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).formatToParts(new Date());
     const v = k => +p.find(x => x.type === k).value, h = v('hour') % 12, mi = v('minute'), se = v('second');
     c.querySelector('.h').style.transform = `rotate(${h * 30 + mi / 2}deg)`; c.querySelector('.m').style.transform = `rotate(${mi * 6}deg)`; c.querySelector('.s').style.transform = `rotate(${se * 6}deg)`; }
   tick();
 }
-// найденная задача «улетает» с монитора бота на доску задач
 function flyTask(el, mon) {
   const tgt = el.querySelector('.wscr'); if (!mon || !tgt) return;
   const r0 = el.getBoundingClientRect(), a = mon.getBoundingClientRect(), b = tgt.getBoundingClientRect();
@@ -1508,6 +1564,12 @@ function flyTask(el, mon) {
     { transform: `translate(${b.left - a.left + b.width / 2 - a.width / 2}px,${b.top - a.top + 40}px) scale(.5)`, opacity: 0 }], { duration: 1600, easing: 'cubic-bezier(.3,.6,.3,1)' }).onfinish = () => f.remove();
 }
 pages.factory = async () => {
+  $('#view').innerHTML = '<div class="office full" id="ofc"><div class="hud"><span>Загрузка офиса…</span></div></div>';
+  let d = { bots: [], tasks: [] };
+  if (!OF.demo) { try { d = FB.data = await api('/api/admin/bots'); } catch (e) { $('#view').innerHTML = `<div class="warn">${esc(e.message)}</div>`; return; } }
+  $('#view').innerHTML = officeHTML(d); officeStart(d);
+};
+pages.factoryTasks = async () => {
   $('#view').innerHTML = head('ИИ завод', 'Боты-сотрудники проверяют свои участки по данным Bitrix24 каждые 10 минут и ставят задачи людям. В CRM боты ничего не меняют.') + '<div class="card"><div class="empty">Загрузка…</div></div>';
   let d;
   try { d = FB.data = await api('/api/admin/bots'); } catch (e) { $('#view').innerHTML += `<div class="warn">${esc(e.message)}</div>`; return; }
@@ -1527,7 +1589,6 @@ pages.factory = async () => {
   const bname = id => (d.bots.find(b => b.id === id) || {}).name || id;
   $('#view').innerHTML = head('ИИ завод', 'Боты-сотрудники проверяют свои участки по данным Bitrix24 каждые 10 минут и ставят задачи людям. В CRM боты ничего не меняют.',
       own ? `<button class="btn" id="fRun">${d.running ? 'Боты работают…' : 'Запустить проверку'}</button>` : '') + `
-    ${officeHTML(d, BI, ago)}
     <div class="card"><div class="fbar"><nav class="seg">${[['all', 'Все'], ...d.bots.filter(b => b.id !== 'report').map(b => [b.id, b.name])].map(([k, n]) => `<button data-fb="${k}" class="${FB.bot === k ? 'on' : ''}">${n} <i>${cnt(k)}</i></button>`).join('')}</nav>
       <nav class="seg">${[['open', 'Открытые'], ['done', 'Выполненные'], ['all', 'Все']].map(([k, n]) => `<button data-fs="${k}" class="${FB.st === k ? 'on' : ''}">${n}</button>`).join('')}</nav></div>
       <div class="tasks">${tl.length ? tl.map(t => `<div class="tk ${t.status}" style="--c:${(d.bots.find(b => b.id === t.bot) || {}).color}">
@@ -1551,21 +1612,20 @@ pages.factory = async () => {
           <label class="f"><span>С какого номера Wazzup</span><select class="in" id="fsCh"><option value="">— не отправлять —</option>${(d.channels || []).map(c => `<option value="${c.id}" ${c.id === d.settings.reportChannel ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label></div>
         <label class="ck"><input type="checkbox" id="fsSend" ${d.settings.reportSend ? 'checked' : ''}> Отправлять утренний отчёт в WhatsApp автоматически</label>
         <p><button class="btn" id="fsSave">Сохранить</button></p></div></div>` : ''}`;
-  document.querySelectorAll('[data-fb]').forEach(b => b.onclick = () => { FB.bot = b.dataset.fb; pages.factory(); });
-  document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { FB.st = b.dataset.fs; pages.factory(); });
-  document.querySelectorAll('.mon3,.tag3').forEach(x => x.onclick = () => { if (x.dataset.bot !== 'report') { FB.bot = x.dataset.bot; FB.st = 'open'; pages.factory(); } });
-  officeStart();
-  const setSt = (id, status) => api('/api/admin/bots/task/' + id, { method: 'POST', body: JSON.stringify({ status }) }).then(pages.factory).catch(e => toast('Ошибка: ' + e.message));
+  document.querySelectorAll('[data-fb]').forEach(b => b.onclick = () => { FB.bot = b.dataset.fb; pages.factoryTasks(); });
+  document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { FB.st = b.dataset.fs; pages.factoryTasks(); });
+
+  const setSt = (id, status) => api('/api/admin/bots/task/' + id, { method: 'POST', body: JSON.stringify({ status }) }).then(pages.factoryTasks).catch(e => toast('Ошибка: ' + e.message));
   document.querySelectorAll('[data-done]').forEach(b => b.onclick = () => setSt(b.dataset.done, 'done'));
   document.querySelectorAll('[data-undo]').forEach(b => b.onclick = () => setSt(b.dataset.undo, 'open'));
   if (!own) return;
-  $('#fRun').onclick = async () => { $('#fRun').textContent = 'Боты работают…'; await api('/api/admin/bots/run', { method: 'POST' }).catch(e => toast(e.message)); pages.factory(); };
-  $('#fRep').onclick = async () => { await api('/api/admin/bots/report', { method: 'POST', body: '{}' }).catch(e => toast(e.message)); pages.factory(); };
-  if ($('#fRepSend')) $('#fRepSend').onclick = async () => { if (!confirm('Отправить отчёт в WhatsApp ' + (d.settings.reportPhone ? '+' + d.settings.reportPhone : '') + '?')) return; await api('/api/admin/bots/report', { method: 'POST', body: JSON.stringify({ send: true }) }).catch(e => toast(e.message)); pages.factory(); };
+  $('#fRun').onclick = async () => { $('#fRun').textContent = 'Боты работают…'; await api('/api/admin/bots/run', { method: 'POST' }).catch(e => toast(e.message)); pages.factoryTasks(); };
+  $('#fRep').onclick = async () => { await api('/api/admin/bots/report', { method: 'POST', body: '{}' }).catch(e => toast(e.message)); pages.factoryTasks(); };
+  if ($('#fRepSend')) $('#fRepSend').onclick = async () => { if (!confirm('Отправить отчёт в WhatsApp ' + (d.settings.reportPhone ? '+' + d.settings.reportPhone : '') + '?')) return; await api('/api/admin/bots/report', { method: 'POST', body: JSON.stringify({ send: true }) }).catch(e => toast(e.message)); pages.factoryTasks(); };
   if ($('#fCopy')) $('#fCopy').onclick = () => navigator.clipboard.writeText(d.report.text).then(() => toast('Скопировано'));
   $('#fsSave').onclick = async () => {
     try { await api('/api/admin/bots/settings', { method: 'POST', body: JSON.stringify({ on: $('#fsOn').checked, stuckDays: $('#fsStuck').value, lowScore: $('#fsLow').value, missedDays: $('#fsMiss').value,
-      reportAt: $('#fsAt').value, reportPhone: $('#fsPh').value, reportChannel: $('#fsCh').value, reportSend: $('#fsSend').checked }) }); toast('Сохранено'); pages.factory(); }
+      reportAt: $('#fsAt').value, reportPhone: $('#fsPh').value, reportChannel: $('#fsCh').value, reportSend: $('#fsSend').checked }) }); toast('Сохранено'); pages.factoryTasks(); }
     catch (e) { toast('Ошибка: ' + e.message); }
   };
 };
@@ -1658,7 +1718,7 @@ const SECTIONS = [
   { id: 'calls', title: 'Звонки и WhatsApp', tabs: [['stats', 'Звонки'], ['wa', 'WhatsApp'], ['rec', 'Записи и AI-разбор']] },
   { id: 'money', title: 'Зарплата', tabs: [['payouts', 'Выплаты'], ['penalties', 'Штрафы', 1]] },
   { id: 'ai', title: 'AI-ассистент' },
-  { id: 'factory', title: 'ИИ завод' },
+  { id: 'factory', title: 'ИИ завод', tabs: [['office', '3D офис'], ['tasks', 'Задачи и отчёты']] },
   { id: 'settings', title: 'Настройки', own: 1, tabs: [['board', 'Табло и планы'], ['managers', 'Менеджеры'], ['users', 'Доступы'], ['terminal', 'Терминал'], ['system', 'Система']] },
 ];
 // старые адреса → новые разделы
@@ -1690,7 +1750,7 @@ function route() {
     calls: () => { if (tab === 'wa') return pages.wa(); CALLV = tab; return pages.calls(); },
     money: () => (tab === 'penalties' ? pages.penalties() : pages.payouts()),
     ai: () => pages.ai(),
-    factory: () => pages.factory(),
+    factory: () => (tab === 'tasks' ? pages.factoryTasks() : pages.factory()),
     settings: () => ({ board: () => pages.board((cfg.boards[0] || {}).id, b || 'main'), managers: () => pages.managers(), users: () => pages.users(),
       terminal: () => { AT.view = 'setup'; return pages.att(); }, system: () => pages.settings() })[tab](),
   };
