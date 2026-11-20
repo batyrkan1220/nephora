@@ -390,7 +390,7 @@ async function handle(req, res) {
     const month = M.from === from && M.to === to ? { from, to, rows: null } : { ...M, rows: C.computeBoard({ ...b, auto: true }, ctx()).rows };
     return send(res, 200, { ...data, now: Date.now(), build: BUILD, month, members: undefined, _all: undefined, events: ev, seq, syncedAt: cache.syncedAt, error: cache.error, company: cfg.settings.company });
   }
-  if (p === '/live.mp4' || p === '/live.webm') {
+  if (p === '/live.mp4' || p === '/live.webm' || p === '/stripes.mp4' || p === '/stripes.webm') {
     const buf = fs.readFileSync(path.join(PUB, p.slice(1))), type = p.endsWith('webm') ? 'video/webm' : 'video/mp4';
     const rg = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
     if (rg) { const st = +rg[1] || 0, en = rg[2] ? +rg[2] : buf.length - 1;

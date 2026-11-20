@@ -287,6 +287,11 @@ html.pt .slst.many .scd{flex:none;max-height:none}
 /* бегущие полосы на прогрессе */
 .pb .tr i{background-image:linear-gradient(45deg,rgba(255,255,255,.28) 25%,transparent 25% 50%,rgba(255,255,255,.28) 50% 75%,transparent 75%);background-size:1.2em 1.2em;animation:stripes 1.2s linear infinite}
 @keyframes stripes{to{background-position:1.2em 0}}
+/* полосы прогресса — видео */
+.pb .tr i{position:relative;overflow:hidden;background-image:none!important;animation:none!important}
+.pb .tr i .stv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;mix-blend-mode:screen;pointer-events:none}
+.stat.kb .pb .tr i .stv,.stat.kp .pb .tr i .stv{filter:invert(1);mix-blend-mode:multiply;opacity:.6}
+
 .pb .tr i{background-color:var(--blue)}
 .pb.ok .tr i{background-color:var(--green)}
 .stat.kb .pb .tr i,.stat.kp .pb .tr i{background-color:#fff;background-image:linear-gradient(45deg,rgba(31,107,255,.15) 25%,transparent 25% 50%,rgba(31,107,255,.15) 50% 75%,transparent 75%)}
@@ -682,7 +687,21 @@ const kzTime = (ts, sec) => new Date(ts + 5 * 3600e3).toISOString().slice(11, se
 function tick() { const c = $('#clock'); if (c) c.innerHTML = kzTime(kzNow(), true).split('').map(ch => /\d/.test(ch) ? `<span>${ch}</span>` : ch).join(''); }
 setInterval(tick, 1000);
 
-function render() { const r = render0(); prTick(); setTimeout(ribbons, 0); return r; }
+
+/* бегущие полосы на прогрессе кассы — настоящее видео (не CSS): ТВ видит на экране несколько играющих видео и не засыпает.
+   Видео-элементы создаются один раз и переносятся в новые полоски после каждого обновления. */
+const STV = [];
+function stripeVids() {
+  document.querySelectorAll('.pb .tr i').forEach((el, i) => {
+    let v = STV[i];
+    if (!v) { v = document.createElement('video'); v.className = 'stv'; v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+      v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
+      v.innerHTML = '<source src="/stripes.webm?v=1" type="video/webm"><source src="/stripes.mp4?v=1" type="video/mp4">'; STV[i] = v; }
+    el.appendChild(v); try { const p = v.play(); if (p && p.catch) p.catch(() => {}); } catch {}
+  });
+}
+setInterval(() => STV.forEach(v => { if (v.isConnected && v.paused) v.play().catch(() => {}); }), 15e3);
+function render() { const r = render0(); prTick(); setTimeout(ribbons, 0); stripeVids(); return r; }
 function render0() {
   if (!D) return;
   setRotation();
