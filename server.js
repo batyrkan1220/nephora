@@ -132,6 +132,15 @@ function fromAdmin(q, scope) {
     r.cnt++; if (d.sem === 'S') { r.won++; r.wonSum += d.sum || 0; } else if (d.sem === 'F') r.lost++; else r.work++;
   }
   const leads = wh.all('lead').filter(l => l.crd >= from && l.crd <= to && l.cb === A);
+  // сейчас на Админе как на ответственном — независимо от даты (всё, что висит на нём)
+  const nowDeals = wh.all('deal').filter(d => d.uid === A), nowLeads = wh.all('lead').filter(l => l.uid === A);
+  const cur = { deals: nowDeals.length, dealsOpen: nowDeals.filter(d => d.sem === 'P').length, dealsWon: nowDeals.filter(d => d.sem === 'S').length, dealsLost: nowDeals.filter(d => d.sem === 'F').length,
+    leads: nowLeads.length, leadsOpen: nowLeads.filter(l => l.sem === 'P').length,
+    byStage: Object.entries(nowDeals.filter(d => d.sem === 'P').reduce((m, d) => { const k = stName(d.st); m[k] = (m[k] || 0) + 1; return m; }, {})).sort((a, z) => z[1] - a[1]).slice(0, 12) };
+  const curLeads = nowLeads.filter(l => l.sem === 'P').sort((a, z) => String(z.cr).localeCompare(String(a.cr))).slice(0, 200)
+    .map(l => ({ id: l.id, t: mask(l.t), cr: l.cr, url: base ? `${base}/crm/lead/details/${l.id}/` : '' }));
+  const curOpen = nowDeals.filter(d => d.sem === 'P').sort((a, z) => String(z.cr).localeCompare(String(a.cr))).slice(0, 300)
+    .map(d => ({ id: d.id, t: mask(d.t), cr: d.cr, stage: stName(d.st), url: base ? `${base}/crm/deal/details/${d.id}/` : '' }));
   const stillOpen = deals.filter(d => d.uid === A && d.sem === 'P').sort((a, z) => String(z.cr).localeCompare(String(a.cr))).slice(0, 200)
     .map(d => ({ id: d.id, t: mask(d.t), cr: d.cr, stage: stName(d.st), url: base ? `${base}/crm/deal/details/${d.id}/` : '' }));
   return {
@@ -140,7 +149,7 @@ function fromAdmin(q, scope) {
     managers: Object.values(by).sort((a, z) => z.cnt - a.cnt),
     days: Object.values(days).sort((a, z) => z.day.localeCompare(a.day)),
     log: log.slice(-300).reverse().filter(x => allowed.has(x.to)).map(x => ({ e: x.e, id: x.id, to: nm(x.to), at: x.at, t: mask(x.t), url: base ? `${base}/crm/${x.e}/details/${x.id}/` : '' })),
-    stillOpen,
+    stillOpen, cur, curOpen, curLeads,
   };
 }
 function waLeads(q, scope, isOwner) {

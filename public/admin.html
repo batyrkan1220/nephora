@@ -625,6 +625,14 @@ pages.fromAdmin = async () => {
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <input class="in" type="date" id="faF" value="${FA.from}" style="width:160px"> — <input class="in" type="date" id="faT" value="${FA.to}" style="width:160px">
         ${quick.map(([n, a, b]) => `<button class="btn l s" data-fa="${a}|${b}">${n}</button>`).join('')}</div></div>
+    <div class="card" style="margin-top:14px;border:2px solid ${R.cur.dealsOpen + R.cur.leadsOpen ? '#FCA5A5' : '#BBF7D0'}"><div class="chd"><div><h3>📌 Сейчас на «${esc(R.admin)}» (ответственный)</h3><p>всё, что прямо сейчас числится на этом аккаунте — за любые даты</p></div></div>
+      <div class="row3" style="margin:6px 0">
+        <div><div class="lb">Открытых сделок</div><b class="num" style="font-size:40px;color:${R.cur.dealsOpen ? '#DC2626' : '#16A34A'}">${R.cur.dealsOpen}</b><small class="hint">всего сделок на нём: ${R.cur.deals} · успешных ${R.cur.dealsWon} · провал ${R.cur.dealsLost}</small></div>
+        <div><div class="lb">Открытых лидов</div><b class="num" style="font-size:40px;color:${R.cur.leadsOpen ? '#DC2626' : '#16A34A'}">${R.cur.leadsOpen}</b><small class="hint">всего лидов на нём: ${R.cur.leads}</small></div>
+        <div><div class="lb">Открытые сделки по стадиям</div>${R.cur.byStage.map(([k, n]) => `<div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:2px 0"><span>${esc(k)}</span><b class="num">${n}</b></div>`).join('') || '<small class="hint">—</small>'}</div></div>
+      <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Показать список (${R.curOpen.length} сделок${R.curLeads.length ? ', ' + R.curLeads.length + ' лидов' : ''})</summary>
+        ${R.curOpen.map(d => `<div class="lr"><div class="n"><b>${d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noopener">#${d.id}</a>` : '#' + d.id} ${esc(d.t)}</b><small>${esc(d.stage)} · создана ${dt(d.cr)}</small></div></div>`).join('')}
+        ${R.curLeads.map(l => `<div class="lr"><div class="n"><b>${l.url ? `<a href="${esc(l.url)}" target="_blank" rel="noopener">Лид #${l.id}</a>` : 'Лид #' + l.id} ${esc(l.t)}</b><small>создан ${dt(l.cr)}</small></div></div>`).join('')}</details></div>
     <div class="row3" style="margin:14px 0">
       <div class="card"><div class="lb">Пришло на «${esc(R.admin)}»</div><b class="num" style="font-size:34px">${T.created}</b><small class="hint">сделок за период${T.leads ? ` · + лидов: ${T.leads}` : ''}</small></div>
       <div class="card"><div class="lb">Передано менеджерам</div><b class="num" style="font-size:34px;color:#16A34A">${T.given}</b><small class="hint">${pc(T.given, T.created)} от пришедших${T.leads ? ` · лидов передано: ${T.leadsGiven}` : ''}</small></div>
