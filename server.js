@@ -101,6 +101,62 @@ function warm() {
     EF.touches(c, sc, f, cfg); EF.efficiency(c, sc, f, cfg);
   } catch (e) { console.error('warm:', e.message); }
 }
+function waLeads(q, scope, isOwner) {
+    const today = C.todayKey(cfg.settings.tz), c = ctx(), tz = cfg.settings.tz;
+    const from = q.get('from') || C.monthRange(today).from, to = q.get('to') || today;
+    const A = AN.allowedUids(c, scope, { sector: q.get('sector') || '', uid: q.get('uid') || '' });
+    const meta = Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x]));
+    const kassa = new Set(cfg.settings.stages || []), nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || '';
+    const secOf = C.sectorMap(c), secName = Object.fromEntries((c.deps || []).map(d => [d.id, d.name]));
+    // сделки по номеру телефона (из названия «Сделка по обращению в WhatsApp (7705…)»)
+    const byPhone = dealsByPhone();
+    const base = bx.portal(), H = 3600e3;
+    // «Админ» — аккаунт, на который должны падать новые обращения (по имени в Bitrix24)
+    const admin = c.users.find(u => /админ|admin/i.test(u.name)) || null, adminId = admin ? admin.id : '';
+    const wasWorked = (L, ds) => ds.some(d => {
+      const cr = +new Date(d.cr), mv = +new Date(d.mv || d.md || d.cr), md = +new Date(d.md || d.cr);
+      return cr >= L.at - H                                            // создана новая сделка
+        || (d.st === 'NEW' && mv >= L.at - H)                          // старую вернули в «Новая сделка»
+        || (adminId && d.uid === adminId && d.sem === 'P' && md >= L.at - H) // передана на Админа
+        || (adminId && d.uid === adminId && d.st === 'NEW');           // уже лежит в очереди у Админа
+    });
+    const rows = wz.leads(from, to, tz).map(L => {
+      const ds = byPhone[L.phone] || [];
+      const earlier = ds.filter(d => +new Date(d.cr) < L.at - H);                         // сделки до обращения → клиент уже был в CRM
+      const deal = ds.find(d => +new Date(d.cr) >= L.at - H && +new Date(d.cr) <= L.at + 3 * 24 * H) || ds[ds.length - 1] || null;
+      const repeat = !!L.waBefore || earlier.length > 0;
+      const st = deal ? meta[deal.st] || {} : {};
+      const sold = ds.filter(d => +new Date(d.cr) >= L.at - H && (kassa.has(d.st) || d.sem === 'S'));
+      const lost = Date.now() - L.at > 15 * 6e4 && !wasWorked(L, ds);
+      const last = ds[ds.length - 1] || null, lst = last ? meta[last.st] || {} : {};
+      const lostWhy = !lost ? '' : !ds.length ? 'в CRM нет сделки по этому номеру' :
+        `сообщение ушло в старую сделку #${last.id} («${lst.category ? lst.category + ' → ' : ''}${lst.name || last.st}»${last.sem === 'F' ? ', закрыта отказом' : last.sem === 'S' ? ', успешно закрыта' : ''}) у ${nm(last.uid) || 'без ответственного'} — в «Новая сделка» на ${admin ? admin.name : 'Админа'} не попало`;
+      return { ...L, repeat, lost, lostWhy, lastDeal: last ? { id: last.id, url: base ? `${base}/crm/deal/details/${last.id}/` : '', uid: last.uid, manager: nm(last.uid), stage: (lst.category ? lst.category + ' → ' : '') + (lst.name || last.st) } : null, why: L.waBefore ? 'писал(а) ' + new Date(L.waBefore).toISOString().slice(0, 10) : earlier.length ? 'есть в CRM с ' + earlier[0].cr.slice(0, 10) + ` (${earlier.length} сд.)` : '',
+        crmBefore: earlier.length, deal: deal ? { id: deal.id, url: base ? `${base}/crm/deal/details/${deal.id}/` : '', stage: st.name || deal.st, cat: st.category || '', sum: deal.sum,
+          uid: deal.uid, manager: nm(deal.uid), sector: secName[secOf[deal.uid]] || '', cr: deal.cr, won: kassa.has(deal.st) || deal.sem === 'S', lost: deal.sem === 'F' } : null,
+        soldSum: sold.reduce((a, d) => a + d.sum, 0), sold: sold.length > 0 };
+    }).filter(r => !r.deal || !r.deal.uid || A.has(r.deal.uid) || isOwner);
+    const agg = list => ({ lost: list.filter(r => r.lost).length, leads: list.length, firstChat: list.filter(r => !r.waBefore).length, new: list.filter(r => !r.repeat).length, repeat: list.filter(r => r.repeat).length, deals: list.filter(r => r.deal).length,
+      sold: list.filter(r => r.sold).length, soldSum: list.reduce((a, r) => a + r.soldSum, 0), noAnswer: list.filter(r => r.ansMin == null).length,
+      ansMed: (a => a.length ? a.sort((x, y) => x - y)[a.length >> 1] : null)(list.filter(r => r.ansMin != null).map(r => r.ansMin)) });
+    const group = key => Object.entries(rows.reduce((m, r) => { (m[key(r)] = m[key(r)] || []).push(r); return m; }, {}));
+    const days = group(r => r.day).map(([d, l]) => ({ day: d, ...agg(l), byCh: l.reduce((m, r) => { m[r.chName] = (m[r.chName] || 0) + 1; return m; }, {}) })).sort((a, b) => a.day.localeCompare(b.day));
+    const channels = group(r => r.chName).map(([n, l]) => ({ name: n, ...agg(l) })).sort((a, b) => b.leads - a.leads);
+    const managers = group(r => r.deal && r.deal.manager || '— без сделки').map(([n, l]) => ({ name: n, uid: (l.find(r => r.deal) || { deal: {} }).deal.uid || '', ...agg(l) })).sort((a, b) => b.leads - a.leads);
+    const hf = wz.historyFrom();
+    return { admin: admin ? admin.name : '', from, to, connected: wz.status().connected, historyFrom: hf ? new Date(hf).toISOString().slice(0, 10) : null, total: agg(rows), days, channels, managers, rows: rows.slice(0, 2000) };
+}
+/* ===== телефон → сделки клиента: по номеру в названии сделки и по телефонам контакта ===== */
+let dbpAt = 0, dbp = null;
+function dealsByPhone() {
+  const st = wh.status(); if (dbp && dbpAt === st.lastRun) return dbp;
+  const byContact = {}, out = {}, add = (ph, d) => { const a = out[ph] = out[ph] || []; if (!a.includes(d)) a.push(d); };
+  wh.all('deal').forEach(d => { if (d.contact) (byContact[d.contact] = byContact[d.contact] || []).push(d); const ph = wz.phoneOf(d.t); if (ph) add(ph, d); });
+  wh.all('contact').forEach(c => (c.ph || []).forEach(p => (byContact[c.id] || []).forEach(d => add('7' + p, d))));
+  Object.values(out).forEach(a => a.sort((x, y) => +new Date(x.cr) - +new Date(y.cr)));
+  dbp = out; dbpAt = st.lastRun; return out;
+}
+
 /* ===== дубли сделок ===== */
 let dupeJob = null;
 function dupeCtx() {
@@ -600,40 +656,7 @@ async function handle(req, res) {
     return send(res, 200, wz.status());
   }
   // WhatsApp-лиды по дням: сколько написало, сколько новых/повторных, с какого номера, что в CRM (сделка, стадия, менеджер, сумма)
-  if (p === '/api/admin/wz/leads') {
-    const q = url.searchParams, today = C.todayKey(cfg.settings.tz), c = ctx(), tz = cfg.settings.tz;
-    const from = q.get('from') || C.monthRange(today).from, to = q.get('to') || today;
-    const A = AN.allowedUids(c, scope, { sector: q.get('sector') || '', uid: q.get('uid') || '' });
-    const meta = Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x]));
-    const kassa = new Set(cfg.settings.stages || []), nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || '';
-    const secOf = C.sectorMap(c), secName = Object.fromEntries((c.deps || []).map(d => [d.id, d.name]));
-    // сделки по номеру телефона (из названия «Сделка по обращению в WhatsApp (7705…)»)
-    const byPhone = {};
-    wh.all('deal').forEach(d => { const ph = wz.phoneOf(d.t); if (ph) (byPhone[ph] = byPhone[ph] || []).push(d); });
-    Object.values(byPhone).forEach(a => a.sort((x, y) => +new Date(x.cr) - +new Date(y.cr)));
-    const base = bx.portal(), H = 3600e3;
-    const rows = wz.leads(from, to, tz).map(L => {
-      const ds = byPhone[L.phone] || [];
-      const earlier = ds.filter(d => +new Date(d.cr) < L.at - H);                         // сделки до обращения → клиент уже был в CRM
-      const deal = ds.find(d => +new Date(d.cr) >= L.at - H && +new Date(d.cr) <= L.at + 3 * 24 * H) || ds[ds.length - 1] || null;
-      const repeat = !!L.waBefore || earlier.length > 0;
-      const st = deal ? meta[deal.st] || {} : {};
-      const sold = ds.filter(d => +new Date(d.cr) >= L.at - H && (kassa.has(d.st) || d.sem === 'S'));
-      return { ...L, repeat, why: L.waBefore ? 'писал(а) ' + new Date(L.waBefore).toISOString().slice(0, 10) : earlier.length ? 'есть в CRM с ' + earlier[0].cr.slice(0, 10) + ` (${earlier.length} сд.)` : '',
-        crmBefore: earlier.length, deal: deal ? { id: deal.id, url: base ? `${base}/crm/deal/details/${deal.id}/` : '', stage: st.name || deal.st, cat: st.category || '', sum: deal.sum,
-          uid: deal.uid, manager: nm(deal.uid), sector: secName[secOf[deal.uid]] || '', cr: deal.cr, won: kassa.has(deal.st) || deal.sem === 'S', lost: deal.sem === 'F' } : null,
-        soldSum: sold.reduce((a, d) => a + d.sum, 0), sold: sold.length > 0 };
-    }).filter(r => !r.deal || !r.deal.uid || A.has(r.deal.uid) || isOwner);
-    const agg = list => ({ leads: list.length, firstChat: list.filter(r => !r.waBefore).length, new: list.filter(r => !r.repeat).length, repeat: list.filter(r => r.repeat).length, deals: list.filter(r => r.deal).length,
-      sold: list.filter(r => r.sold).length, soldSum: list.reduce((a, r) => a + r.soldSum, 0), noAnswer: list.filter(r => r.ansMin == null).length,
-      ansMed: (a => a.length ? a.sort((x, y) => x - y)[a.length >> 1] : null)(list.filter(r => r.ansMin != null).map(r => r.ansMin)) });
-    const group = key => Object.entries(rows.reduce((m, r) => { (m[key(r)] = m[key(r)] || []).push(r); return m; }, {}));
-    const days = group(r => r.day).map(([d, l]) => ({ day: d, ...agg(l), byCh: l.reduce((m, r) => { m[r.chName] = (m[r.chName] || 0) + 1; return m; }, {}) })).sort((a, b) => a.day.localeCompare(b.day));
-    const channels = group(r => r.chName).map(([n, l]) => ({ name: n, ...agg(l) })).sort((a, b) => b.leads - a.leads);
-    const managers = group(r => r.deal && r.deal.manager || '— без сделки').map(([n, l]) => ({ name: n, uid: (l.find(r => r.deal) || { deal: {} }).deal.uid || '', ...agg(l) })).sort((a, b) => b.leads - a.leads);
-    const hf = wz.historyFrom();
-    return send(res, 200, { from, to, connected: wz.status().connected, historyFrom: hf ? new Date(hf).toISOString().slice(0, 10) : null, total: agg(rows), days, channels, managers, rows: rows.slice(0, 2000) });
-  }
+  if (p === '/api/admin/wz/leads') return send(res, 200, waLeads(url.searchParams, scope, isOwner));
   if (p === '/api/admin/wz/report') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz), c = ctx();
     const A = AN.allowedUids(c, scope, { sector: q.get('sector') || '', uid: q.get('uid') || '' });
@@ -820,5 +843,7 @@ async function handle(req, res) {
   })).listen(PORT, () => console.log('Leaderboard on :' + PORT));
   sync().then(async () => { loop(); if (!cache.meta && bx.configured()) { cache.meta = await bx.meta().catch(() => null); if (cache.meta) saveSnap(true); } });
   wh.start(cfg).then(warm);
-  bots.init({ wh, cai, wz, C, cache, ctx, cfg: () => cfg, dupePairs, deal: id => { const b = bx.portal(); return b ? `${b}/crm/deal/details/${id}/` : ''; } }); cai.start(cfg); wz.init().catch(e => console.error('wazzup init', e.message));
+  bots.init({ wh, cai, wz, C, cache, ctx, cfg: () => cfg, dupePairs,
+    waLost: () => { const t = C.todayKey(cfg.settings.tz), f = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
+      return waLeads(new URLSearchParams({ from: f, to: t }), { role: 'owner', sectors: null }, true).rows.filter(r => r.lost); }, deal: id => { const b = bx.portal(); return b ? `${b}/crm/deal/details/${id}/` : ''; } }); cai.start(cfg); wz.init().catch(e => console.error('wazzup init', e.message));
 })();

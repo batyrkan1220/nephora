@@ -309,7 +309,7 @@ body{background:#EEF0F7}
 @media (min-width:1001px){aside{position:sticky;top:16px;align-self:start;height:calc(100vh - 32px);overflow-y:auto}}
 
 /* ===== ИИ завод ===== */
-.floor{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:34px 28px 26px;margin-bottom:18px;border-radius:22px;overflow:hidden;
+.floor{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:22px;padding:34px 28px 26px;margin-bottom:18px;border-radius:22px;overflow:hidden;
   background:linear-gradient(180deg,#F7F8FC,#EEF0F7);box-shadow:inset 0 0 0 1px #E4E6F0}
 .floor::before{content:"";position:absolute;inset:-40% -10% 0;background-image:linear-gradient(#E1E4EF 1px,transparent 1px),linear-gradient(90deg,#E1E4EF 1px,transparent 1px);
   background-size:46px 46px;transform:perspective(700px) rotateX(58deg);transform-origin:50% 100%;opacity:.7;pointer-events:none}
@@ -358,6 +358,10 @@ body{background:#EEF0F7}
 .wlt td{vertical-align:top}.wlt small{color:#8A8FA8}.warnc{color:#B45309}.good{color:#16A34A}
 @media (min-width:1200px){.grid.g6{grid-template-columns:repeat(6,1fr)}}
 .promoed{background:#FEF2F2;border-radius:12px;padding:10px 12px;margin:8px 0}
+.lostb{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:16px;padding:14px 18px;margin-bottom:14px}
+.lostb b{display:block;color:#B91C1C;font-size:16px}.lostb span{color:#7F1D1D;font-size:13px}
+.pill.lo{background:#FEE2E2;color:#B91C1C}.lostw{font-size:12.5px;color:#B91C1C;max-width:340px;margin-bottom:3px}
+@media (max-width:1200px){.floor{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -1225,7 +1229,7 @@ pages.waLeads = async () => {
   const T = R.total, pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—', mm = v => v == null ? '—' : v < 60 ? v + ' мин' : (Math.round(v / 6) / 10) + ' ч';
   const fd = d => d.split('-').reverse().slice(0, 2).join('.');
   const max = Math.max(1, ...R.days.map(d => d.leads));
-  const rows = R.rows.filter(r => (WL.kind === 'all' || (WL.kind === 'new' ? !r.repeat : WL.kind === 'repeat' ? r.repeat : WL.kind === 'nodeal' ? !r.deal : WL.kind === 'sold' ? r.sold : r.ansMin == null))
+  const rows = R.rows.filter(r => (WL.kind === 'all' || (WL.kind === 'lost' ? r.lost : WL.kind === 'new' ? !r.repeat : WL.kind === 'repeat' ? r.repeat : WL.kind === 'nodeal' ? !r.deal : WL.kind === 'sold' ? r.sold : r.ansMin == null))
     && (!WL.ch || r.chName === WL.ch) && (!WL.q || (r.phone + ' ' + r.name + ' ' + (r.deal ? r.deal.manager + ' #' + r.deal.id : '')).toLowerCase().includes(WL.q.toLowerCase())));
   const csv = () => {
     const H = ['Дата', 'Время', 'Телефон', 'Имя', 'Номер WhatsApp', 'Тип', 'Почему повтор', 'Сообщений', 'Ответ, мин', 'Сделка', 'Стадия', 'Воронка', 'Менеджер', 'Сектор', 'Сумма', 'Продано'];
@@ -1236,6 +1240,7 @@ pages.waLeads = async () => {
   };
   $('#view').innerHTML = head('WhatsApp', `Лиды из Wazzup: обращение — клиент написал (или позвонил) после 24 ч тишины. «Новых чатов» — написали в WhatsApp впервые (так считает Wazzup). «Повтор» — номер уже писал раньше или уже есть в CRM. Данные Wazzup — с ${R.historyFrom ? R.historyFrom.split('-').reverse().join('.') : 'момента подключения'}.`, waTabs()) + filters() + `
     ${!R.connected ? '<div class="warn">Wazzup не подключён — Настройки → Система → Wazzup.</div>' : !T.leads ? '<div class="warn" style="background:#eef4ff;border-color:#cfe0ff;color:#1e3a8a">За период обращений нет. Лиды появляются с момента подключения вебхука Wazzup.</div>' : ''}
+    ${T.lost ? `<div class="lostb"><div><b>⚠️ ${T.lost} ${T.lost % 10 === 1 && T.lost % 100 !== 11 ? 'обращение не попало' : 'обращений не попали'} в работу</b><span>Клиент написал в WhatsApp, но обращение ушло в старую сделку (или сделки нет) и не попало в «Новая сделка» на ${esc(R.admin || 'Админа')}. С ними никто не работает.</span></div><button class="btn" data-wk="lost">Показать</button></div>` : ''}
     <div class="grid g6">
       <div class="kpi"><small>Обращений (лидов)</small><b class="num">${T.leads}</b><span>все, кто написал · новых чатов ${T.firstChat} (как в Wazzup)</span></div>
       <div class="kpi"><small>Новые</small><b class="num good">${T.new}</b><span>${pct(T.new, T.leads)} от всех</span></div>
@@ -1256,16 +1261,16 @@ pages.waLeads = async () => {
         ${R.managers.map(m => `<tr><td>${esc(m.name)}</td><td class="r num"><b>${m.leads}</b></td><td class="r num">${m.new}</td><td class="r num">${m.sold}</td><td class="r num">${pct(m.sold, m.leads)}</td><td class="r num">${money(m.soldSum)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Нет данных</td></tr>'}</tbody></table></div></div>
     </div>
     <div class="card"><div class="fbar"><h3 style="margin:0">Все обращения <span class="hint">· ${rows.length}</span></h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><nav class="seg">${[['all', 'Все'], ['new', 'Новые'], ['repeat', 'Повтор'], ['nodeal', 'Без сделки'], ['noans', 'Без ответа'], ['sold', 'Продано']].map(([k, n]) => `<button data-wk="${k}" class="${WL.kind === k ? 'on' : ''}">${n}</button>`).join('')}</nav>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><nav class="seg">${[['all', 'Все'], ['lost', '⚠️ Не в работе' + (T.lost ? ' ' + T.lost : '')], ['new', 'Новые'], ['repeat', 'Повтор'], ['nodeal', 'Без сделки'], ['noans', 'Без ответа'], ['sold', 'Продано']].map(([k, n]) => `<button data-wk="${k}" class="${WL.kind === k ? 'on' : ''}">${n}</button>`).join('')}</nav>
         <select class="in" id="wlCh" style="width:auto"><option value="">Все номера</option>${R.channels.map(c => `<option ${WL.ch === c.name ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
         <input class="in" id="wlQ" placeholder="Поиск: телефон, имя, менеджер" value="${esc(WL.q)}" style="width:220px"><button class="btn l s" id="wlCsv">⬇ Excel (CSV)</button></div></div>
       <div class="tw"><table class="wlt"><thead><tr><th>Когда</th><th>Клиент</th><th>Номер WhatsApp</th><th>Тип</th><th class="r">Ответ</th><th>Сделка в CRM</th><th>Менеджер</th><th class="r">Сумма</th></tr></thead><tbody>
         ${rows.slice(0, 500).map(r => `<tr><td class="num">${fd(r.day)} ${new Date(r.at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</td>
           <td><b class="num">+${esc(r.phone)}</b>${r.name ? `<br><small>${esc(r.name)}</small>` : ''}${r.missedCall ? '<br><small>📞 пропущенный звонок</small>' : ''}</td>
           <td><small>${esc(r.chName)}</small></td>
-          <td>${r.repeat ? `<span class="pill rp">Повтор</span><br><small>${esc(r.why)}</small>` : '<span class="pill nw">Новый</span>'}</td>
+          <td>${r.repeat ? `<span class="pill rp">Повтор</span><br><small>${esc(r.why)}</small>` : '<span class="pill nw">Новый</span>'}${r.lost ? `<br><span class="pill lo">не в работе</span>` : ''}</td>
           <td class="r num ${r.ansMin == null ? 'bad' : r.ansMin > 15 ? 'warnc' : ''}">${r.ansMin == null ? 'нет' : mm(r.ansMin)}</td>
-          <td>${r.deal ? `${r.deal.url ? `<a href="${esc(r.deal.url)}" target="_blank" rel="noopener">#${r.deal.id} ↗</a>` : '#' + r.deal.id}<br><small>${esc(r.deal.cat)} → ${esc(r.deal.stage)}</small>` : '<span class="bad">нет сделки</span>'}</td>
+          <td>${r.lost ? `<div class="lostw">${esc(r.lostWhy)}</div>${r.lastDeal && r.lastDeal.url ? `<a href="${esc(r.lastDeal.url)}" target="_blank" rel="noopener">открыть #${r.lastDeal.id} ↗</a>` : ''}` : r.deal ? `${r.deal.url ? `<a href="${esc(r.deal.url)}" target="_blank" rel="noopener">#${r.deal.id} ↗</a>` : '#' + r.deal.id}<br><small>${esc(r.deal.cat)} → ${esc(r.deal.stage)}</small>` : '<span class="bad">нет сделки</span>'}</td>
           <td>${r.deal ? esc(r.deal.manager) + (r.deal.sector ? `<br><small>${esc(r.deal.sector)}</small>` : '') : '—'}</td>
           <td class="r num">${r.deal && r.deal.sum ? money(r.deal.sum) : ''}${r.sold ? '<br><small class="good">продано</small>' : ''}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Нет обращений</td></tr>'}</tbody></table></div>
       ${rows.length > 500 ? '<p class="hint">Показаны первые 500 — полный список в CSV.</p>' : ''}</div>`;
@@ -1335,7 +1340,7 @@ pages.factory = async () => {
   let d;
   try { d = FB.data = await api('/api/admin/bots'); } catch (e) { $('#view').innerHTML += `<div class="warn">${esc(e.message)}</div>`; return; }
   const own = S.me.role === 'owner', ago = t => !t ? 'ещё не запускался' : Math.round((Date.now() - t) / 60000) < 1 ? 'только что' : Math.round((Date.now() - t) / 60000) + ' мин назад';
-  const BI = { calls: '📞', logi: '🚚', report: '📊' };
+  const BI = { calls: '📞', logi: '🚚', wa: '💬', report: '📊' };
   const deskOf = b => {
     const lastT = d.tasks.filter(t => t.bot === b.id && t.status === 'open').slice(0, 3);
     const mon = b.id === 'report' ? (d.report ? d.report.text.split('\n').filter(Boolean).slice(1, 4) : ['Отчёт ещё не готов']) : (lastT.length ? lastT.map(t => t.title) : ['Всё в порядке']);
