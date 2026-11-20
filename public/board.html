@@ -4,8 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Safa Leaderboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="/fonts/inter-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:Inter;font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/inter-cyrillic-wght-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116,U+04D8-04D9,U+04E8-04E9,U+0492-0493,U+049A-049B,U+04A2-04A3,U+04AE-04AF,U+04BA-04BB,U+0456}
+@font-face{font-family:Inter;font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/inter-latin-wght-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+</style>
 <style>
 :root{
   --ink:#0f1222; --muted:#9aa1b5; --muted2:#6b7286; --line:#edf0f7; --soft:#f5f7fd; --panel:#f7f9fe; --card:#fff; --bg:#eef2fb;
@@ -640,7 +643,9 @@ const money = n => Math.round(n || 0).toLocaleString('ru-RU').replace(/\s/g, ' '
 const short = n => { n = Math.round(n || 0); return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 1 : 2).replace(/\.?0+$/, '') + ' млн' : n.toLocaleString('ru-RU').replace(/\s/g, ' '); };
 const fd = k => k ? k.slice(8, 10) + '.' + k.slice(5, 7) + '.' + k.slice(0, 4) : '';
 const ini = n => esc(String(n || '?').split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase());
-const av = (r, cls = '') => `<div class="av ${cls}">${r.photo ? `<img src="${esc(r.photo)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createTextNode('${ini(r.name)}'))">` : ini(r.name)}</div>`;
+// фото менеджеров — уменьшенные копии через наш сервер (оригиналы Bitrix24 тяжёлые)
+const pimg = u => /^https?:\/\//.test(u) ? '/img?u=' + encodeURIComponent(u) : u;
+const av = (r, cls = '') => `<div class="av ${cls}">${r.photo ? `<img src="${esc(pimg(r.photo))}" loading="lazy" decoding="async" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(document.createTextNode('${ini(r.name)}'))">` : ini(r.name)}</div>`;
 const CROWN = (c, cls = 'crown') => `<svg class="${cls}" viewBox="0 0 64 44"><path d="M6 14l13 12 13-20 13 20 13-12-5 26H11z" fill="${c}" stroke="rgba(0,0,0,.2)" stroke-width="1.5"/><rect x="11" y="38" width="42" height="6" rx="2" fill="${c}"/><circle cx="6" cy="13" r="3.5" fill="#fff"/><circle cx="32" cy="5" r="4" fill="#fff"/><circle cx="58" cy="13" r="3.5" fill="#fff"/></svg>`;
 const CC = ['#fcd94a', '#ffffff', '#ffffff'];
 
@@ -792,8 +797,11 @@ const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 &
 /* звук продажи: public/sale.mp3 (музыка заказа, 9.5 с), через Web Audio — после одного клика на экране */
 let saleBuf = null, saleLoading = null;
 // файлы звуков скачиваются сразу при открытии страницы (до первого касания), декодируются один раз
-const RAW = { sale: fetch('/sale.mp3?v=2').then(r => r.arrayBuffer()).catch(() => null), ovt: fetch('/overtake.mp3').then(r => r.arrayBuffer()).catch(() => null) };
-const rawCopy = k => RAW[k].then(ab => { if (!ab) throw new Error('нет файла'); return ab.slice(0); });
+// звуки качаются после того, как табло показало данные (не мешают первой загрузке), и один раз — дальше из кэша браузера
+const RAW = {}, SND = { sale: '/sale.mp3?v=3', ovt: '/overtake.mp3?v=3' };
+const rawGet = k => RAW[k] || (RAW[k] = fetch(SND[k]).then(r => r.ok ? r.arrayBuffer() : null).catch(() => { delete RAW[k]; return null; }));
+setTimeout(() => rawGet('sale'), 2500);
+const rawCopy = k => rawGet(k).then(ab => { if (!ab) throw new Error('нет файла'); return ab.slice(0); });
 function loadSale() {
   if (saleBuf || saleLoading || !audio) return saleLoading;
   saleLoading = rawCopy('sale').then(ab => new Promise((ok, no) => audio.decodeAudioData(ab, ok, no)))
@@ -803,6 +811,7 @@ function loadSale() {
 // звук «ОБГОН!»: барабанная дробь (public/overtake.mp3)
 let ovtBuf = null, ovtLoading = null;
 function loadOvt() {
+  if (OVT_OFF) return null;
   if (ovtBuf || ovtLoading || !audio) return ovtLoading;
   ovtLoading = rawCopy('ovt').then(ab => new Promise((ok, no) => audio.decodeAudioData(ab, ok, no)))
     .then(b => { ovtBuf = b; return b; }).catch(e => { console.warn('overtake.mp3', e); ovtLoading = null; });
@@ -1032,7 +1041,7 @@ function shade(hex, a) { const n = parseInt(hex.slice(1), 16), m = c => Math.rou
 /* ===== жарыс секторов: «ОБГОН!», когда сектор обходит другой по кассе дня ===== */
 let secPrev = null;
 const secOrder = list => (list || []).slice().sort((a, b) => b.daySum - a.daySum || b.sum - a.sum);
-const OVT_OFF = true;
+var OVT_OFF = true;
 function overtakeCheck(sectors, evs) {
   const now = secOrder(sectors), old = secPrev; secPrev = now.map(x => ({ id: x.id, daySum: x.daySum }));
   if (OVT_OFF) return;   // обгон временно отключён по просьбе владельца

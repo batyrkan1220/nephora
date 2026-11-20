@@ -264,6 +264,30 @@ async function dealsFor(from, to) {
   return bx.deals(from, C.addDays(to, 1), cfg.settings.stages, cfg.settings.dateField);
 }
 
+
+/* ===== уменьшенные фото менеджеров ===== */
+let sharp = null; try { sharp = require('sharp'); } catch (e) { console.warn('sharp не установлен — фото отдаются как есть'); }
+const IMG = new Map(), IMGQ = new Map();
+async function imgProxy(u, res) {
+  let host = ''; try { host = new URL(u).hostname; } catch {}
+  if (!/(^|\.)bitrix24\.(kz|ru|com|by|ua)$|^cdn[\w-]*\.bitrix24\.\w+$/.test(host)) return send(res, 400, 'bad url', 'text/plain');
+  if (!sharp) { res.writeHead(302, { Location: u }); return res.end(); }
+  try {
+    let b = IMG.get(u);
+    if (!b) {
+      if (!IMGQ.has(u)) IMGQ.set(u, (async () => {
+        const r = await fetch(u); if (!r.ok) throw new Error('photo ' + r.status);
+        const out = await sharp(Buffer.from(await r.arrayBuffer())).rotate().resize(192, 192, { fit: 'cover' }).webp({ quality: 72 }).toBuffer();
+        if (IMG.size > 600) IMG.delete(IMG.keys().next().value);
+        IMG.set(u, out); return out;
+      })().finally(() => IMGQ.delete(u)));
+      b = await IMGQ.get(u);
+    }
+    res.writeHead(200, { 'Content-Type': 'image/webp', 'Content-Length': b.length, 'Cache-Control': 'public, max-age=2592000, immutable' });
+    return res.end(b);
+  } catch (e) { res.writeHead(302, { Location: u }); return res.end(); }
+}
+
 /* ===== http helpers ===== */
 const send = (res, code, body, type = 'application/json; charset=utf-8', extra = {}) => {
   res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store', ...extra });
@@ -312,7 +336,11 @@ async function handle(req, res) {
     if (!b) return send(res, 404, 'Табло не настроено', 'text/plain; charset=utf-8');
     res.writeHead(302, { Location: '/b/' + b.key + (url.search || '') }); return res.end();
   }
-  if ((m = p.match(/^\/b\/([\w-]+)\/?$/))) return file(res, 'board.html');
+  if ((m = p.match(/^\/b\/([\w-]+)\/?$/))) {
+    const buf = fs.readFileSync(path.join(PUB, 'board.html')), tag = '"' + require('crypto').createHash('md5').update(buf).digest('hex').slice(0, 16) + '"';
+    if (req.headers['if-none-match'] === tag) { res.writeHead(304, { ETag: tag, 'Cache-Control': 'no-cache' }); return res.end(); }
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', ETag: tag, 'Cache-Control': 'no-cache' }); return res.end(buf);
+  }
   // сделки за суммой на табло: менеджер или сектор, за день / период / месяц → ссылки в CRM
   if ((m = p.match(/^\/api\/board\/([\w-]+)\/deals$/))) {
     const b = cfg.boards.find(x => x.key === m[1]);
@@ -371,8 +399,16 @@ async function handle(req, res) {
     res.writeHead(200, { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Length': buf.length, 'Cache-Control': 'public, max-age=86400' });
     return res.end(buf);
   }
+  // шрифт — свой (без Google Fonts), кэш навсегда
+  if ((m = p.match(/^\/fonts\/([\w-]+\.woff2)$/))) {
+    const f = path.join(PUB, 'fonts', m[1]); if (!fs.existsSync(f)) return send(res, 404, 'no', 'text/plain');
+    res.writeHead(200, { 'Content-Type': 'font/woff2', 'Cache-Control': 'public, max-age=31536000, immutable', 'Access-Control-Allow-Origin': '*' });
+    return res.end(fs.readFileSync(f));
+  }
+  // фото из Bitrix24: уменьшаем до 192×192 webp (было до сотен КБ на фото), кэш в памяти и в браузере
+  if (p === '/img') return imgProxy(url.searchParams.get('u') || '', res);
   if (p === '/sale.mp3' || p === '/overtake.mp3') {
-    res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400' });
+    res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': url.searchParams.has('v') ? 'public, max-age=31536000, immutable' : 'public, max-age=86400' });
     return res.end(fs.readFileSync(path.join(PUB, p.slice(1))));
   }
   if ((m = p.match(/^\/photo\/(\w+)$/))) {
