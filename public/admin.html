@@ -355,7 +355,7 @@ body{background:#EEF0F7}
 .bb{position:absolute;transform-origin:50% 100%;transform:translateZ(var(--z,0px)) rotateZ(calc(-1 * var(--rz))) rotateX(calc(-1 * var(--rx)))}
 .bb.bob{animation:bob 3s ease-in-out infinite}
 @keyframes bob{50%{margin-top:-8px}}
-.mon3{width:200px;background:#151833;border:7px solid #2B2F45;border-radius:10px;color:#E6E8FF;padding:8px 10px;font:500 11px/1.45 Inter,system-ui,sans-serif;box-shadow:0 0 34px -6px var(--c);cursor:pointer;position:relative}
+.mon3{width:180px;background:#151833;border:7px solid #2B2F45;border-radius:10px;color:#E6E8FF;padding:8px 10px;font:500 11px/1.45 Inter,system-ui,sans-serif;box-shadow:0 0 34px -6px var(--c);cursor:pointer;position:relative}
 .mon3:after{content:"";position:absolute;left:50%;bottom:-26px;width:16px;height:20px;margin-left:-8px;background:#2B2F45;border-radius:0 0 4px 4px}
 .mon3 .mh{display:flex;justify-content:space-between;align-items:center;color:var(--c);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:10px;margin-bottom:5px;filter:brightness(1.4)}
 .mon3 .led{width:7px;height:7px;border-radius:50%;background:#4ADE80;box-shadow:0 0 8px #4ADE80;animation:blink 1.2s infinite}.mon3 .led.idle{background:#FACC15;box-shadow:0 0 8px #FACC15;animation:none}.mon3 .led.err{background:#EF4444;box-shadow:0 0 8px #EF4444}
@@ -368,7 +368,7 @@ body{background:#EEF0F7}
 .tag3{display:flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:5px 14px 5px 5px;font:800 15px Inter,system-ui,sans-serif;color:#151827;box-shadow:0 10px 24px -8px rgba(0,0,0,.5);white-space:nowrap;cursor:pointer}
 .tag3 b{min-width:30px;height:30px;padding:0 6px;border-radius:999px;background:var(--c);color:#fff;display:grid;place-items:center;font-size:14px}
 .tag3 small{font-weight:600;color:#8A8FA8;font-size:11px}
-.bot3{width:150px;height:170px;display:block}
+.bot3{width:190px;height:215px;display:block}
 .bot3 .hd{transform-origin:75px 58px;animation:rbLook 7s ease-in-out infinite}
 .bot3 .eye{transform-origin:center;transform-box:fill-box;animation:rbBlink 4.5s infinite}
 .bot3 .al{transform-origin:44px 92px;animation:rbType .28s ease-in-out infinite alternate}.bot3 .ar{transform-origin:106px 92px;animation:rbType .28s ease-in-out .14s infinite alternate}
@@ -1446,14 +1446,14 @@ function officeHTML(d, BI, ago) {
     const lines = b.id === 'report' ? (d.report ? d.report.text.split('\n').filter(Boolean).slice(1, 6) : ['Отчёт собирается утром…'])
       : (d.tasks.filter(t => t.bot === b.id && t.status === 'open').slice(0, 12).map(t => t.title));
     const status = b.error ? 'err' : (d.running || b.open > 0 || b.id === 'report') ? '' : 'idle';
-    return box3('desk3', x, y, 250, 100, 74, `<div class="glow" style="left:60px;top:-10px;width:150px;height:90px"></div><div class="kb" style="left:120px;top:22px"></div><div class="mug" style="left:214px;top:60px"></div>`)
+    return box3('desk3', x, y, 260, 100, 58, `<div class="glow" style="left:110px;top:-10px;width:150px;height:90px"></div><div class="kb" style="left:150px;top:30px"></div><div class="mug" style="left:228px;top:66px"></div>`)
         .replace('class="box desk3"', `class="box desk3" style="--c:${c}"`).replace(`style="--c:${c}" style="`, `style="--c:${c};`)
       + `<div class="shadow" style="left:${x + 80}px;top:${y - 40}px;width:140px;height:70px"></div>`
-      + bb(x + 165, y - 8, 0, 150, 170, `<div style="--c:${c}">${bot3(c, idle)}</div>`)
-      + bb(x + 76, y + 50, 74, 200, 150, `<div class="mon3" style="--c:${c}" data-bot="${b.id}"><div class="mh"><span>${BI[b.id] || '🤖'} ${esc(b.role)}</span><span class="led ${status}"></span></div>
+      + bb(x + 195, y - 6, 0, 190, 215, `<div style="--c:${c}">${bot3(c, idle)}</div>`)
+      + bb(x + 72, y + 46, 58, 180, 150, `<div class="mon3" style="--c:${c}" data-bot="${b.id}"><div class="mh"><span>${BI[b.id] || '🤖'} ${esc(b.role)}</span><span class="led ${status}"></span></div>
           <div class="lns" data-lines='${esc(JSON.stringify(lines.length ? lines : ['✓ Всё в порядке — новых проблем нет']))}'>${[0, 1, 2, 3].map(() => '<div class="ln"></div>').join('')}</div>
           <div class="scan ${status}"><i></i></div></div>`)
-      + bb(x + 170, y - 150, 175, 260, 44, `<div class="tag3" style="--c:${c}" data-bot="${b.id}"><b>${b.id === 'report' ? (d.report ? '✓' : '·') : b.open}</b>${esc(b.name)} <small>${b.error ? '⚠ ошибка' : ago(b.id === 'report' ? (d.report || {}).at : b.last)}</small></div>`, 'bob');
+      + bb(x + 150, y - 170, 250, 280, 44, `<div class="tag3" style="--c:${c}" data-bot="${b.id}"><b>${b.id === 'report' ? (d.report ? '✓' : '·') : b.open}</b>${esc(b.name)} <small>${b.error ? '⚠ ошибка' : ago(b.id === 'report' ? (d.report || {}).at : b.last)}</small></div>`, 'bob');
   }).join('');
   const total = workers.reduce((a, b) => a + (b.open || 0), 0) || 1;
   return `<div class="office" id="ofc">
