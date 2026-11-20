@@ -101,6 +101,44 @@ function warm() {
     EF.touches(c, sc, f, cfg); EF.efficiency(c, sc, f, cfg);
   } catch (e) { console.error('warm:', e.message); }
 }
+
+// «С Админа»: сколько сделок/лидов было на аккаунте «Админ» и кому они переданы
+function fromAdmin(q, scope) {
+  const c = ctx(), today = C.todayKey(cfg.settings.tz), M = C.monthRange(today);
+  const from = q.get('from') || M.from, to = q.get('to') || today;
+  const admin = c.users.find(u => /админ|admin/i.test(u.name)); if (!admin) return { error: 'Аккаунт «Админ» не найден в Bitrix24' };
+  const A = admin.id, allowed = AN.allowedUids(c, scope, {}), base = bx.portal();
+  const nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || ('#' + id);
+  const mask = t => String(t || '').replace(/(\d{4})\d{4}(\d{2})/g, '$1****$2');
+  const dfmt = new Intl.DateTimeFormat('en-CA', { timeZone: cfg.settings.tz }), day = v => { const t = new Date(v); return isNaN(t) ? '' : dfmt.format(t); };
+  const meta = Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x])), stName = id => meta[id] ? meta[id].category + ' → ' + meta[id].name : id;
+  // журнал передач (точное время, ведётся платформой)
+  const log = wh.transfers().filter(x => x.from === A && x.to !== A && day(x.at) >= from && day(x.at) <= to);
+  const logDeal = new Map(); log.forEach(x => { if (x.e === 'deal') logDeal.set(x.id, x); });
+  // сделки, созданные на Админе за период (создатель — Админ): где они сейчас
+  const deals = wh.all('deal').filter(d => d.crd >= from && d.crd <= to && (d.cb === A || logDeal.has(d.id)));
+  const by = {}, days = {};
+  let onAdmin = 0, given = 0;
+  for (const d of deals) {
+    const dk = d.crd, D = days[dk] || (days[dk] = { day: dk, total: 0, given: 0, onAdmin: 0 }); D.total++;
+    if (d.uid === A) { onAdmin++; D.onAdmin++; continue; }
+    given++; D.given++;
+    if (!allowed.has(d.uid)) continue;
+    const r = by[d.uid] || (by[d.uid] = { uid: d.uid, name: nm(d.uid), cnt: 0, won: 0, lost: 0, work: 0, wonSum: 0 });
+    r.cnt++; if (d.sem === 'S') { r.won++; r.wonSum += d.sum || 0; } else if (d.sem === 'F') r.lost++; else r.work++;
+  }
+  const leads = wh.all('lead').filter(l => l.crd >= from && l.crd <= to && l.cb === A);
+  const stillOpen = deals.filter(d => d.uid === A && d.sem === 'P').sort((a, z) => String(z.cr).localeCompare(String(a.cr))).slice(0, 200)
+    .map(d => ({ id: d.id, t: mask(d.t), cr: d.cr, stage: stName(d.st), url: base ? `${base}/crm/deal/details/${d.id}/` : '' }));
+  return {
+    from, to, admin: admin.name, trackedSince: (store.get('wh:state') || {}).v >= 2 ? null : null,
+    total: { created: deals.length, given, onAdmin, leads: leads.length, leadsGiven: leads.filter(l => l.uid !== A).length, logged: log.length },
+    managers: Object.values(by).sort((a, z) => z.cnt - a.cnt),
+    days: Object.values(days).sort((a, z) => z.day.localeCompare(a.day)),
+    log: log.slice(-300).reverse().filter(x => allowed.has(x.to)).map(x => ({ e: x.e, id: x.id, to: nm(x.to), at: x.at, t: mask(x.t), url: base ? `${base}/crm/${x.e}/details/${x.id}/` : '' })),
+    stillOpen,
+  };
+}
 function waLeads(q, scope, isOwner) {
     const today = C.todayKey(cfg.settings.tz), c = ctx(), tz = cfg.settings.tz;
     const from = q.get('from') || C.monthRange(today).from, to = q.get('to') || today;
@@ -717,6 +755,7 @@ async function handle(req, res) {
     return send(res, 200, wz.status());
   }
   // WhatsApp-лиды по дням: сколько написало, сколько новых/повторных, с какого номера, что в CRM (сделка, стадия, менеджер, сумма)
+  if (p === '/api/admin/fromadmin') return send(res, 200, fromAdmin(url.searchParams, scope));
   if (p === '/api/admin/wz/leads') return send(res, 200, waLeads(url.searchParams, scope, isOwner));
   if (p === '/api/admin/wz/report') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz), c = ctx();

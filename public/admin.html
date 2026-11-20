@@ -609,6 +609,41 @@ const pctOf = (a, b) => b ? a / b * 100 : null;
 const prc = v => v == null ? '—' : Math.round(v) + '%';
 const prog = (v, c) => `<div class="pr"><i style="width:${Math.max(0, Math.min(100, v || 0)).toFixed(1)}%${c ? ';background:' + c : ''}"></i></div>`;
 const short2 = n => { n = Math.round(n || 0); return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 1 : 2).replace(/\.?0+$/, '') + ' млн ₸' : money(n); };
+
+// отчёт: сколько сделок было на «Админе» и кому переданы
+const FA = { from: '', to: '' };
+pages.fromAdmin = async () => {
+  if (!FA.from) { const t = S.today; FA.from = t.slice(0, 8) + '01'; FA.to = t; }
+  $('#view').innerHTML = '<div class="card"><div class="empty">Загрузка…</div></div>';
+  let R; try { R = await api(`/api/admin/fromadmin?from=${FA.from}&to=${FA.to}`); } catch (e) { $('#view').innerHTML = `<div class="warn">${esc(e.message)}</div>`; return; }
+  if (R.error) { $('#view').innerHTML = `<div class="warn">${esc(R.error)}</div>`; return; }
+  const T = R.total, pc = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
+  const dt = v => new Date(v).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' });
+  const quick = [['Сегодня', S.today, S.today], ['Вчера', addD(S.today, -1), addD(S.today, -1)], ['7 дней', addD(S.today, -6), S.today], ['Этот месяц', S.today.slice(0, 8) + '01', S.today]];
+  $('#view').innerHTML = `
+    <div class="card"><div class="chd"><div><h3>Распределение с аккаунта «${esc(R.admin)}»</h3><p>Сделки, которые попали на «${esc(R.admin)}» (созданы на нём — WhatsApp, заявки), и кому их передали. Период — по дате создания сделки.</p></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <input class="in" type="date" id="faF" value="${FA.from}" style="width:160px"> — <input class="in" type="date" id="faT" value="${FA.to}" style="width:160px">
+        ${quick.map(([n, a, b]) => `<button class="btn l s" data-fa="${a}|${b}">${n}</button>`).join('')}</div></div>
+    <div class="row3" style="margin:14px 0">
+      <div class="card"><div class="lb">Пришло на «${esc(R.admin)}»</div><b class="num" style="font-size:34px">${T.created}</b><small class="hint">сделок за период${T.leads ? ` · + лидов: ${T.leads}` : ''}</small></div>
+      <div class="card"><div class="lb">Передано менеджерам</div><b class="num" style="font-size:34px;color:#16A34A">${T.given}</b><small class="hint">${pc(T.given, T.created)} от пришедших${T.leads ? ` · лидов передано: ${T.leadsGiven}` : ''}</small></div>
+      <div class="card"><div class="lb">Осталось на «${esc(R.admin)}»</div><b class="num" style="font-size:34px;color:${T.onAdmin ? '#DC2626' : 'inherit'}">${T.onAdmin}</b><small class="hint">${pc(T.onAdmin, T.created)} — никому не переданы</small></div></div>
+    <div class="row2 fr">
+      <div class="card"><h3>Кому передано</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th>Передано</th><th>Продажа</th><th>В работе</th><th>Отказ</th><th>Конверсия</th><th>Сумма продаж</th></tr></thead><tbody>
+        ${R.managers.map(r => `<tr><td>${av(r.name, uPhoto(r.uid))} <b>${esc(r.name)}</b></td><td class="num"><b>${r.cnt}</b></td><td class="num">${r.won}</td><td class="num">${r.work}</td><td class="num">${r.lost}</td><td class="num">${pc(r.won, r.cnt)}</td><td class="num">${money(r.wonSum)}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">Нет данных</td></tr>'}
+      </tbody></table></div></div>
+      <div class="card"><h3>По дням</h3><div class="tw"><table><thead><tr><th>День</th><th>Пришло</th><th>Передано</th><th>Осталось на Админе</th></tr></thead><tbody>
+        ${R.days.map(d => `<tr><td>${new Date(d.day + 'T12:00:00Z').toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', weekday: 'short', timeZone: 'UTC' })}</td><td class="num">${d.total}</td><td class="num">${d.given}</td><td class="num" style="${d.onAdmin ? 'color:#DC2626;font-weight:700' : ''}">${d.onAdmin}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Нет данных</td></tr>'}
+      </tbody></table></div></div></div>
+    <div class="row2 fr">
+      <div class="card"><h3>⚠️ Висят на «${esc(R.admin)}» (не переданы, открытые)</h3>${R.stillOpen.length ? R.stillOpen.map(d => `<div class="lr"><div class="n"><b>${d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noopener">#${d.id}</a>` : '#' + d.id} ${esc(d.t)}</b><small>${esc(d.stage)} · создана ${dt(d.cr)}</small></div></div>`).join('') : '<div class="empty">Все переданы 👍</div>'}</div>
+      <div class="card"><h3>Журнал передач</h3><p class="hint">Точное время каждой передачи с «${esc(R.admin)}». Платформа ведёт журнал с сегодняшнего дня (Bitrix24 не отдаёт историю смены ответственного).</p>
+        ${R.log.length ? R.log.map(x => `<div class="lr"><div class="n"><b>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${x.e === 'lead' ? 'Лид' : 'Сделка'} #${x.id}</a>` : '#' + x.id} → ${esc(x.to)}</b><small>${esc(x.t)} · ${dt(x.at)}</small></div></div>`).join('') : '<div class="empty">Передач пока не записано</div>'}</div></div>`;
+  const go = () => { FA.from = $('#faF').value; FA.to = $('#faT').value; pages.fromAdmin(); };
+  $('#faF').onchange = go; $('#faT').onchange = go;
+  document.querySelectorAll('[data-fa]').forEach(b => b.onclick = () => { [FA.from, FA.to] = b.dataset.fa.split('|'); pages.fromAdmin(); });
+};
 pages.home = async () => {
   $('#view').innerHTML = '<div class="empty">Загрузка…</div>';
   let R; try { R = await api('/api/admin/overview'); } catch (e) { $('#view').innerHTML = `<div class="warn">Ошибка: ${esc(e.message)}</div>`; return; }
@@ -1747,7 +1782,7 @@ pages.users = () => {
 /* ===== роутер ===== */
 const SECTIONS = [
   { id: 'home', title: 'Главная' },
-  { id: 'sales', title: 'Продажи', tabs: [['list', 'Сделки'], ['funnel', 'Воронка и выкуп']] },
+  { id: 'sales', title: 'Продажи', tabs: [['list', 'Сделки'], ['funnel', 'Воронка и выкуп'], ['admin', 'С аккаунта «Админ»']] },
   { id: 'team', title: 'Команда', tabs: [['eff', 'Эффективность'], ['touch', 'Касания'], ['att', 'Посещаемость']] },
   { id: 'calls', title: 'Звонки и WhatsApp', tabs: [['stats', 'Звонки'], ['wa', 'WhatsApp'], ['rec', 'Записи и AI-разбор']] },
   { id: 'money', title: 'Зарплата', tabs: [['payouts', 'Выплаты'], ['penalties', 'Штрафы', 1]] },
@@ -1779,7 +1814,7 @@ function route() {
     ${tabs.length > 1 ? `<nav class="stabs">${tabs.map(t => `<a href="#/${sec.id}/${t[0]}" class="${t[0] === tab ? 'on' : ''}">${t[1]}</a>`).join('')}</nav>` : ''}</header><div id="view"></div>`;
   const go = {
     home: () => pages.home(),
-    sales: () => (tab === 'funnel' ? pages.funnel() : pages.sales()),
+    sales: () => (tab === 'funnel' ? pages.funnel() : tab === 'admin' ? pages.fromAdmin() : pages.sales()),
     team: () => { if (tab === 'att') { if (AT.view === 'setup') AT.view = 'day'; return pages.att(); } EFV.tab = tab === 'touch' ? 'touch' : 'index'; return pages.eff(); },
     calls: () => { if (tab === 'wa') return pages.wa(); CALLV = tab; return pages.calls(); },
     money: () => (tab === 'penalties' ? pages.penalties() : pages.payouts()),
