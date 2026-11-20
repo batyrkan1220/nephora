@@ -127,7 +127,8 @@ function waLeads(q, scope, isOwner) {
       const repeat = !!L.waBefore || earlier.length > 0;
       const st = deal ? meta[deal.st] || {} : {};
       const sold = ds.filter(d => +new Date(d.cr) >= L.at - H && (kassa.has(d.st) || d.sem === 'S'));
-      const lost = Date.now() - L.at > 15 * 6e4 && !wasWorked(L, ds);
+      // потерян: не попал в «Новая сделка»/на Админа И никто не ответил в WhatsApp (ответили — значит, с клиентом работают)
+      const lost = Date.now() - L.at > 15 * 6e4 && L.ansMin == null && !wasWorked(L, ds);
       const last = ds[ds.length - 1] || null, lst = last ? meta[last.st] || {} : {};
       const lostWhy = !lost ? '' : !ds.length ? 'в CRM нет сделки по этому номеру' :
         `сообщение ушло в старую сделку #${last.id} («${lst.category ? lst.category + ' → ' : ''}${lst.name || last.st}»${last.sem === 'F' ? ', закрыта отказом' : last.sem === 'S' ? ', успешно закрыта' : ''}) у ${nm(last.uid) || 'без ответственного'} — в «Новая сделка» на ${admin ? admin.name : 'Админа'} не попало`;
