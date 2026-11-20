@@ -102,11 +102,15 @@ function warm() {
   } catch (e) { console.error('warm:', e.message); }
 }
 
+
+// аккаунт «Админ» в Bitrix24 — по почте (batyr7752@gmail.com), запасной вариант — по имени
+const ADMIN_EMAIL = (process.env.ADMIN_BX_EMAIL || 'batyr7752@gmail.com').toLowerCase();
+const adminUser = c => c.users.find(u => u.email === ADMIN_EMAIL) || c.users.find(u => /^\s*админ\s*$|^\s*admin\s*$/i.test(u.name)) || null;
 // «С Админа»: сколько сделок/лидов было на аккаунте «Админ» и кому они переданы
 function fromAdmin(q, scope) {
   const c = ctx(), today = C.todayKey(cfg.settings.tz), M = C.monthRange(today);
   const from = q.get('from') || M.from, to = q.get('to') || today;
-  const admin = c.users.find(u => /админ|admin/i.test(u.name)); if (!admin) return { error: 'Аккаунт «Админ» не найден в Bitrix24' };
+  const admin = adminUser(c); if (!admin) return { error: `Аккаунт ${ADMIN_EMAIL} не найден в Bitrix24` };
   const A = admin.id, allowed = AN.allowedUids(c, scope, {}), base = bx.portal();
   const nm = id => (cfg.managers[id] || {}).name || (c.userMap[id] || {}).name || ('#' + id);
   const mask = t => String(t || '').replace(/(\d{4})\d{4}(\d{2})/g, '$1****$2');
@@ -131,7 +135,7 @@ function fromAdmin(q, scope) {
   const stillOpen = deals.filter(d => d.uid === A && d.sem === 'P').sort((a, z) => String(z.cr).localeCompare(String(a.cr))).slice(0, 200)
     .map(d => ({ id: d.id, t: mask(d.t), cr: d.cr, stage: stName(d.st), url: base ? `${base}/crm/deal/details/${d.id}/` : '' }));
   return {
-    from, to, admin: admin.name, trackedSince: (store.get('wh:state') || {}).v >= 2 ? null : null,
+    from, to, admin: admin.name, adminId: admin.id, adminEmail: ADMIN_EMAIL,
     total: { created: deals.length, given, onAdmin, leads: leads.length, leadsGiven: leads.filter(l => l.uid !== A).length, logged: log.length },
     managers: Object.values(by).sort((a, z) => z.cnt - a.cnt),
     days: Object.values(days).sort((a, z) => z.day.localeCompare(a.day)),
@@ -150,7 +154,7 @@ function waLeads(q, scope, isOwner) {
     const byPhone = dealsByPhone();
     const base = bx.portal(), H = 3600e3;
     // «Админ» — аккаунт, на который должны падать новые обращения (по имени в Bitrix24)
-    const admin = c.users.find(u => /админ|admin/i.test(u.name)) || null, adminId = admin ? admin.id : '';
+    const admin = adminUser(c), adminId = admin ? admin.id : '';
     const wasWorked = (L, ds) => ds.some(d => {
       const cr = +new Date(d.cr), mv = +new Date(d.mv || d.md || d.cr), md = +new Date(d.md || d.cr);
       return cr >= L.at - H                                            // создана новая сделка
