@@ -389,6 +389,8 @@ async function handle(req, res) {
     if (!b) return send(res, 404, 'Табло не настроено', 'text/plain; charset=utf-8');
     res.writeHead(302, { Location: '/b/' + b.key + (url.search || '') }); return res.end();
   }
+  // ИИ завод — публичная ссылка без входа (только показ, данные выдуманные)
+  if (p === '/office' || p === '/zavod' || p === '/ai') return file(res, 'office.html');
   if ((m = p.match(/^\/b\/([\w-]+)\/?$/))) {
     const buf = fs.readFileSync(path.join(PUB, 'board.html')), tag = '"' + require('crypto').createHash('md5').update(buf).digest('hex').slice(0, 16) + '"';
     if (req.headers['if-none-match'] === tag) { res.writeHead(304, { ETag: tag, 'Cache-Control': 'no-cache' }); return res.end(); }
