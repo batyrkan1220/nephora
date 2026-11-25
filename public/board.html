@@ -810,11 +810,11 @@ function render0() {
 const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 10 || h >= 20) ? b : c; };
 
 /* ===== звук и попап ===== */
-/* звук продажи: public/sale.mp3 (музыка заказа, 9.5 с), через Web Audio — после одного клика на экране */
+/* звук продажи: public/sale.mp3 (звук заказа: «ча-чинг» + звон, 3 с), через Web Audio — после одного клика на экране */
 let saleBuf = null, saleLoading = null;
 // файлы звуков скачиваются сразу при открытии страницы (до первого касания), декодируются один раз
 // звуки качаются после того, как табло показало данные (не мешают первой загрузке), и один раз — дальше из кэша браузера
-const RAW = {}, SND = { sale: '/sale.mp3?v=3', ovt: '/overtake.mp3?v=3' };
+const RAW = {}, SND = { sale: '/sale.mp3?v=4', ovt: '/overtake.mp3?v=3' };
 const rawGet = k => RAW[k] || (RAW[k] = fetch(SND[k]).then(r => r.ok ? r.arrayBuffer() : null).catch(() => { delete RAW[k]; return null; }));
 setTimeout(() => rawGet('sale'), 2500);
 const rawCopy = k => rawGet(k).then(ab => { if (!ab) throw new Error('нет файла'); return ab.slice(0); });
