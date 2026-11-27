@@ -14,6 +14,7 @@ const AN = require('./lib/analytics');
 const att = require('./lib/attendance');
 const cai = require('./lib/callai');
 const recs = require('./lib/recs');
+const ACT = require('./lib/activity');
 const EF = require('./lib/efficiency');
 const wz = require('./lib/wazzup');
 const bots = require('./lib/bots');
@@ -783,6 +784,7 @@ async function handle(req, res) {
     return send(res, 200, wz.status());
   }
   // WhatsApp-лиды по дням: сколько написало, сколько новых/повторных, с какого номера, что в CRM (сделка, стадия, менеджер, сумма)
+  if (p === '/api/admin/activity') { const q = url.searchParams, c = ctx(); return send(res, 200, ACT.activity(c, AN.allowedUids(c, scope, { sector: q.get('sector') || '' }), cfg, q.get('day') || C.todayKey(cfg.settings.tz), { gap: Math.max(5, Math.min(120, +q.get('gap') || 20)) })); }
   if (p === '/api/admin/fromadmin') return send(res, 200, fromAdmin(url.searchParams, scope));
   if (p === '/api/admin/wz/leads') return send(res, 200, waLeads(url.searchParams, scope, isOwner));
   if (p === '/api/admin/wz/report') {
