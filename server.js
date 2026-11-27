@@ -859,7 +859,8 @@ async function handle(req, res) {
       if (raw.CALL_RECORD_URL) urls.push(raw.CALL_RECORD_URL);
       if (!urls.length) return send(res, 404, { error: why || 'У звонка нет записи' });
       for (const u of urls) {
-        const up = await fetch(u, { headers: req.headers.range ? { Range: req.headers.range } : {}, redirect: 'follow' });
+        let up; try { up = await fetch(u, { headers: req.headers.range ? { Range: req.headers.range } : {}, redirect: 'follow', signal: AbortSignal.timeout(25e3) }); }
+        catch (e) { why = `${new URL(u).hostname}: ${(e.cause && (e.cause.code || e.cause.message)) || e.message}`; console.error('call-rec', c.id, why); continue; }
         const type = up.headers.get('content-type') || '';
         if (!up.ok || /json|html/.test(type)) { why = why || `Bitrix24 не отдал файл (HTTP ${up.status})`; continue; }
         const h = { 'Content-Type': /octet-stream/.test(type) || !type ? 'audio/mpeg' : type, 'Cache-Control': 'private, max-age=3600', 'Accept-Ranges': up.headers.get('accept-ranges') || 'bytes' };
