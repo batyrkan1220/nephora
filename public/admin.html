@@ -320,8 +320,8 @@ body{background:#EEF0F7}
 
 
 /* ===== Лидерборд (главная) ===== */
-.lbhd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:4px 0 18px}
-.lbhd h1{margin:0;font-size:30px;letter-spacing:-.02em}.lbhd p{margin:4px 0 0;color:var(--muted);text-transform:capitalize}
+.lbhd{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 16px}
+.lbhd p{margin:0;color:var(--muted)}
 .lbact{display:flex;gap:10px;flex-wrap:wrap}
 .lbkpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
 .lbk{background:var(--card,#fff);border-radius:18px;padding:16px 18px;box-shadow:0 1px 0 var(--line),0 8px 24px -18px rgba(20,24,60,.35);display:flex;flex-direction:column;gap:6px}
@@ -678,7 +678,7 @@ pages.home = async () => {
   const T = R.team || {}, own = S.me.role === 'owner', pc = (a, b) => b ? Math.min(999, Math.round(a / b * 100)) : 0;
   const kpi = (lb, v, plan, cls) => `<div class="lbk ${cls}"><small>${lb}</small><b class="num">${money(v)}</b>${plan ? `<div class="lbp"><i style="width:${Math.min(100, pc(v, plan))}%"></i></div><span>${pc(v, plan)}% от плана ${money(plan)}</span>` : '<span>план не задан</span>'}</div>`;
   $('#view').innerHTML = `
-    <div class="lbhd"><div><h1>Лидерборд</h1><p>${new Date(S.today + 'T12:00:00Z').toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })} · ${T.managers || 0} менеджеров</p></div>
+    <div class="lbhd"><div><p>${T.managers || 0} менеджеров на табло · обновляется в реальном времени</p></div>
       <div class="lbact"><a class="btn" href="/tv" target="_blank" rel="noopener">📺 Открыть на ТВ</a>${own ? '<a class="btn l" href="#/settings/board">⚙️ Настроить табло</a>' : ''}</div></div>
     <div class="lbkpi">${kpi('Касса сегодня', T.daySum || 0, T.dayPlan, 'd')}${kpi('Касса за месяц', T.sum || 0, T.plan, 'm')}
       <div class="lbk f"><small>Прогноз на месяц</small><b class="num">${money(T.forecast || 0)}</b><span>${T.plan ? pc(T.forecast, T.plan) + '% плана при текущем темпе' : ''}</span></div>
