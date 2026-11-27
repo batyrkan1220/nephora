@@ -320,6 +320,10 @@ body{background:#EEF0F7}
 
 
 
+
+.secbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 14px}.secbar>span{font-size:12.5px;color:var(--muted);font-weight:600;margin-right:4px}
+.sbc{border:0;background:var(--card,#fff);box-shadow:inset 0 0 0 1px var(--line);border-radius:999px;padding:7px 14px;font:600 13px Inter,system-ui,sans-serif;color:inherit;cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+.sbc i{width:9px;height:9px;border-radius:50%}.sbc:hover{box-shadow:inset 0 0 0 1px #4B4FE8}.sbc.on{background:#4B4FE8;color:#fff;box-shadow:none}
 /* ===== Активность ===== */
 .acbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .ackpi{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin:14px 0}
@@ -549,6 +553,7 @@ const cacheable = url => /^\/api\/admin\//.test(url) && !/\/api\/admin\/(state|s
 let saveT = null; const cacheSave = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { const o = {}; let n = 0; for (const [k, v] of [...CACHE.entries()].slice(-60)) { const t = JSON.stringify(v); if (t.length < 800e3 && (n += t.length) < 4e6) o[k] = v; } localStorage.setItem(CK, JSON.stringify(o)); } catch {} }, 800); };
 let rrT = null; const rerender = h => { clearTimeout(rrT); rrT = setTimeout(() => { const a = document.activeElement; if (location.hash !== h || dirty || document.querySelector('.ovl') || (a && /INPUT|SELECT|TEXTAREA/.test(a.tagName))) return; route(); }, 250); };
 const api = async (url, opt = {}) => {
+  if (F.sector && /^\/api\/(admin|ai)\//.test(url) && !/[?&]sector=/.test(url) && !/^\/api\/admin\/(config|users|settings|state|owner)/.test(url)) url += (url.includes('?') ? '&' : '?') + 'sector=' + encodeURIComponent(F.sector);
   const m = (opt.method || 'GET').toUpperCase();
   if (m !== 'GET') { CACHE.clear(); try { localStorage.removeItem(CK); } catch {} return api0(url, opt); }
   if (!cacheable(url)) return api0(url, opt);
@@ -625,7 +630,8 @@ function presets(today) {
     prev: ['Прошлый месяц', pms, addD(ms, -1)], custom: ['Произвольный'],
   };
 }
-const F = { p: 'month', from: '', to: '', board: '', uid: '', sector: '' };
+const F = { p: 'month', from: '', to: '', board: '', uid: '', sector: (() => { try { return localStorage.getItem('sector') || ''; } catch { return ''; } })() };
+const setSector = v => { F.sector = v || ''; F.uid = ''; try { localStorage.setItem('sector', F.sector); } catch {} };
 const mySectors = () => (S.sectors || []).filter(x => !S.me.sectors || S.me.sectors.includes(x.id));
 const uidsFor = () => [...new Set([...S.dealUids, ...Object.keys(cfg.managers)])].filter(id => (!S.me.sectors || S.me.sectors.includes(S.secOf[id])) && (!F.sector || S.secOf[id] === F.sector) && !(cfg.managers[id] || {}).hidden);
 const secSelect = (id, all) => `<select class="in" id="${id}"><option value="">${all}</option>${mySectors().map(x => `<option value="${x.id}" ${F.sector === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>`;
@@ -641,7 +647,7 @@ function bindFilters() {
   document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { F.p = b.dataset.p; route(); });
   const on = (id, k) => { const el = $('#' + id); if (el) el.onchange = () => { F[k] = el.value; route(); }; };
   on('fFrom', 'from'); on('fTo', 'to'); on('fBoard', 'board'); on('fUid', 'uid');
-  const sc = $('#fSec'); if (sc) sc.onchange = () => { F.sector = sc.value; F.uid = ''; route(); };
+  const sc = $('#fSec'); if (sc) sc.onchange = () => { setSector(sc.value); route(); };
 }
 const qs = extra => new URLSearchParams({ from: F.from, to: F.to, board: F.board, uid: F.uid, sector: F.sector, ...extra }).toString();
 
@@ -728,18 +734,18 @@ const hmd = m => m >= 60 ? Math.floor(m / 60) + ' ч ' + (m % 60 ? m % 60 + ' м
 pages.activity = async () => {
   if (!AC.day) AC.day = S.today;
   $('#view').innerHTML = '<div class="card"><div class="empty">Считаем активность…</div></div>';
-  let R; try { R = await api(`/api/admin/activity?day=${AC.day}&gap=${AC.gap}&sector=${encodeURIComponent(AC.sector)}`); } catch (e) { $('#view').innerHTML = `<div class="warn">${esc(e.message)}</div>`; return; }
+  let R; try { R = await api(`/api/admin/activity?day=${AC.day}&gap=${AC.gap}`); } catch (e) { $('#view').innerHTML = `<div class="warn">${esc(e.message)}</div>`; return; }
   const T = R.team, span = R.to - R.from, X = m => Math.max(0, Math.min(100, (m - R.from) / span * 100));
   const mxH = Math.max(1, ...R.hours.slice(8, 22)), mxS = Math.max(1, ...R.rows.flatMap(r => r.slots));
   const sec = (typeof sectors === 'function' ? sectors() : []);
   const ticks = []; for (let h = 8; h <= 22; h += 2) ticks.push(`<i style="left:${X(h * 60)}%"><span>${h}:00</span></i>`);
   const pcCls = p => p >= 75 ? 'g' : p >= 55 ? 'y' : 'r';
-  $('#view').innerHTML = `
+  $('#view').innerHTML = secBar() + `
     <div class="card acbar"><input class="in" type="date" id="acD" value="${AC.day}" style="width:170px">
       <button class="btn l s" data-acd="0">Сегодня</button><button class="btn l s" data-acd="-1">Вчера</button>
       <label class="hint" style="margin-left:6px">Перерыв — пауза без касаний от</label>
       <select class="in" id="acG" style="width:110px">${[10, 15, 20, 30, 45, 60].map(g => `<option value="${g}" ${g === R.gap ? 'selected' : ''}>${g} мин</option>`).join('')}</select>
-      ${sec.length ? `<select class="in" id="acS" style="width:170px"><option value="">Все секторы</option>${sec.map(x => `<option value="${esc(x.id)}" ${x.id === AC.sector ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` : ''}</div>
+</div>
     <div class="ackpi">
       <div><small>Менеджеров в работе</small><b>${T.people}</b></div>
       <div><small>Среднее активное время</small><b>${hmd(T.active)}</b></div>
@@ -764,7 +770,6 @@ pages.activity = async () => {
   const go = () => pages.activity();
   $('#acD').onchange = e => { AC.day = e.target.value; go(); };
   $('#acG').onchange = e => { AC.gap = +e.target.value; go(); };
-  if ($('#acS')) $('#acS').onchange = e => { AC.sector = e.target.value; go(); };
   document.querySelectorAll('[data-acd]').forEach(b => b.onclick = () => { AC.day = addD(S.today, +b.dataset.acd); go(); });
   document.querySelectorAll('[data-acu]').forEach(r => r.onclick = () => { AC.open = AC.open === r.dataset.acu ? '' : r.dataset.acu; go(); });
 };
@@ -774,7 +779,7 @@ pages.home = async () => {
   if (R.empty) { $('#view').innerHTML = '<div class="warn">Табло ещё не настроено — откройте «Настройки → Табло и планы».</div>'; return; }
   const T = R.team || {}, own = S.me.role === 'owner', pc = (a, b) => b ? Math.min(999, Math.round(a / b * 100)) : 0;
   const kpi = (lb, v, plan, cls) => `<div class="lbk ${cls}"><small>${lb}</small><b class="num">${money(v)}</b>${plan ? `<div class="lbp"><i style="width:${Math.min(100, pc(v, plan))}%"></i></div><span>${pc(v, plan)}% от плана ${money(plan)}</span>` : '<span>план не задан</span>'}</div>`;
-  $('#view').innerHTML = `
+  $('#view').innerHTML = secBar() + `
     <div class="lbhd"><div><p>${T.managers || 0} менеджеров на табло · обновляется в реальном времени</p></div>
       <div class="lbact"><a class="btn" href="/tv" target="_blank" rel="noopener">📺 Открыть на ТВ</a>${own ? '<a class="btn l" href="#/settings/board">⚙️ Настроить табло</a>' : ''}</div></div>
     <div class="lbkpi">${kpi('Касса сегодня', T.daySum || 0, T.dayPlan, 'd')}${kpi('Касса за месяц', T.sum || 0, T.plan, 'm')}
@@ -1311,6 +1316,9 @@ async function attSetup(top, bindTop) {
 const pct = v => v == null ? '—' : (Math.round(v * 10) / 10) + '%';
 const whNote = w => w ? `База: ${w.counts.deal} сделок · ${w.counts.lead} лидов · ${w.counts.call} звонков · с ${fd(w.from)}${w.lastRun ? ' · синхр. ' + new Date(w.lastRun).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : ' · идёт первая загрузка…'}${w.progress ? ' (' + w.progress + ')' : ''}` : '';
 const head = (title, sub, extra = '') => `<div class="top"><div class="sub">${sub}</div>${extra}</div>`;
+// полоса секторов сверху каждой страницы
+const secBar = () => { const L = mySectors(); if (L.length < 2) return ''; return `<div class="secbar"><span>Сектор:</span><button class="sbc ${!F.sector ? 'on' : ''}" data-sec="">Все</button>${L.map(x => `<button class="sbc ${F.sector === x.id ? 'on' : ''}" data-sec="${esc(x.id)}"><i style="background:${esc(x.color || '#4B4FE8')}"></i>${esc(x.name)}</button>`).join('')}</div>`; };
+document.addEventListener('click', e => { const b = e.target.closest('[data-sec]'); if (!b) return; setSector(b.dataset.sec); route(); });
 
 /* ===== воронка и выкуп ===== */
 pages.funnel = async () => {
@@ -1346,7 +1354,7 @@ pages.funnel = async () => {
 let CALLV = 'stats';
 pages.calls = async () => {
   if (CALLV === 'rec') {
-    $('#view').innerHTML = head('Оценка звонков', 'Выберите день → у нужного звонка нажмите «🤖 ИИ-оценка». Откроется разговор по ролям (менеджер / клиент) с подсветкой слов при прослушивании и оценкой.') + filters() + `    <div class="card" id="aiSum"><h3>AI-оценка разговоров</h3><div id="aiSumB" class="empty">Загрузка…</div></div>
+    $('#view').innerHTML = head('Оценка звонков', 'Выберите день → у нужного звонка нажмите «🤖 ИИ-оценка». Откроется разговор по ролям (менеджер / клиент) с подсветкой слов при прослушивании и оценкой.') + secBar() + filters() + `    <div class="card" id="aiSum"><h3>AI-оценка разговоров</h3><div id="aiSumB" class="empty">Загрузка…</div></div>
     <div class="card" id="recs"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><h3 style="flex:1;margin:0">Записи разговоров</h3>
       <input class="in" id="recQ" placeholder="Поиск по номеру" value="${esc(REC.q)}" style="max-width:220px"><label class="ck"><input type="checkbox" id="recAll" ${REC.all ? 'checked' : ''}> все звонки</label></div>
       <div id="recBody" class="empty">Загрузка…</div></div>`;
@@ -1870,7 +1878,7 @@ pages.ai = () => {
   const TL = { get_board_today: 'табло', get_sales_report: 'продажи', get_funnel: 'воронка', get_calls: 'звонки', find_deals: 'сделки', get_sources: 'источники', get_payouts: 'зарплата', list_people: 'сотрудники' };
   const sug = ['Бүгін қалай? Жоспар орындала ма?', 'Кто лучший менеджер за неделю и почему?', 'Где мы теряем выкуп в этом месяце?', 'Кто медленно звонит по новым лидам?', 'Сравни секторы за месяц', 'Какие заказы зависли дольше всего?'];
   $('#view').innerHTML = head('AI-ассистент', `Отвечает по данным базы Safa${S.me.sectors ? ' — только по вашим секторам' : ''}. Цифры берёт из CRM, не выдумывает.`,
-    AI.msgs.length ? '<button class="btn l s" id="aiClear">Новый диалог</button>' : '') + `
+    AI.msgs.length ? '<button class="btn l s" id="aiClear">Новый диалог</button>' : '') + secBar() + `
     ${S.ai ? '' : '<div class="warn">AI ещё не подключён: владельцу нужно добавить ключ <b>ANTHROPIC_API_KEY</b> в переменные окружения сервиса на Render.</div>'}
     <div class="chat"><div class="msgs" id="msgs">${AI.msgs.length ? '' : `<div class="hello"><b>Спросите что угодно о продажах</b>Касса, выкуп, звонки, зарплата, сравнение менеджеров и секторов — на казахском или русском.</div>`}</div>
       ${AI.msgs.length ? '' : `<div class="sugg">${sug.map(x => `<button>${esc(x)}</button>`).join('')}</div>`}

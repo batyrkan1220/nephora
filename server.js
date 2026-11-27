@@ -529,7 +529,10 @@ async function handle(req, res) {
   }
   // пока данные из базы грузятся после перезапуска (несколько секунд) — отчёты ждут, а не отдают пустоту
   if (p.startsWith('/api/admin/') && p !== '/api/admin/state') await wh.ready();
-  const scope = auth.scopeOf(user), isOwner = user.role === 'owner';
+  let scope = auth.scopeOf(user); const isOwner = user.role === 'owner';
+  // фильтр «сектор» сверху страницы: все отчёты, звонки, активность и AI-ассистент — только по выбранному сектору
+  { const qs_ = url.searchParams.get('sector'); if (qs_ && /^\/api\/(admin|ai)\//.test(p) && !/^\/api\/admin\/(config|users|settings|state|owner)/.test(p))
+      scope = { ...scope, sectors: scope.sectors ? scope.sectors.filter(x => x === qs_) : [qs_] }; }
   // только владелец: настройки, фото, сверка, пересинхронизация, аккаунты, база
   const ownerOnly = (p.startsWith('/api/admin/bots/') && !p.startsWith('/api/admin/bots/task/')) || (p === '/api/admin/config' && req.method !== 'GET') || p.startsWith('/api/admin/photo/') || p === '/api/admin/diag' ||
     p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/') || p.startsWith('/api/admin/att/') || p.startsWith('/api/admin/callai/settings') || p.startsWith('/api/admin/wz/settings');
