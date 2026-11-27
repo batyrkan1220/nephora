@@ -536,10 +536,30 @@ const ini = n => esc(String(n || '?').split(/\s+/).map(x => x[0]).slice(0, 2).jo
 const av = (name, photo, cls = '') => `<div class="av ${cls}">${photo ? `<img src="${esc(photo)}" referrerpolicy="no-referrer" alt="" onerror="this.replaceWith(document.createTextNode('${ini(name)}'))">` : ini(name)}</div>`;
 const uid = () => Math.random().toString(16).slice(2, 10);
 const toast = t => { const e = document.createElement('div'); e.className = 'toast'; e.textContent = t; document.body.appendChild(e); setTimeout(() => e.remove(), 2600); };
-const api = async (url, opt = {}) => {
+const api0 = async (url, opt = {}) => {
   const r = await fetch(url, { ...opt, headers: { 'Content-Type': 'application/json', ...(opt.headers || {}) } });
   if (r.status === 401) { location.reload(); throw new Error('unauthorized'); }
   const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || 'HTTP ' + r.status); return j;
+};
+/* Кэш страниц: при открытии страница сразу рисуется из сохранённых данных (без «Загрузка…»),
+   а свежие данные подтягиваются в фоне — если что-то изменилось, страница тихо перерисовывается. */
+const CACHE = new Map(), CK = 'apiCache:v1', BG = {};
+try { Object.entries(JSON.parse(localStorage.getItem(CK) || '{}')).forEach(([k, v]) => CACHE.set(k, v)); } catch {}
+const cacheable = url => /^\/api\/admin\//.test(url) && !/\/api\/admin\/(state|settings|users|wh\/|bx|callai\/(?!summary)|call-rec|owner)/.test(url);
+let saveT = null; const cacheSave = () => { clearTimeout(saveT); saveT = setTimeout(() => { try { const o = {}; let n = 0; for (const [k, v] of [...CACHE.entries()].slice(-60)) { const t = JSON.stringify(v); if (t.length < 800e3 && (n += t.length) < 4e6) o[k] = v; } localStorage.setItem(CK, JSON.stringify(o)); } catch {} }, 800); };
+let rrT = null; const rerender = h => { clearTimeout(rrT); rrT = setTimeout(() => { const a = document.activeElement; if (location.hash !== h || dirty || document.querySelector('.ovl') || (a && /INPUT|SELECT|TEXTAREA/.test(a.tagName))) return; route(); }, 250); };
+const api = async (url, opt = {}) => {
+  const m = (opt.method || 'GET').toUpperCase();
+  if (m !== 'GET') { CACHE.clear(); try { localStorage.removeItem(CK); } catch {} return api0(url, opt); }
+  if (!cacheable(url)) return api0(url, opt);
+  const hit = CACHE.get(url);
+  const refresh = () => {
+    if (BG[url] && Date.now() - BG[url] < 20e3) return null; BG[url] = Date.now();
+    const h = location.hash;
+    return api0(url, opt).then(j => { const old = CACHE.get(url); CACHE.set(url, { d: j, t: Date.now() }); cacheSave(); if (old && JSON.stringify(old.d) !== JSON.stringify(j)) rerender(h); return j; });
+  };
+  if (hit) { const p = refresh(); if (p) p.catch(() => {}); return hit.d; }
+  const j = await api0(url, opt); CACHE.set(url, { d: j, t: Date.now() }); BG[url] = Date.now(); cacheSave(); return j;
 };
 
 let S = null, cfg = null, saved = '', dirty = false;

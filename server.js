@@ -343,6 +343,11 @@ async function imgProxy(u, res) {
   } catch (e) { res.writeHead(302, { Location: u }); return res.end(); }
 }
 
+
+/* быстрые ответы тяжёлых отчётов: результат держим 45 с (по пользователю и параметрам), данные всё равно обновляются каждые 30 с */
+const MEMO = new Map();
+const memoClear = () => MEMO.clear();
+function memo(key, fn, ttl = 45e3) { const h = MEMO.get(key); if (h && Date.now() - h.t < ttl) return h.v; const v = fn(); MEMO.set(key, { t: Date.now(), v }); if (MEMO.size > 400) MEMO.delete(MEMO.keys().next().value); return v; }
 /* ===== http helpers ===== */
 const send = (res, code, body, type = 'application/json; charset=utf-8', extra = {}) => {
   res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store', ...extra });
@@ -529,6 +534,15 @@ async function handle(req, res) {
   const ownerOnly = (p.startsWith('/api/admin/bots/') && !p.startsWith('/api/admin/bots/task/')) || (p === '/api/admin/config' && req.method !== 'GET') || p.startsWith('/api/admin/photo/') || p === '/api/admin/diag' ||
     p === '/api/admin/resync' || /\/test-sale$/.test(p) || p.startsWith('/api/admin/users') || p.startsWith('/api/admin/wh/') || p.startsWith('/api/admin/att/') || p.startsWith('/api/admin/callai/settings') || p.startsWith('/api/admin/wz/settings');
   if (ownerOnly && !isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
+  if (req.method !== 'GET' && p.startsWith('/api/admin/')) MEMO.clear(); // изменили настройки/данные — отчёты пересчитать
+  // тяжёлые отчёты: повторное открытие страницы — мгновенно из памяти (45 с)
+  if (req.method === 'GET' && /^\/api\/admin\/(overview|calls|calls\/list|calls\/minutes|funnel|sources|activity|fromadmin|wz\/leads|wz\/speed|eff|touches|sales|tv\/today|callai\/summary)$/.test(p)) {
+    const key = (user.id || user.login || '') + '|' + p + url.search, h = MEMO.get(key);
+    if (h && Date.now() - h.t < 45e3) return send(res, 200, h.v);
+    const end = res.end.bind(res), wh_ = res.writeHead.bind(res); let code = 200;
+    res.writeHead = (c, ...r) => { code = c; return wh_(c, ...r); };
+    res.end = b => { if (code === 200 && b) { try { MEMO.set(key, { t: Date.now(), v: JSON.parse(b) }); if (MEMO.size > 400) MEMO.delete(MEMO.keys().next().value); } catch {} } return end(b); };
+  }
 
   // --- кабинет ---
   if (p === '/' || p === '/index.html') { res.writeHead(302, { Location: '/admin' }); return res.end(); }
