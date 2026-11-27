@@ -825,6 +825,10 @@ async function handle(req, res) {
     if (req.method === 'POST') { await cai.setKeys(JSON.parse(await readBody(req, 1e4))); }
     return send(res, 200, cai.status());
   }
+  if ((m = p.match(/^\/api\/admin\/callai\/([\w.-]+)\/mgr$/)) && req.method === 'POST') {
+    const c = wh.byId('call', m[1]); if (!c || !AN.allowedUids(ctx(), scope, {}).has(c.uid)) return send(res, 404, { error: 'Звонок не найден' });
+    try { const b = JSON.parse(await readBody(req, 1e3) || '{}'); await cai.setMgr(c.id, b.mgr); return send(res, 200, { ok: true }); } catch (e) { return send(res, 400, { error: e.message }); }
+  }
   if ((m = p.match(/^\/api\/admin\/callai\/([\w.-]+)$/))) {
     const c = wh.byId('call', m[1]);
     if (!c) return send(res, 404, { error: 'Звонок не найден в базе' });
@@ -833,7 +837,8 @@ async function handle(req, res) {
       const d = req.method === 'POST' ? await cai.analyze(c.id) : cai.get(c.id);
       if (!d) return send(res, 404, { error: 'Разбора ещё нет' });
       const x = ctx(); const nm = (cfg.managers[c.uid] || {}).name || (x.userMap[c.uid] || {}).name || '';
-      return send(res, 200, { ...d, name: nm, phone: c.ph, transcript: await cai.transcript(c.id) });
+      const tr = await cai.transcript(c.id);
+      return send(res, 200, { ...d, mgr: d.mgr || cai.guessMgr(tr), name: nm, phone: c.ph, transcript: tr });
     } catch (e) { return send(res, 400, { error: e.message }); }
   }
   if (p === '/api/admin/calls/raw') { // диагностика: какие поля записи отдаёт Bitrix24

@@ -172,7 +172,14 @@ ol.steps{margin:6px 0 0;padding-left:20px;line-height:1.7;font-size:14px}
 .ovl .pane{width:min(760px,100%);height:100%;overflow:auto;background:#fff;padding:28px 30px;box-shadow:-20px 0 60px rgba(0,0,0,.15)}
 .cr{display:grid;grid-template-columns:1fr 120px 34px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .cr .bar{height:8px;border-radius:6px;background:#eef0f5;overflow:hidden}.cr .bar i{display:block;height:100%;background:var(--blue)}
-.dlg p{margin:0 0 8px;line-height:1.5}.dlg .mg{background:#eef3ff;border-radius:12px;padding:8px 12px}.dlg .cl{background:#f6f7fa;border-radius:12px;padding:8px 12px}
+.dlg{display:flex;flex-direction:column;gap:8px}
+.dlg .tr{max-width:82%;border-radius:14px;padding:8px 12px;cursor:pointer;transition:box-shadow .2s,background .2s;border:1.5px solid transparent}
+.dlg .tr.mg{align-self:flex-end;background:#eef3ff}.dlg .tr.cl{align-self:flex-start;background:#f3f4f7}
+.dlg .tr.on{border-color:#4B4FE8;box-shadow:0 6px 18px -8px rgba(75,79,232,.5)}
+.dlg .trh{display:flex;gap:10px;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:3px}.dlg .tr.mg .trh b{color:#4B4FE8}.dlg .tr.cl .trh b{color:#334155}
+.dlg .trt{line-height:1.55;font-size:14.5px}.dlg .trt span{border-radius:4px;padding:0 1px;transition:background .1s}.dlg .trt span:hover{background:#e2e8f0}
+.dlg .trt span.on{background:#FDE047;color:#111}
+.tplay{position:sticky;top:-24px;z-index:3;background:var(--card,#fff);padding:10px 0;display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--line)}.tplay audio{flex:1;min-width:0}
 
 /* ===== Safa 5: дизайн «DealDeck» ===== */
 :root{--bg:#D9DCE4;--panel:#F3F4F9;--line:#E6E8F0;--soft:#F1F2F7;--muted:#8B90A3;--muted2:#5F6478;--ink:#1C1D22;--blue:#4B4FE8;--blue2:#6366F1;--green:#16A34A;--red:#EF4444;--r:24px;--sh:none}
@@ -1265,10 +1272,30 @@ async function openReview(id) {
     <div style="display:flex;gap:16px;align-items:center;margin:18px 0"><span class="sc ${scCls(d.score)}" style="font-size:28px;padding:10px 18px">${d.score}</span><div><b>${OUT[d.outcome] || ''}</b>${d.next ? ` · следующий шаг: ${esc(d.next)}` : ''}<br><span class="hint">${esc(d.summary)}</span></div></div>
     <h3>Критерии</h3>${(d.criteria || []).map(c => `<div class="cr"><div><b style="font-size:14px">${esc(c.name)}</b><div class="hint" style="margin:2px 0 0">${esc(c.comment)}</div></div><div class="bar"><i style="width:${c.score * 10}%"></i></div><b class="num">${c.score}</b></div>`).join('')}
     <h3 style="margin-top:18px">Хорошо</h3>${li(d.strengths)}<h3>Ошибки</h3>${li(d.mistakes)}<h3>Как сказать лучше</h3>${li(d.recommendations)}${(d.objections || []).length ? '<h3>Возражения клиента</h3>' + li(d.objections) : ''}`}
-    <audio controls preload="none" src="/api/admin/call-rec/${encodeURIComponent(id)}" style="width:100%;margin:6px 0 14px"></audio>
-    <details ${d.skip || d.pending ? 'open' : ''}><summary style="cursor:pointer;font-weight:600">Расшифровка разговора</summary><div class="dlg" style="margin-top:10px">${(d.transcript || []).map(l => `<p class="${l.sp === d.mgr ? 'mg' : 'cl'}"><b>${who(l.sp)}:</b> ${esc(l.t)}</p>`).join('') || '<p class="hint">Нет текста</p>'}</div></details>
+    <div class="tplay"><audio id="trAu" controls preload="metadata" src="/api/admin/call-rec/${encodeURIComponent(id)}"></audio>
+      ${(d.transcript || []).length ? `<button class="btn l s" id="trSwap" title="Если система перепутала, кто менеджер, а кто клиент">⇄ Поменять роли</button>` : ''}</div>
+    <h3 style="margin:14px 0 8px">Разговор <span class="hint" style="font-weight:500">— нажмите на фразу, чтобы прослушать с этого места</span></h3>
+    <div class="dlg" id="trDlg">${(d.transcript || []).map((l, i) => `<div class="tr ${l.sp === d.mgr ? 'mg' : 'cl'}" data-i="${i}" data-s="${l.s || 0}">
+        <div class="trh"><b>${l.sp === d.mgr ? '🎧 Менеджер' : '👤 Клиент'}</b><span>${dur(Math.floor(l.s || 0))}</span></div>
+        <div class="trt">${l.w && l.w.length ? l.w.map(w => `<span data-s="${w[1]}">${esc(w[0])}</span>`).join(' ') : esc(l.t)}</div></div>`).join('') || '<p class="hint">Нет текста</p>'}</div>
     <p class="hint" style="margin-top:14px">Расшифровка: ${esc(d.stt || '')}${d.lang ? ' · язык: ' + esc(d.lang) : ''} · оценка: ${esc(d.model || '')}. Автоматическая расшифровка может содержать ошибки.</p>`;
-  $('#ovX').onclick = () => o.remove();
+  $('#ovX').onclick = () => { const au = $('#trAu'); if (au) au.pause(); o.remove(); };
+  // подсветка: какая фраза и какое слово звучат сейчас
+  const au = $('#trAu'), dlg = $('#trDlg'); if (!au || !dlg) return;
+  const L = [...dlg.querySelectorAll('.tr')], W = [...dlg.querySelectorAll('.trt span')];
+  let curL = null, curW = null;
+  au.ontimeupdate = () => {
+    const t = au.currentTime + 0.05;
+    let li = null; for (const x of L) { if (+x.dataset.s <= t) li = x; else break; }
+    if (li !== curL) { curL && curL.classList.remove('on'); curL = li; if (li) { li.classList.add('on'); const r = li.offsetTop - dlg.offsetTop - 80; if (!au.paused) o.querySelector('.pane').scrollTo({ top: li.offsetTop - 160, behavior: 'smooth' }); } }
+    let wi = null; if (curL) for (const x of curL.querySelectorAll('.trt span')) { if (+x.dataset.s <= t) wi = x; else break; }
+    if (wi !== curW) { curW && curW.classList.remove('on'); curW = wi; wi && wi.classList.add('on'); }
+  };
+  dlg.onclick = e => { const w = e.target.closest('.trt span'), l = e.target.closest('.tr'); const s = w ? +w.dataset.s : l ? +l.dataset.s : null; if (s == null) return; au.currentTime = Math.max(0, s - 0.2); au.play().catch(() => {}); };
+  const sw = $('#trSwap'); if (sw) sw.onclick = async () => {
+    const other = [...new Set((d.transcript || []).map(l => l.sp))].find(x => x !== d.mgr) || 'B';
+    try { await api('/api/admin/callai/' + encodeURIComponent(id) + '/mgr', { method: 'POST', body: JSON.stringify({ mgr: other }) }); o.remove(); openReview(id); toast('Роли сохранены'); } catch (e) { toast(e.message); }
+  };
 }
 const dur = s => { s = +s || 0; return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 async function loadRecs() {
