@@ -324,6 +324,7 @@ body{background:#EEF0F7}
 .secbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 14px}.secbar>span{font-size:12.5px;color:var(--muted);font-weight:600;margin-right:4px}
 .sbc{border:0;background:var(--card,#fff);box-shadow:inset 0 0 0 1px var(--line);border-radius:999px;padding:7px 14px;font:600 13px Inter,system-ui,sans-serif;color:inherit;cursor:pointer;display:inline-flex;gap:7px;align-items:center}
 .sbc i{width:9px;height:9px;border-radius:50%}.sbc:hover{box-shadow:inset 0 0 0 1px #4B4FE8}.sbc.on{background:#4B4FE8;color:#fff;box-shadow:none}
+.aipick{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.aipick .hint{flex:1;min-width:200px}.aipick select{width:260px}
 /* ===== Активность ===== */
 .acbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .ackpi{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin:14px 0}
@@ -1879,6 +1880,8 @@ pages.ai = () => {
   const sug = ['Бүгін қалай? Жоспар орындала ма?', 'Кто лучший менеджер за неделю и почему?', 'Где мы теряем выкуп в этом месяце?', 'Кто медленно звонит по новым лидам?', 'Сравни секторы за месяц', 'Какие заказы зависли дольше всего?'];
   $('#view').innerHTML = head('AI-ассистент', `Отвечает по данным базы Safa${S.me.sectors ? ' — только по вашим секторам' : ''}. Цифры берёт из CRM, не выдумывает.`,
     AI.msgs.length ? '<button class="btn l s" id="aiClear">Новый диалог</button>' : '') + secBar() + `
+    <div class="card aipick"><b>👤 Разбор менеджера</b><span class="hint">выберите менеджера — ассистент проверит кассу, сделки, звонки и активность и скажет, что не так</span>
+      <select class="in" id="aiMgr"><option value="">Выбрать менеджера…</option>${uidsFor().sort((a, b) => uName(a).localeCompare(uName(b), 'ru')).map(id => `<option value="${id}">${esc(uName(id))}</option>`).join('')}</select></div>
     ${S.ai ? '' : '<div class="warn">AI ещё не подключён: владельцу нужно добавить ключ <b>ANTHROPIC_API_KEY</b> в переменные окружения сервиса на Render.</div>'}
     <div class="chat"><div class="msgs" id="msgs">${AI.msgs.length ? '' : `<div class="hello"><b>Спросите что угодно о продажах</b>Касса, выкуп, звонки, зарплата, сравнение менеджеров и секторов — на казахском или русском.</div>`}</div>
       ${AI.msgs.length ? '' : `<div class="sugg">${sug.map(x => `<button>${esc(x)}</button>`).join('')}</div>`}
@@ -1906,6 +1909,7 @@ pages.ai = () => {
   $('#aiIn').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e.target.value); } };
   $('#aiIn').oninput = e => { e.target.style.height = 'auto'; e.target.style.height = Math.min(140, e.target.scrollHeight) + 'px'; };
   document.querySelectorAll('.sugg button').forEach(b => b.onclick = () => send(b.textContent));
+  const mp = $('#aiMgr'); if (mp) mp.onchange = () => { if (!mp.value) return; const n = uName(mp.value); mp.value = ''; send(`Разбери менеджера ${n} за этот месяц: касса и план, сделки, звонки и AI-оценки разговоров, активность и перерывы за последние дни. Что не так и что ему сделать завтра?`); };
   const cl = $('#aiClear'); if (cl) cl.onclick = () => { AI.msgs = []; sessionStorage.removeItem('ai-msgs'); route(); };
 };
 
