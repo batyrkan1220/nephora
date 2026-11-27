@@ -13,6 +13,7 @@ const wh = require('./lib/warehouse');
 const AN = require('./lib/analytics');
 const att = require('./lib/attendance');
 const cai = require('./lib/callai');
+const recs = require('./lib/recs');
 const EF = require('./lib/efficiency');
 const wz = require('./lib/wazzup');
 const bots = require('./lib/bots');
@@ -849,27 +850,14 @@ async function handle(req, res) {
     if (!c) return send(res, 404, { error: 'Звонок не найден в базе' });
     if (!AN.allowedUids(ctx(), scope, {}).has(c.uid)) return send(res, 403, { error: 'Нет доступа к этому звонку' });
     try {
-      const r = await bx.call('voximplant.statistic.get', { FILTER: { CALL_ID: c.id } });
-      const raw = (r.result || [])[0] || {};
-      const urls = []; let why = '';
-      if (raw.RECORD_FILE_ID) {
-        try { const fl = await bx.call('disk.file.get', { id: raw.RECORD_FILE_ID }); if (fl.result && fl.result.DOWNLOAD_URL) urls.push(fl.result.DOWNLOAD_URL); }
-        catch (e) { why = /insufficient|scope|access/i.test(e.message) ? 'У вебхука Bitrix24 нет права «Диск» (disk) — добавьте его в настройках вебхука' : e.message; }
-      }
-      if (raw.CALL_RECORD_URL) urls.push(raw.CALL_RECORD_URL);
-      if (!urls.length) return send(res, 404, { error: why || 'У звонка нет записи' });
-      for (const u of urls) {
-        let up; try { up = await fetch(u, { headers: req.headers.range ? { Range: req.headers.range } : {}, redirect: 'follow', signal: AbortSignal.timeout(25e3) }); }
-        catch (e) { why = `${new URL(u).hostname}: ${(e.cause && (e.cause.code || e.cause.message)) || e.message}`; console.error('call-rec', c.id, why); continue; }
-        const type = up.headers.get('content-type') || '';
-        if (!up.ok || /json|html/.test(type)) { why = why || `Bitrix24 не отдал файл (HTTP ${up.status})`; continue; }
-        const h = { 'Content-Type': /octet-stream/.test(type) || !type ? 'audio/mpeg' : type, 'Cache-Control': 'private, max-age=3600', 'Accept-Ranges': up.headers.get('accept-ranges') || 'bytes' };
-        for (const k of ['content-length', 'content-range']) if (up.headers.get(k)) h[k] = up.headers.get(k);
-        if (url.searchParams.has('dl')) h['Content-Disposition'] = `attachment; filename="call_${c.id.replace(/[^\w.-]/g, '')}.mp3"`;
-        res.writeHead(up.status, h);
-        return require('stream').Readable.fromWeb(up.body).pipe(res);
-      }
-      return send(res, 502, { error: why || 'Не удалось получить запись' });
+      // запись из нашей копии в Supabase, иначе скачиваем из Bitrix24 (с повторами) и сохраняем
+      const a = await recs.get(c.id), total = a.buf.length;
+      const h = { 'Content-Type': a.type, 'Cache-Control': 'private, max-age=86400', 'Accept-Ranges': 'bytes' };
+      if (url.searchParams.has('dl')) h['Content-Disposition'] = `attachment; filename="call_${c.id.replace(/[^\w.-]/g, '')}.mp3"`;
+      const rg = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
+      if (rg) { const st = rg[1] ? +rg[1] : 0, en = Math.min(rg[2] ? +rg[2] : total - 1, total - 1);
+        res.writeHead(206, { ...h, 'Content-Range': `bytes ${st}-${en}/${total}`, 'Content-Length': en - st + 1 }); return res.end(a.buf.subarray(st, en + 1)); }
+      res.writeHead(200, { ...h, 'Content-Length': total }); return res.end(a.buf);
     } catch (e) { return send(res, 502, { error: e.message }); }
   }
   if (p === '/api/admin/users' && req.method === 'POST') {
