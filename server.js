@@ -680,6 +680,16 @@ async function handle(req, res) {
     return send(res, 200, { ...(p === '/api/admin/sources' ? { rows: fn(ctx(), scope, f) } : fn(ctx(), scope, f)), wh: wh.status() });
   }
   // записи разговоров: список и прослушивание (файл берётся из Bitrix24 через вебхук и отдаётся потоком)
+  // минуты разговоров за период (все звонки склада, без фильтров) — для расчёта стоимости ИИ-оценки
+  if (p === '/api/admin/calls/minutes') {
+    const q = url.searchParams, from = q.get('from'), to = q.get('to') || from, c = ctx();
+    const L = wh.all('call').filter(x => x.d >= from && x.d <= to), B = [[0, 0], [1, 30], [31, 60], [61, 180], [181, 600], [601, 1e9]];
+    const S = a => a.reduce((s, x) => s + x.dur, 0), by = {};
+    L.forEach(x => { if (x.dur > 0) { const r = by[x.uid] || (by[x.uid] = { name: (c.userMap[x.uid] || {}).name || x.uid, n: 0, sec: 0 }); r.n++; r.sec += x.dur; } });
+    return send(res, 200, { from, to, calls: L.length, talked: L.filter(x => x.dur > 0).length, sec: S(L), recSec: S(L.filter(x => x.rec)), recCnt: L.filter(x => x.rec && x.dur > 0).length,
+      buckets: B.map(([lo, hi]) => { const a = L.filter(x => x.dur >= lo && x.dur <= hi); return { lo, hi, n: a.length, sec: S(a) }; }),
+      people: Object.keys(by).length, top: Object.values(by).sort((a, z) => z.sec - a.sec).slice(0, 60) });
+  }
   if (p === '/api/admin/calls/list') {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
     const f = { from: q.get('from') || today, to: q.get('to') || today, sector: q.get('sector') || '', uid: q.get('uid') || '' };
