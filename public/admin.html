@@ -559,7 +559,9 @@ const api = async (url, opt = {}) => {
     return api0(url, opt).then(j => { const old = CACHE.get(url); CACHE.set(url, { d: j, t: Date.now() }); cacheSave(); if (old && JSON.stringify(old.d) !== JSON.stringify(j)) rerender(h); return j; });
   };
   if (hit) { const p = refresh(); if (p) p.catch(() => {}); return hit.d; }
-  const j = await api0(url, opt); CACHE.set(url, { d: j, t: Date.now() }); BG[url] = Date.now(); cacheSave(); return j;
+  const tok = ROUTE_TOK, j = await api0(url, opt); CACHE.set(url, { d: j, t: Date.now() }); BG[url] = Date.now(); cacheSave();
+  if (tok !== ROUTE_TOK) return new Promise(() => {}); // пока грузилось, открыли другую страницу — старую не рисуем
+  return j;
 };
 
 let S = null, cfg = null, saved = '', dirty = false;
@@ -1959,8 +1961,10 @@ const SECTIONS = [
 // старые адреса → новые разделы
 const OLD = { funnel: 'sales/funnel', eff: 'team/eff', att: 'team/att', payouts: 'money/payouts', penalties: 'money/penalties', boards: 'settings/board', board: 'settings/board', managers: 'settings/managers', users: 'settings/users' };
 let homeTimer = null;
+let ROUTE_TOK = 0;
 function route() {
   if (!S) return;
+  ROUTE_TOK++;
   document.body.classList.remove('menu'); clearTimeout(homeTimer);
   const [, r = '', a, b] = location.hash.split('/');
   if (OLD[r]) { location.replace('#/' + (r === 'board' && b ? 'settings/board/' + b : OLD[r])); return; }
