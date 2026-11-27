@@ -1281,11 +1281,13 @@ async function loadRecs() {
     <div class="tw"><table><thead><tr><th>Время</th><th>Менеджер</th><th>Номер</th><th>Тип</th><th class="r">Длит.</th><th>AI</th><th style="min-width:320px">Запись</th></tr></thead><tbody>
     ${R.rows.map(c => `<tr><td class="num">${esc(String(c.at).slice(0, 16).replace('T', ' '))}</td><td><div class="who">${av(c.name, uPhoto(c.uid))}<div>${esc(c.name)}<small>${esc(c.sector)}</small></div></div></td>
       <td class="num">${esc(c.phone)}</td><td>${c.dir === 'out' ? '↗ исходящий' : c.dir === 'in' ? '↙ входящий' : '—'}${c.ok ? '' : ' <span class="pill no">не состоялся</span>'}</td><td class="r num">${dur(c.dur)}</td>
-      <td>${c.ai ? (c.ai.skip ? '<span class="sc n" title="Слишком короткий разговор">—</span>' : `<button class="sc ${scCls(c.ai.score)}" data-air="${esc(c.id)}">${c.ai.score}</button>`) : c.rec && c.ok && R.callai.ready.stt && R.callai.ready.claude ? `<button class="btn l s" data-ain="${esc(c.id)}" title="Расшифровать и оценить разговор">AI разбор</button>` : ''}</td>
+      <td>${c.ai ? (c.ai.skip ? '<span class="sc n" title="Слишком короткий разговор">—</span>' : `<button class="sc ${scCls(c.ai.score)}" data-air="${esc(c.id)}">${c.ai.score}</button>`) : c.rec && c.dur > 0 ? `<button class="btn s" data-ain="${esc(c.id)}" title="Расшифровать и оценить разговор (ElevenLabs + Claude), ~1 мин">🤖 ИИ-оценка</button>` : ''}</td>
       <td data-rc="${esc(c.id)}">${c.rec ? `<button class="btn l s" data-play="${esc(c.id)}">▶ Слушать</button> <a class="btn l s" href="/api/admin/call-rec/${encodeURIComponent(c.id)}?dl=1">⬇</a>` : '<span style="color:var(--muted)">нет записи</span>'}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">Нет звонков с записью за период</td></tr>'}
     </tbody></table></div>`;
   box.querySelectorAll('[data-air]').forEach(b => b.onclick = () => openReview(b.dataset.air));
   box.querySelectorAll('[data-ain]').forEach(b => b.onclick = async () => {
+    const rd = R.callai.ready || {};
+    if (!rd.stt || !rd.claude) return toast(!rd.stt ? 'Нужен ключ ElevenLabs: Настройки → ИИ-оценка звонков (или ELEVENLABS_API_KEY в Render)' : 'Нужен ключ Claude (ANTHROPIC_API_KEY в Render)');
     b.disabled = true; b.textContent = 'Разбираю… ~1 мин';
     try { await api('/api/admin/callai/' + encodeURIComponent(b.dataset.ain), { method: 'POST' }); openReview(b.dataset.ain); loadRecs(); loadAiSum(); }
     catch (e) { b.outerHTML = `<span class="pill er" title="${esc(e.message)}">${esc(e.message.slice(0, 60))}</span>`; }
