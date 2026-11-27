@@ -1261,12 +1261,12 @@ async function openReview(id) {
   const li = a => (a || []).length ? `<ul style="margin:6px 0 14px;padding-left:20px;line-height:1.55">${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="hint">—</p>';
   const who = sp => sp === d.mgr ? 'Менеджер' : 'Клиент';
   P.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:start;gap:12px"><div><h2 style="margin:0">${esc(d.name || 'Звонок')}</h2><p class="hint" style="margin:4px 0 0">${esc(String(d.at).slice(0, 16).replace('T', ' '))} · ${esc(d.phone || '')} · ${dur(d.dur)}</p></div><button class="x" id="ovX" style="font-size:22px">×</button></div>
-    ${d.pending ? `<div class="warn" style="margin-top:16px">Расшифровка ElevenLabs готова (ниже), оценка ещё не сделана: ${esc(d.error || '')}</div>` : d.skip ? `<div class="warn" style="margin-top:16px">${esc(d.reason)}</div>` : `
+    ${d.pending ? `<div class="warn" style="margin-top:16px">📝 Текст от ElevenLabs — ниже. Оценка Claude появится, когда он будет подключён${d.error ? ' (' + esc(d.error) + ')' : ''}.</div>` : d.skip ? `<div class="warn" style="margin-top:16px">${esc(d.reason)}</div>` : `
     <div style="display:flex;gap:16px;align-items:center;margin:18px 0"><span class="sc ${scCls(d.score)}" style="font-size:28px;padding:10px 18px">${d.score}</span><div><b>${OUT[d.outcome] || ''}</b>${d.next ? ` · следующий шаг: ${esc(d.next)}` : ''}<br><span class="hint">${esc(d.summary)}</span></div></div>
     <h3>Критерии</h3>${(d.criteria || []).map(c => `<div class="cr"><div><b style="font-size:14px">${esc(c.name)}</b><div class="hint" style="margin:2px 0 0">${esc(c.comment)}</div></div><div class="bar"><i style="width:${c.score * 10}%"></i></div><b class="num">${c.score}</b></div>`).join('')}
     <h3 style="margin-top:18px">Хорошо</h3>${li(d.strengths)}<h3>Ошибки</h3>${li(d.mistakes)}<h3>Как сказать лучше</h3>${li(d.recommendations)}${(d.objections || []).length ? '<h3>Возражения клиента</h3>' + li(d.objections) : ''}`}
     <audio controls preload="none" src="/api/admin/call-rec/${encodeURIComponent(id)}" style="width:100%;margin:6px 0 14px"></audio>
-    <details ${d.skip ? 'open' : ''}><summary style="cursor:pointer;font-weight:600">Расшифровка разговора</summary><div class="dlg" style="margin-top:10px">${(d.transcript || []).map(l => `<p class="${l.sp === d.mgr ? 'mg' : 'cl'}"><b>${who(l.sp)}:</b> ${esc(l.t)}</p>`).join('') || '<p class="hint">Нет текста</p>'}</div></details>
+    <details ${d.skip || d.pending ? 'open' : ''}><summary style="cursor:pointer;font-weight:600">Расшифровка разговора</summary><div class="dlg" style="margin-top:10px">${(d.transcript || []).map(l => `<p class="${l.sp === d.mgr ? 'mg' : 'cl'}"><b>${who(l.sp)}:</b> ${esc(l.t)}</p>`).join('') || '<p class="hint">Нет текста</p>'}</div></details>
     <p class="hint" style="margin-top:14px">Расшифровка: ${esc(d.stt || '')}${d.lang ? ' · язык: ' + esc(d.lang) : ''} · оценка: ${esc(d.model || '')}. Автоматическая расшифровка может содержать ошибки.</p>`;
   $('#ovX').onclick = () => o.remove();
 }
@@ -1287,7 +1287,7 @@ async function loadRecs() {
   box.querySelectorAll('[data-air]').forEach(b => b.onclick = () => openReview(b.dataset.air));
   box.querySelectorAll('[data-ain]').forEach(b => b.onclick = async () => {
     const rd = R.callai.ready || {};
-    if (!rd.stt || !rd.claude) return toast(!rd.stt ? 'Нужен ключ ElevenLabs: Настройки → ИИ-оценка звонков (или ELEVENLABS_API_KEY в Render)' : 'Нужен ключ Claude (ANTHROPIC_API_KEY в Render)');
+    if (!rd.stt) return toast('Нужен ключ ElevenLabs: Настройки → ИИ-оценка звонков (или ELEVENLABS_API_KEY в Render)');
     b.disabled = true; b.textContent = 'Разбираю… ~1 мин';
     try { await api('/api/admin/callai/' + encodeURIComponent(b.dataset.ain), { method: 'POST' }); openReview(b.dataset.ain); loadRecs(); loadAiSum(); }
     catch (e) { if (/Расшифровка готова/.test(e.message)) { openReview(b.dataset.ain); b.disabled = false; b.textContent = '🤖 Повторить оценку'; return; } b.outerHTML = `<span class="pill er" title="${esc(e.message)}">${esc(e.message.slice(0, 60))}</span>`; }
