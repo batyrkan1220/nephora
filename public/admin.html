@@ -326,6 +326,14 @@ body{background:#EEF0F7}
 .sbc i{width:9px;height:9px;border-radius:50%}.sbc:hover{box-shadow:inset 0 0 0 1px #4B4FE8}.sbc.on{background:#4B4FE8;color:#fff;box-shadow:none}
 .aipick{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.aipick .hint{flex:1;min-width:200px}.aipick select{width:260px}
 
+
+/* ===== Воронки сейчас ===== */
+.pp{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.ppc{background:#F7F8FC;border-radius:14px;padding:12px 14px}.ppc.lg{background:#FFF7E6;box-shadow:inset 0 0 0 1.5px #F59E0B}
+.pph{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:8px;flex-wrap:wrap}.pph>span{font-size:12.5px;color:var(--muted)}.pph>span b{color:var(--ink,#111)}
+.pps{display:grid;grid-template-columns:minmax(110px,1.3fr) 1fr 42px 56px;gap:8px;align-items:center;font-size:12.5px;padding:3px 0}
+.pps>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pps i{height:7px;border-radius:7px;background:#E5E7EF;overflow:hidden}.pps i em{display:block;height:100%;background:#4B4FE8;border-radius:7px}
+.ppc.lg .pps i em{background:#F59E0B}.pps b{text-align:right}.pps small{color:var(--muted);text-align:right}
 /* ===== Профиль ===== */
 .plink{cursor:pointer}.plink:hover b,.plink:hover>div{color:#4B4FE8;text-decoration:underline;text-underline-offset:3px}b.plink:hover{color:#4B4FE8;text-decoration:underline}
 .ovl .pane.wide{width:min(1060px,100%)}
@@ -538,7 +546,7 @@ body{background:#EEF0F7}
   <aside>
     <div class="logo"><i><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2L5 13.5h6L10 22l9-12.5h-6.2z"/></svg></i>Safa портал</div>
     <div class="navl">Меню</div>
-    <a href="#/" data-r="home"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg></span>Лидерборд</a>
+    <a href="#/" data-r="home"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg></span>Главная</a>
     <a href="#/calls" data-r="calls"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0118 0v2"/><rect x="2.5" y="14" width="5" height="7" rx="2"/><rect x="16.5" y="14" width="5" height="7" rx="2"/></svg></span>Звонки и оценка</a>
     <a href="#/activity" data-r="activity"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>Активность</a>
     <a href="#/ai" data-r="ai"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="4"/><path d="M12 3v4M9 12h.01M15 12h.01M9.5 16h5"/></svg></span>AI-ассистент</a>
@@ -610,7 +618,7 @@ async function loadState() {
   cfg = JSON.parse(JSON.stringify(S.cfg)); saved = JSON.stringify(cfg); setDirty();
   document.body.classList.toggle('head', S.me.role !== 'owner');
   const secN = S.me.sectors ? mySectors().map(x => x.name).join(', ') || 'секторы не назначены' : 'все секторы';
-  const b0 = (S.cfg.boards || [])[0]; $('#tvLink').href = b0 && b0.key ? '/tv' : '#'; $('#tvBox').style.display = b0 && b0.key && b0.active ? '' : 'none';
+  const b0 = (S.cfg.boards || [])[0]; $('#tvLink').href = b0 && b0.key ? '/tv' : '#'; $('#tvBox').style.display = S.me.role === 'owner' && b0 && b0.key && b0.active ? '' : 'none';
   $('#me').innerHTML = `<b>${esc(S.me.name)}</b>${S.me.role === 'owner' ? 'Владелец' : 'Руководитель'} · ${esc(secN)}`;
 }
 function setDirty() { dirty = JSON.stringify(cfg) !== saved; $('#save').classList.toggle('on', dirty); }
@@ -848,27 +856,6 @@ pages.home = async () => {
   $('#view').innerHTML = '<div class="empty">Загрузка…</div>';
   let R; try { R = await api('/api/admin/overview'); } catch (e) { $('#view').innerHTML = `<div class="warn">Ошибка: ${esc(e.message)}</div>`; return; }
   if (R.empty) { $('#view').innerHTML = '<div class="warn">Табло ещё не настроено — откройте «Настройки → Табло и планы».</div>'; return; }
-  const T = R.team || {}, own = S.me.role === 'owner', pc = (a, b) => b ? Math.min(999, Math.round(a / b * 100)) : 0;
-  const kpi = (lb, v, plan, cls) => `<div class="lbk ${cls}"><small>${lb}</small><b class="num">${money(v)}</b>${plan ? `<div class="lbp"><i style="width:${Math.min(100, pc(v, plan))}%"></i></div><span>${pc(v, plan)}% от плана ${money(plan)}</span>` : '<span>план не задан</span>'}</div>`;
-  $('#view').innerHTML = secBar() + `
-    <div class="lbhd"><div><p>${T.managers || 0} менеджеров на табло · обновляется в реальном времени</p></div>
-      <div class="lbact"><a class="btn" href="/tv" target="_blank" rel="noopener">📺 Открыть на ТВ</a>${own ? '<a class="btn l" href="#/settings/board">⚙️ Настроить табло</a>' : ''}</div></div>
-    <div class="lbkpi">${kpi('Касса сегодня', T.daySum || 0, T.dayPlan, 'd')}${kpi('Касса за месяц', T.sum || 0, T.plan, 'm')}
-      <div class="lbk f"><small>Прогноз на месяц</small><b class="num">${money(T.forecast || 0)}</b><span>${T.plan ? pc(T.forecast, T.plan) + '% плана при текущем темпе' : ''}</span></div>
-      <div class="lbk c"><small>Заказов</small><b class="num">${T.dayCnt || 0} <em>сегодня</em></b><span>${T.cnt || 0} за месяц</span></div></div>
-    <div class="lbgrid">
-      <div class="card lbprev"><div class="chd"><div><h3>🔴 Сейчас на экране</h3><p>живое табло — как на телевизоре</p></div><a class="btn l s" href="/tv" target="_blank" rel="noopener">⛶ Во весь экран</a></div>
-        <div class="tvf" id="tvf"><iframe src="/tv" title="Табло" loading="lazy" scrolling="no"></iframe></div></div>
-      <div class="card" id="tvToday"><div class="empty">Загрузка…</div></div></div>`;
-  const fit = () => { const f = $('#tvf'); if (!f) return window.removeEventListener('resize', fit); f.querySelector('iframe').style.transform = `scale(${f.clientWidth / 1920})`; };
-  fit(); window.addEventListener('resize', fit);
-  tvToday();
-  const iv = setInterval(() => { if (!$('#tvf')) return clearInterval(iv); if (!document.querySelector('.ovl')) tvToday(); }, 30e3);
-};
-pages.homeOld = async () => {
-  $('#view').innerHTML = '<div class="empty">Загрузка…</div>';
-  let R; try { R = await api('/api/admin/overview'); } catch (e) { $('#view').innerHTML = `<div class="warn">Ошибка: ${esc(e.message)}</div>`; return; }
-  if (R.empty) { $('#view').innerHTML = '<div class="warn">Табло ещё не настроено — откройте «Настройки → Табло и планы».</div>'; return; }
   const T = R.team, P = R.period, A = R.alerts || {}, own = S.me.role === 'owner', K = R.cmp || {};
   const ch = (a, b) => b ? (a - b) / b * 100 : null;
   const bd = (v, txt) => v == null ? '' : `<span class="bdg ${v >= 0 ? 'up' : 'dn'}">${txt || ((v >= 0 ? '+' : '') + (Math.round(v * 10) / 10).toString().replace('.', ',') + '%')}</span>`;
@@ -907,7 +894,15 @@ pages.homeOld = async () => {
   const E = R.eff;
   const person = (r, v, sub, k) => `<div class="lr">${k ? `<span class="k">${k}</span>` : ''}${av(r.name, r.photo || uPhoto(r.uid))}<div class="n"><b>${esc(r.name)}</b><small>${esc(r.sector || '')}</small></div><div class="v">${v}${sub ? `<small>${sub}</small>` : ''}</div></div>`;
   const monName = new Date(P.from + 'T00:00:00Z').toLocaleString('ru-RU', { month: 'long', timeZone: 'UTC' });
-  $('#view').innerHTML = `${R.error ? `<div class="warn">Bitrix24: ${esc(R.error)}</div>` : ''}
+  const PI = R.pipes || [], MG = R.managers || [];
+  const pipesHtml = PI.length ? `<div class="card"><div class="chd"><div><h3>Воронки сейчас</h3><p>открытые сделки${S.me.sectors ? ' вашей команды' : ''} по воронкам и стадиям</p></div></div>
+    <div class="pp">${PI.map(p => `<div class="ppc ${p.logi ? 'lg' : ''}"><div class="pph"><b>${p.logi ? '🚚 ' : ''}${esc(p.name)}</b><span><b class="num">${p.cnt}</b> сделок · <b class="num">${money(p.sum)}</b></span></div>
+      ${p.stages.map(x => `<div class="pps"><span>${esc(x.name)}</span><i><em style="width:${Math.max(2, Math.round(x.cnt / Math.max(1, ...p.stages.map(y => y.cnt)) * 100))}%"></em></i><b class="num">${x.cnt}</b><small>${shortK(x.sum)}</small></div>`).join('')}</div>`).join('')}</div></div>` : '';
+  const mgHtml = MG.length ? `<div class="card"><div class="chd"><div><h3>Менеджеры</h3><p>касса за ${new Date(P.from + 'T00:00:00Z').toLocaleString('ru-RU', { month: 'long', timeZone: 'UTC' })} · нажмите на имя — профиль</p></div></div>
+    <div class="tw"><table><thead><tr><th>#</th><th>Менеджер</th><th class="r">Касса за месяц</th><th class="r">Заказов</th><th class="r">Ср. чек</th><th class="r">Сегодня</th></tr></thead><tbody>
+    ${MG.map((r, k) => `<tr><td class="num">${k + 1}</td><td><div class="who plink" data-prof="${esc(r.uid)}">${av(r.name, uPhoto(r.uid))}<div>${esc(r.name)}<small>${esc(r.sector || '')}</small></div></div></td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${r.cnt}</td><td class="r num">${r.cnt ? money(Math.round(r.sum / r.cnt)) : '—'}</td><td class="r num">${r.daySum ? money(r.daySum) + ' · ' + r.dayCnt : '—'}</td></tr>`).join('')}</tbody></table></div></div>` : '';
+  $('#view').innerHTML = `${R.error ? `<div class="warn">Bitrix24: ${esc(R.error)}</div>` : ''}${secBar()}
+    ${own ? '<div class="lbhd"><p>Вся компания' + (F.sector ? ' · выбран сектор' : '') + '</p><div class="lbact"><a class="btn l s" href="/tv" target="_blank" rel="noopener">📺 Табло на ТВ</a></div></div>' : `<div class="lbhd"><p>Ваша команда: ${esc((mySectors().map(x => x.name)).join(', '))}</p></div>`}
     <div class="hm"><div>
       <div class="k4">
         ${kc('pri', I('<rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/>'), 'Касса сегодня', money(T.daySum), T.dayPlan ? `план дня<br>${money(T.dayPlan)}` : `${T.dayCnt} продаж`, T.daySum ? bd(ch(T.daySum, K.yestSum)) : '')}
@@ -924,13 +919,15 @@ pages.homeOld = async () => {
       <div class="card" style="margin:0"><div class="chd"><div><h3>Источники заказов</h3><p>${monName}, по количеству заказов</p></div></div>
         ${SRC.length ? `<div class="bub"><div class="bz">${bubbles}</div><ul>${SRC.map((x, k) => `<li><b>${esc(srcName(x.source))}</b><div class="pr"><i style="width:${(x.orders / tot * 100).toFixed(1)}%;background:${BC[k]}"></i></div></li>`).join('')}</ul></div>` : '<div class="empty">Нет данных</div>'}</div>
     </div></div>
+    ${pipesHtml}
     <div class="hg3">
       <div class="card"><div class="chd"><div><h3>Требует внимания</h3><p>нажмите, чтобы открыть список</p></div></div>${AL.join('') || '<div class="empty">Всё в порядке 👍</div>'}</div>
       <div class="card"><div class="chd"><div><h3>Лидеры месяца</h3><p>по кассе</p></div><a href="#/sales/list">Все продажи →</a></div>${R.leaders.map((r, k) => person(r, short2(r.sum), r.cnt + ' прод.', k + 1)).join('') || '<div class="empty">Нет продаж</div>'}</div>
       <div class="card"><div class="chd"><div><h3>Эффективность команды</h3><p>средний индекс ${E && E.team != null ? E.team : '—'} из 100</p></div><a href="#/team/eff">Подробнее →</a></div>
         ${E ? E.top.map(r => person(r, `<span class="sc ${scCls(r.index)}">${r.index}</span>`, 'лучший')).join('') + E.low.map(r => person(r, `<span class="sc ${scCls(r.index)}">${r.index}</span>`, GN[r.weak] || '')).join('') : '<div class="empty">Нет данных</div>'}</div>
     </div>
-    <div class="card" id="tvToday"><div class="chd"><div><h3>📺 Заказы сегодня на табло</h3><p>если на ТВ пропустили — нажмите «Показать на экране снова»</p></div></div><div class="empty">Загрузка…</div></div>
+    ${mgHtml}
+    ${own ? `<div class="card" id="tvToday"><div class="chd"><div><h3>📺 Заказы сегодня на табло</h3><p>если на ТВ пропустили — нажмите «Показать на экране снова»</p></div></div><div class="empty">Загрузка…</div></div>` : ''}
     ${R.today.length || R.recent.length ? `<div class="hg3" style="grid-template-columns:1fr 1fr">
       <div class="card"><div class="chd"><div><h3>Лидеры сегодня</h3></div></div>${R.today.map((r, k) => person(r, money(r.daySum), r.dayCnt + ' прод.', k + 1)).join('') || '<div class="empty">Сегодня продаж ещё нет</div>'}</div>
       <div class="card"><div class="chd"><div><h3>Последние продажи</h3></div></div>${R.recent.map(d => `<div class="lr">${av(d.name, uPhoto(d.uid))}<div class="n"><b>${esc(d.title || 'Сделка #' + d.id)}</b><small>${esc(d.name)}</small></div><div class="v">${money(d.sum)}</div></div>`).join('')}</div></div>` : ''}`;
@@ -2024,7 +2021,7 @@ pages.users = () => {
 
 /* ===== роутер ===== */
 const SECTIONS = [
-  { id: 'home', title: 'Лидерборд' },
+  { id: 'home', title: 'Главная' },
   { id: 'sales', title: 'Продажи', tabs: [['list', 'Сделки'], ['funnel', 'Воронка и выкуп'], ['admin', 'С аккаунта «Админ»']] },
   { id: 'team', title: 'Команда', tabs: [['eff', 'Эффективность'], ['touch', 'Касания'], ['att', 'Посещаемость']] },
   { id: 'calls', title: 'Звонки и оценка' },

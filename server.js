@@ -323,6 +323,18 @@ function salesOwners() {
   (cache.deals || []).forEach(d => { if (d.uid && !/^C\d+:/.test(d.stage || '')) set.add(String(d.uid)); });
   soAt = Date.now(); soSet = set; return set;
 }
+// воронки сейчас: открытые сделки по воронкам и стадиям (логистика — сколько заказов «в пути» и на какую сумму)
+function pipesOf(c, A) {
+  const st = Object.fromEntries(((cache.meta || {}).stages || []).map((x, i) => [x.id, { ...x, i }]));
+  const P = {};
+  for (const d of wh.all('deal')) {
+    if (d.sem !== 'P' || !A.has(d.uid)) continue;
+    const m = st[d.st] || { name: d.st, category: 'Воронка ' + d.cat, i: 999 }, k = m.category;
+    const p = P[k] || (P[k] = { name: k, cnt: 0, sum: 0, stages: {} }); p.cnt++; p.sum += d.sum || 0;
+    const s2 = p.stages[m.name] || (p.stages[m.name] = { name: m.name, cnt: 0, sum: 0, i: m.i }); s2.cnt++; s2.sum += d.sum || 0;
+  }
+  return Object.values(P).map(p => ({ ...p, logi: /логист/i.test(p.name), stages: Object.values(p.stages).sort((a, z) => a.i - z.i) })).sort((a, z) => z.logi - a.logi || z.sum - a.sum);
+}
 function stageNames() { return Object.fromEntries(((cache.meta || {}).stages || []).map(x => [x.id, x.name])); }
 async function reportFor({ from, to, sector, boardId }, scope) {
   const A = AN.allowedUids(ctx(), scope, { sector: sector || '' });
@@ -788,7 +800,8 @@ async function handle(req, res) {
       team: { sum, daySum, cnt, dayCnt, plan, dayPlan, forecast, avg: cnt ? sum / cnt : 0, salary: isOwner ? rows.reduce((a, r) => a + (r.salary || 0), 0) : undefined, managers: rows.length },
       sectors: secs, today: rows.filter(r => r.daySum > 0).sort((x, y) => y.daySum - x.daySum).slice(0, 5).map(r => ({ uid: r.uid, name: r.name, photo: r.photo, sector: r.sectorName, daySum: r.daySum, dayCnt: r.dayCnt })),
       leaders: rows.slice(0, 5).map(r => ({ uid: r.uid, name: r.name, photo: r.photo, sector: r.sectorName, sum: r.sum, cnt: r.cnt })),
-      days, recent, alerts, eff, cmp, months, sources,
+      days, recent, alerts, eff, cmp, months, sources, pipes: pipesOf(c, A),
+      managers: rows.map(r => ({ uid: r.uid, name: r.name, sector: r.sectorName, sum: r.sum, cnt: r.cnt, daySum: r.daySum, dayCnt: r.dayCnt })),
     });
   }
   // эффективность менеджеров и касания
