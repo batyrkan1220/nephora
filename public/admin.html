@@ -351,7 +351,7 @@ body{background:#EEF0F7}
 .pps>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pps i{height:7px;border-radius:7px;background:#E5E7EF;overflow:hidden}.pps i em{display:block;height:100%;background:#4B4FE8;border-radius:7px}
 .ppc.lg .pps i em{background:#F59E0B}.pps b{text-align:right}.pps small{color:var(--muted);text-align:right}
 /* ===== Профиль ===== */
-.plink{cursor:pointer}.plink:hover b,.plink:hover>div{color:#4B4FE8;text-decoration:underline;text-underline-offset:3px}b.plink:hover{color:#4B4FE8;text-decoration:underline}
+
 .ovl .pane.wide{width:min(1060px,100%)}
 .pfh{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}.pfh .av{width:64px;height:64px;font-size:22px}.pfh h2{margin:0}.pfh p{margin:4px 0 8px;color:var(--muted)}
 .pfch{display:flex;gap:8px;flex-wrap:wrap}.pfch span.pfup{background:none;color:var(--muted);font-weight:500;padding-left:0}.pfch span{background:#F1F3FF;color:#3730A3;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600}
@@ -775,7 +775,7 @@ pages.fromAdmin = async () => {
 
 
 /* ===== Профиль менеджера (по клику на имя) ===== */
-document.addEventListener('click', e => { const t = e.target.closest('[data-prof]'); if (!t || !t.dataset.prof) return; e.stopPropagation(); e.preventDefault(); openProfile(t.dataset.prof); }, true);
+// профиль по клику отключён по просьбе владельца
 async function openProfile(uid) {
   document.querySelectorAll('.ovl.prof').forEach(x => x.remove());
   const o = document.createElement('div'); o.className = 'ovl prof'; o.innerHTML = '<div class="pane wide"><div class="empty">Открываем…</div></div>';
@@ -914,7 +914,7 @@ pages.home = async () => {
   const pipesHtml = PI.length ? `<div class="card"><div class="chd"><div><h3>Воронки сейчас</h3><p>открытые сделки${S.me.sectors ? ' вашей команды' : ''} по воронкам и стадиям</p></div></div>
     <div class="pp">${PI.map(p => `<div class="ppc ${p.logi ? 'lg' : ''}"><div class="pph"><b>${p.logi ? '🚚 ' : ''}${esc(p.name)}</b><span><b class="num">${p.cnt}</b> сделок · <b class="num">${money(p.sum)}</b></span></div>
       ${p.stages.map(x => `<div class="pps"><span>${esc(x.name)}</span><i><em style="width:${Math.max(2, Math.round(x.cnt / Math.max(1, ...p.stages.map(y => y.cnt)) * 100))}%"></em></i><b class="num">${x.cnt}</b><small>${shortK(x.sum)}</small></div>`).join('')}</div>`).join('')}</div></div>` : '';
-  const mgHtml = MG.length ? `<div class="card"><div class="chd"><div><h3>Менеджеры</h3><p>касса за ${new Date(P.from + 'T00:00:00Z').toLocaleString('ru-RU', { month: 'long', timeZone: 'UTC' })} · нажмите на имя — профиль</p></div></div>
+  const mgHtml = MG.length ? `<div class="card"><div class="chd"><div><h3>Менеджеры</h3><p>касса за ${new Date(P.from + 'T00:00:00Z').toLocaleString('ru-RU', { month: 'long', timeZone: 'UTC' })}</p></div></div>
     <div class="tw"><table><thead><tr><th>#</th><th>Менеджер</th><th class="r">Касса за месяц</th><th class="r">Заказов</th><th class="r">Ср. чек</th><th class="r">Сегодня</th></tr></thead><tbody>
     ${MG.map((r, k) => `<tr><td class="num">${k + 1}</td><td><div class="who plink" data-prof="${esc(r.uid)}">${av(r.name, uPhoto(r.uid))}<div>${esc(r.name)}<small>${esc(r.sector || '')}</small></div></div></td><td class="r num"><b>${money(r.sum)}</b></td><td class="r num">${r.cnt}</td><td class="r num">${r.cnt ? money(Math.round(r.sum / r.cnt)) : '—'}</td><td class="r num">${r.daySum ? money(r.daySum) + ' · ' + r.dayCnt : '—'}</td></tr>`).join('')}</tbody></table></div></div>` : '';
   $('#view').innerHTML = `${R.error ? `<div class="warn">Bitrix24: ${esc(R.error)}</div>` : ''}${secBar()}

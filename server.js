@@ -107,7 +107,7 @@ async function buildProfiles() {
     await store.set('profiles', Object.fromEntries(PROF));
   } finally { profBusy = false; }
 }
-setTimeout(() => { buildProfiles().catch(e => console.error('profiles', e.message)); setInterval(() => buildProfiles().catch(e => console.error('profiles', e.message)), 10 * 6e4); }, 90e3);
+// фоновые профили отключены (профиль менеджера убран)
 function warm() {
   setTimeout(warm, 20e3);
   const st = wh.status(); if (!st.counts.deal || st.lastRun === warmLast || !cache.syncedAt) return;
