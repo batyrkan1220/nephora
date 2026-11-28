@@ -1416,7 +1416,7 @@ async function openReview(id) {
     <h3>Критерии</h3>${(d.criteria || []).map(c => `<div class="cr"><div><b style="font-size:14px">${esc(c.name)}</b><div class="hint" style="margin:2px 0 0">${esc(c.comment)}</div></div><div class="bar"><i style="width:${c.score * 10}%"></i></div><b class="num">${c.score}</b></div>`).join('')}
     <h3 style="margin-top:18px">Хорошо</h3>${li(d.strengths)}<h3>Ошибки</h3>${li(d.mistakes)}<h3>Как сказать лучше</h3>${li(d.recommendations)}${(d.objections || []).length ? '<h3>Возражения клиента</h3>' + li(d.objections) : ''}`}
     <div class="tplay"><audio id="trAu" controls preload="metadata" src="/api/admin/call-rec/${encodeURIComponent(id)}"></audio>
-      ${(d.transcript || []).length ? `<button class="btn l s" id="trSwap" title="Если система перепутала, кто менеджер, а кто клиент">⇄ Поменять роли</button>` : ''}</div>
+</div>
     <h3 style="margin:14px 0 8px">Разговор <span class="hint" style="font-weight:500">— нажмите на фразу, чтобы прослушать с этого места</span></h3>
     <div class="dlg" id="trDlg">${(d.transcript || []).map((l, i) => `<div class="tr ${l.sp === d.mgr ? 'mg' : 'cl'}" data-i="${i}" data-s="${l.s || 0}">
         <div class="trh"><b>${l.sp === d.mgr ? '🎧 Менеджер' : '👤 Клиент'}</b><span>${dur(Math.floor(l.s || 0))}</span></div>
@@ -1435,10 +1435,6 @@ async function openReview(id) {
     if (wi !== curW) { curW && curW.classList.remove('on'); curW = wi; wi && wi.classList.add('on'); }
   };
   dlg.onclick = e => { const w = e.target.closest('.trt span'), l = e.target.closest('.tr'); const s = w ? +w.dataset.s : l ? +l.dataset.s : null; if (s == null) return; au.currentTime = Math.max(0, s - 0.2); au.play().catch(() => {}); };
-  const sw = $('#trSwap'); if (sw) sw.onclick = async () => {
-    const other = [...new Set((d.transcript || []).map(l => l.sp))].find(x => x !== d.mgr) || 'B';
-    try { await api('/api/admin/callai/' + encodeURIComponent(id) + '/mgr', { method: 'POST', body: JSON.stringify({ mgr: other }) }); o.remove(); openReview(id); toast('Роли сохранены'); } catch (e) { toast(e.message); }
-  };
 }
 const dur = s => { s = +s || 0; return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 async function loadRecs() {
