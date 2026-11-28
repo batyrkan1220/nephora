@@ -1540,8 +1540,8 @@ async function loadRecs() {
     box.querySelectorAll('audio').forEach(a => a.pause());
     const src = '/api/admin/call-rec/' + encodeURIComponent(id);
     // сначала сервер забирает запись из Bitrix24 к себе (бывает 5–30 с), потом играет мгновенно из нашей базы
-    cell.innerHTML = '<span class="hint">⏳ Загружаю запись из Bitrix24…</span>';
-    try { await api0(src + '?prep=1'); } catch (e) { cell.innerHTML = `<span class="pill er" title="${esc(e.message)}">Запись не загрузилась</span> <button class="btn l s" data-play="${esc(id)}">↻ Ещё раз</button>`; cell.querySelector('[data-play]').onclick = () => b.onclick(); return; }
+    const slow = setTimeout(() => { cell.innerHTML = '<span class="hint">⏳ Запись ещё не в базе — забираю из Bitrix24…</span>'; }, 700);
+    try { await api0(src + '?prep=1'); clearTimeout(slow); } catch (e) { clearTimeout(slow); cell.innerHTML = `<span class="pill er" title="${esc(e.message)}">Запись не загрузилась</span> <button class="btn l s" data-play="${esc(id)}">↻ Ещё раз</button>`; cell.querySelector('[data-play]').onclick = () => b.onclick(); return; }
     cell.innerHTML = `<audio controls autoplay preload="auto" src="${src}" style="width:300px;height:36px"></audio>`;
     cell.querySelector('audio').onerror = async () => { const r = await fetch(src, { headers: { Range: 'bytes=0-0' } }); const j = await r.json().catch(() => ({})); cell.innerHTML = `<span class="pill er">${esc(j.error || 'Запись недоступна')}</span>`; };
   });

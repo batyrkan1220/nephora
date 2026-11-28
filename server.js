@@ -14,6 +14,7 @@ const AN = require('./lib/analytics');
 const att = require('./lib/attendance');
 const cai = require('./lib/callai');
 const recs = require('./lib/recs');
+setTimeout(() => setInterval(() => { try { const t = C.todayKey(cfg.settings.tz); recs.archive(wh.all('call'), t, C.addDays(t, -1)).catch(e => console.error('rec archive', e.message)); } catch {} }, 2 * 6e4), 60e3);
 const ACT = require('./lib/activity');
 const EF = require('./lib/efficiency');
 const wz = require('./lib/wazzup');
