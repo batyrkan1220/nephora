@@ -713,7 +713,7 @@ async function handle(req, res) {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
     const f = { from: q.get('from') || today, to: q.get('to') || today, sector: q.get('sector') || '', uid: q.get('uid') || '' };
     const out = AN.callList(ctx(), scope, f, { q: q.get('q') || '', rec: q.get('all') !== '1', limit: q.get('limit') });
-    out.rows.forEach(r => { const x = cai.get(r.id); if (x && !x.pending) r.ai = x.skip ? { skip: true } : { score: x.score, outcome: x.outcome }; });
+    out.rows.forEach(r => { const x = cai.get(r.id); if (x && x.pending) r.ai = { pending: true }; else if (x) r.ai = x.skip ? { skip: true } : { score: x.score, outcome: x.outcome }; });
     out.callai = { on: cai.status().settings.on, ready: cai.status().ready };
     return send(res, 200, out);
   }
