@@ -631,6 +631,31 @@ html.promo .pop .pl{background:rgba(255,255,255,.2)}
 html.promo .pop .card{padding-top:66px}
 html.promo .pop .card>*:not(.pprm):not(.pwm){position:relative}
 html.promo .pop .av{color:var(--pr)}
+
+/* ===== дизайн v2: читаемость на ТВ ===== */
+html:not(.promo) body{background:radial-gradient(120% 90% at 0% 0%,#EEF0FA 0%,#E2E5EE 45%,#D7DAE4 100%)}
+.ttl .dtl{font-size:.82em;color:var(--muted2);margin-top:.15em;text-transform:capitalize;font-weight:500}
+html.promo .ttl .dtl{color:rgba(255,255,255,.85)}
+.col{box-shadow:0 18px 40px -30px rgba(20,24,60,.45)}
+/* секторы */
+.slst.many .scd{background:linear-gradient(95deg,var(--t) 0%,#fff 62%);border-left-width:.42em}
+.slst.many .scd.lead{background:linear-gradient(95deg,#FFF1C2 0%,#fff 65%);box-shadow:0 0 0 2px #F5C542,0 12px 26px -16px rgba(245,180,0,.6)}
+.slst.many .sline{font-size:.84em;color:var(--muted2)}
+.slst.many .sline b{font-weight:700}
+.slst.many .sdat>b{font-size:1.6em;font-weight:700}
+.slst.many .sh1 b{font-size:1.12em;font-weight:700}
+.slst.many .ring{width:4.3em;height:4.3em}.slst.many .ring span{font-size:1.02em;font-weight:700}
+/* топы */
+.li .v{font-weight:700;letter-spacing:-.01em}
+.li .nm{font-weight:600}
+.li.m1:not(.first){background:linear-gradient(90deg,#FFF4CC,#fff 70%)}
+.li.m2{background:linear-gradient(90deg,#EEF1F6,#fff 70%)}
+.li.m3{background:linear-gradient(90deg,#FBE7D8,#fff 70%)}
+.li.slot{opacity:.55}
+.emptyday{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.45em;border:2px dashed #D5DAE8;border-radius:1.2em;padding:1.5em;color:var(--muted2);min-height:12em;height:100%}
+.emptyday .edi{font-size:3.2em;animation:edf 2.4s ease-in-out infinite}
+.emptyday b{font-size:1.35em;color:var(--ink);font-weight:700}.emptyday span{font-size:.9em}
+@keyframes edf{50%{transform:translateY(-.25em) rotate(-6deg)}}
 </style>
 </head>
 <body>
@@ -766,7 +791,7 @@ function render0() {
   if (prOn) document.documentElement.style.setProperty('--pr', PR.color || '#E53935');
   $('#app').innerHTML = `
     <div class="hd">
-      <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1>${D.error ? `<div class="per num"><span class="err">Bitrix24: ${esc(D.error)}</span></div>` : ''}</div>
+      <div class="ttl"><h1>${esc(D.board.name.split(' ').slice(0, -1).join(' '))} <b>${esc(D.board.name.split(' ').slice(-1)[0])}</b></h1><div class="dtl">${new Date(D.period.today + 'T12:00:00Z').toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })}</div>${D.error ? `<div class="per num"><span class="err">Bitrix24: ${esc(D.error)}</span></div>` : ''}</div>
       ${prOn ? `<div class="prb"><span class="prs s1">✦</span><span class="prs s2">✦</span><span class="prs s3">✦</span>
         <div class="prt">${esc(PR.title || '')}</div><div class="prbig num">${esc(PR.big || '')}</div>
         <div class="prsub">${esc(PR.sub || '')}${PR.to ? ` · <span id="prcd" data-to="${PR.to}"></span>` : ''}</div></div>` : ''}
@@ -784,7 +809,7 @@ function render0() {
         <div class="slst ${SEC.length > (PT ? 2 : 3) ? 'many' : ''}" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
 </div>
       <div class="col cd"><div class="ch"><span class="ci">${ICO.day}</span><b>Топ-${N} сегодня</b><span>касса за день</span></div>
-        <div class="lst" id="l2">${TOPD.map((r, i) => mgrRow(r, i, true, TOPD[0].daySum)).join('')}${Array.from({ length: Math.max(0, N - TOPD.length) }, (_, k) => slot(TOPD.length + k)).join('')}</div></div>
+        <div class="lst" id="l2">${TOPD.length ? TOPD.map((r, i) => mgrRow(r, i, true, TOPD[0].daySum)).join('') + Array.from({ length: Math.max(0, N - TOPD.length) }, (_, k) => slot(TOPD.length + k)).join('') : `<div class="emptyday"><div class="edi">🚀</div><b>Ждём первую продажу дня</b><span>Первый, кто продаст, займёт 1-е место</span></div>`}</div></div>
       <div class="col cp"><div class="ch"><span class="ci">${ICO.per}</span><b>Топ-${N} месяца</b><span>${MONTHS[+MON.from.slice(5, 7) - 1]}</span></div>
         <div class="lst" id="l3">${TOPP.length ? TOPP.map((r, i) => mgrRow(r, i, false, TOPP[0].sum)).join('') : '<div class="li none">Пока нет продаж за месяц</div>'}</div></div>
     </div>
