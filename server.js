@@ -92,6 +92,22 @@ function loadSnap() {
 }
 // прогрев: после загрузки/обновления базы заранее считаем тяжёлые отчёты главной (эффективность, касания) для владельца
 let warmLast = -1;
+/* профили менеджеров: собираются в фоне каждые 10 минут и хранятся в базе (Supabase) — открываются мгновенно */
+const PROF = new Map(); let profBusy = false, profLoaded = false;
+async function buildProfiles() {
+  if (profBusy || !cache.syncedAt) return; profBusy = true;
+  try {
+    if (!profLoaded) { profLoaded = true; Object.entries(store.get('profiles') || {}).forEach(([k, v]) => PROF.set(k, v)); }
+    const c = ctx(), secOf = C.sectorMap(c), sc = { role: 'owner', sectors: null }, P = require('./lib/profile');
+    for (const u of c.users) {
+      if (u.active === false || !secOf[u.id]) continue;
+      try { PROF.set(u.id, { ...P.profile(c, sc, u.id, cfg, bx.portal()), at: Date.now() }); } catch (e) { console.error('profile', u.id, e.message); }
+      await new Promise(r => setImmediate(r)); // не блокируем сервер
+    }
+    await store.set('profiles', Object.fromEntries(PROF));
+  } finally { profBusy = false; }
+}
+setTimeout(() => { buildProfiles().catch(e => console.error('profiles', e.message)); setInterval(() => buildProfiles().catch(e => console.error('profiles', e.message)), 10 * 6e4); }, 90e3);
 function warm() {
   setTimeout(warm, 20e3);
   const st = wh.status(); if (!st.counts.deal || st.lastRun === warmLast || !cache.syncedAt) return;
@@ -783,7 +799,9 @@ async function handle(req, res) {
   }
   if ((m = p.match(/^\/api\/admin\/profile\/(\w+)$/))) {
     const c = ctx(); if (!AN.allowedUids(c, scope, {}).has(m[1])) return send(res, 403, { error: 'Нет доступа к этому менеджеру' });
-    try { return send(res, 200, require('./lib/profile').profile(c, scope, m[1], cfg, bx.portal())); } catch (e) { return send(res, 500, { error: e.message }); }
+    if (!profLoaded) { profLoaded = true; Object.entries(store.get('profiles') || {}).forEach(([k, v]) => PROF.set(k, v)); }
+    const hit = PROF.get(m[1]); if (hit) return send(res, 200, hit);
+    try { const v = { ...require('./lib/profile').profile(c, { role: 'owner', sectors: null }, m[1], cfg, bx.portal()), at: Date.now() }; PROF.set(m[1], v); return send(res, 200, v); } catch (e) { return send(res, 500, { error: e.message }); }
   }
   if ((m = p.match(/^\/api\/admin\/eff\/card\/(\w+)$/))) {
     const c = ctx();

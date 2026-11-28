@@ -330,7 +330,7 @@ body{background:#EEF0F7}
 .plink{cursor:pointer}.plink:hover b,.plink:hover>div{color:#4B4FE8;text-decoration:underline;text-underline-offset:3px}b.plink:hover{color:#4B4FE8;text-decoration:underline}
 .ovl .pane.wide{width:min(1060px,100%)}
 .pfh{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}.pfh .av{width:64px;height:64px;font-size:22px}.pfh h2{margin:0}.pfh p{margin:4px 0 8px;color:var(--muted)}
-.pfch{display:flex;gap:8px;flex-wrap:wrap}.pfch span{background:#F1F3FF;color:#3730A3;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600}
+.pfch{display:flex;gap:8px;flex-wrap:wrap}.pfch span.pfup{background:none;color:var(--muted);font-weight:500;padding-left:0}.pfch span{background:#F1F3FF;color:#3730A3;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600}
 .pfk{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 18px}.pfk>div{background:#F7F8FC;border-radius:14px;padding:12px 14px}.pfk small{display:block;font-size:11.5px;color:var(--muted);font-weight:600}
 .pfk b{display:block;font-size:22px;font-weight:800;margin:4px 0 2px}.pfk span{font-size:12px;color:var(--muted)}.pfk.sm b{font-size:19px}
 .pfbars{display:flex;gap:3px;align-items:flex-end;height:120px;margin:6px 0 18px}.pfbars>div{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
@@ -539,7 +539,7 @@ body{background:#EEF0F7}
     <div class="logo"><i><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5 2L5 13.5h6L10 22l9-12.5h-6.2z"/></svg></i>Safa портал</div>
     <div class="navl">Меню</div>
     <a href="#/" data-r="home"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg></span>Лидерборд</a>
-    <a href="#/calls/rec" data-r="calls"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0118 0v2"/><rect x="2.5" y="14" width="5" height="7" rx="2"/><rect x="16.5" y="14" width="5" height="7" rx="2"/></svg></span>Оценка звонков</a>
+    <a href="#/calls" data-r="calls"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0118 0v2"/><rect x="2.5" y="14" width="5" height="7" rx="2"/><rect x="16.5" y="14" width="5" height="7" rx="2"/></svg></span>Звонки и оценка</a>
     <a href="#/activity" data-r="activity"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>Активность</a>
     <a href="#/ai" data-r="ai"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="4"/><path d="M12 3v4M9 12h.01M15 12h.01M9.5 16h5"/></svg></span>AI-ассистент</a>
     <a href="#/settings" data-r="settings" data-own="1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 010-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 014 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 010 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg></span>Настройки</a>
@@ -754,7 +754,7 @@ pages.fromAdmin = async () => {
 document.addEventListener('click', e => { const t = e.target.closest('[data-prof]'); if (!t || !t.dataset.prof) return; e.stopPropagation(); e.preventDefault(); openProfile(t.dataset.prof); }, true);
 async function openProfile(uid) {
   document.querySelectorAll('.ovl.prof').forEach(x => x.remove());
-  const o = document.createElement('div'); o.className = 'ovl prof'; o.innerHTML = '<div class="pane wide"><div class="empty">Собираем профиль…</div></div>';
+  const o = document.createElement('div'); o.className = 'ovl prof'; o.innerHTML = '<div class="pane wide"><div class="empty">Открываем…</div></div>';
   o.onclick = e => { if (e.target === o) o.remove(); }; document.body.appendChild(o); window.addEventListener('hashchange', () => o.remove(), { once: true });
   const P = o.querySelector('.pane');
   let d; try { d = await api('/api/admin/profile/' + encodeURIComponent(uid)); } catch (e) { P.innerHTML = `<div class="warn">${esc(e.message)}</div>`; return; }
@@ -766,7 +766,7 @@ async function openProfile(uid) {
   const sem = { S: '✅', F: '❌', P: '🟡' };
   P.innerHTML = `
     <div class="pfh">${av(d.name, uPhoto(d.uid))}<div style="flex:1"><h2>${esc(d.name)}${d.rop ? ' <em class="rop">РОП</em>' : ''}</h2><p>${esc(d.sector || 'без сектора')}${d.position ? ' · ' + esc(d.position) : ''}</p>
-      <div class="pfch">${S_.rank ? `<span>🏆 ${S_.rank} место из ${S_.of} в компании</span>` : ''}${S_.secRank ? `<span>📍 ${S_.secRank} из ${S_.secOf} в секторе</span>` : ''}${d.eff && d.eff.index != null ? `<span>⚡ индекс эффективности ${d.eff.index}/100</span>` : ''}</div></div>
+      <div class="pfch">${d.at ? `<span class="pfup">обновлено ${new Date(d.at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' })}</span>` : ''}${S_.rank ? `<span>🏆 ${S_.rank} место из ${S_.of} в компании</span>` : ''}${S_.secRank ? `<span>📍 ${S_.secRank} из ${S_.secOf} в секторе</span>` : ''}${d.eff && d.eff.index != null ? `<span>⚡ индекс эффективности ${d.eff.index}/100</span>` : ''}</div></div>
       <button class="x" id="pfX" style="font-size:22px">×</button></div>
     <div class="pfk">
       <div><small>Касса за месяц</small><b>${money(S_.sum)}</b><span>${S_.cnt} заказов · ср. чек ${money(S_.avg)}</span></div>
@@ -1424,18 +1424,12 @@ pages.funnel = async () => {
 /* ===== звонки ===== */
 let CALLV = 'stats';
 pages.calls = async () => {
-  if (CALLV === 'rec') {
-    $('#view').innerHTML = head('Оценка звонков', 'Выберите день → у нужного звонка нажмите «🤖 ИИ-оценка». Откроется разговор по ролям (менеджер / клиент) с подсветкой слов при прослушивании и оценкой.') + secBar() + filters() + `    <div class="card" id="aiSum"><h3>AI-оценка разговоров</h3><div id="aiSumB" class="empty">Загрузка…</div></div>
-    <div class="card" id="recs"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><h3 style="flex:1;margin:0">Записи разговоров</h3>
-      <input class="in" id="recQ" placeholder="Поиск по номеру" value="${esc(REC.q)}" style="max-width:220px"><label class="ck"><input type="checkbox" id="recAll" ${REC.all ? 'checked' : ''}> все звонки</label></div>
-      <div id="recBody" class="empty">Загрузка…</div></div>`;
-    bindFilters(); loadRecs(); loadAiSum(); return;
-  }
-  $('#view').innerHTML = head('Звонки', 'Загрузка…') + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
+
+  $('#view').innerHTML = head('Звонки', 'Загрузка…') + secBar() + filters() + '<div class="empty">Считаем…</div>'; bindFilters();
   let R; try { R = await api('/api/admin/calls?' + qs()); } catch (e) { $('#view .empty').textContent = 'Ошибка: ' + e.message; return; }
   const DM = R.mode === 'deals', LW = DM ? 'сделке' : 'лиду';
   const T = R.total, L = R.leadResponse, mh = Math.max(1, ...R.hours), mins = v => v == null ? '—' : v < 1 ? '<1 мин' : v < 60 ? Math.round(v) + ' мин' : (Math.round(v / 6) / 10) + ' ч';
-  $('#view').innerHTML = head('Звонки', whNote(R.wh)) + filters() + `
+  $('#view').innerHTML = head('Звонки', 'Статистика, записи разговоров и ИИ-оценка в одном месте. ' + whNote(R.wh)) + secBar() + filters() + `
     ${R.wh && R.wh.callsError ? `<div class="warn">${esc(R.wh.callsError)}</div>` : ''}
     <div class="grid">
       <div class="kpi"><small>Звонков</small><b class="num">${T.total}</b><span>${T.unique} уникальных номеров</span></div>
@@ -1446,12 +1440,16 @@ pages.calls = async () => {
       <div class="kpi"><small>Первый контакт с новой ${DM ? 'сделкой' : 'заявкой'} (звонок или WhatsApp)</small><b class="num ${L.medianMin != null && L.medianMin <= 5 ? 'good' : L.medianMin > 30 ? 'bad' : ''}">${mins(L.medianMin)}</b><span>медиана · до 5 мин: ${L.within5} из ${L.called} · без звонка: <b class="${L.noCall ? 'bad' : ''}">${L.noCall}</b></span></div>
     </div>
     <div class="card"><h3>Звонки по часам</h3><div class="hrs">${R.hours.map((v, h) => `<div style="height:${(v / mh * 100).toFixed(1)}%" title="${h}:00 — ${v}"></div>`).join('')}</div><div class="hrl">${R.hours.map((v, h) => `<span>${h % 2 ? '' : h}</span>`).join('')}</div></div>
+    <div class="card" id="aiSum"><h3>AI-оценка разговоров</h3><div id="aiSumB" class="empty">Загрузка…</div></div>
+    <div class="card" id="recs"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><h3 style="flex:1;margin:0">Записи разговоров</h3>
+      <input class="in" id="recQ" placeholder="Поиск по номеру" value="${esc(REC.q)}" style="max-width:220px"><label class="ck"><input type="checkbox" id="recAll" ${REC.all ? 'checked' : ''}> все звонки</label></div>
+      <div id="recBody" class="empty">Загрузка…</div></div>
     <div class="card"><h3>По менеджерам</h3><div class="tw"><table><thead><tr><th>Менеджер</th><th class="r">Всего</th><th class="r">Исход.</th><th class="r">Дозвон</th><th class="r">Вход.</th><th class="r">Пропущ.</th><th class="r">Минут</th><th class="r">Заказы</th><th class="r">Звонков/заказ</th><th class="r">Первый звонок по ${LW}</th><th class="r">${DM ? 'Сделок' : 'Лидов'} без звонка</th></tr></thead><tbody>
-      ${R.managers.map(x => `<tr><td><div class="who">${av(x.name, uPhoto(x.uid))}<div>${esc(x.name)}<small>${esc(x.sector)}</small></div></div></td><td class="r num"><b>${x.total}</b></td><td class="r num">${x.out}</td><td class="r num">${pct(x.reach)}</td><td class="r num">${x.inc}</td><td class="r num ${x.missed ? 'bad' : ''}">${x.missed || '—'}</td><td class="r num">${x.talkMin}</td><td class="r num">${x.orders}</td><td class="r num">${x.callsPerOrder == null ? '—' : Math.round(x.callsPerOrder * 10) / 10}</td><td class="r num">${mins(x.respMedianMin)}</td><td class="r num ${x.leadsNoCall ? 'bad' : ''}">${x.leadsNoCall || '—'}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Звонков за период нет</td></tr>'}</tbody></table></div></div>
+      ${R.managers.map(x => `<tr><td><div class="who plink" data-prof="${esc(x.uid)}">${av(x.name, uPhoto(x.uid))}<div>${esc(x.name)}<small>${esc(x.sector)}</small></div></div></td><td class="r num"><b>${x.total}</b></td><td class="r num">${x.out}</td><td class="r num">${pct(x.reach)}</td><td class="r num">${x.inc}</td><td class="r num ${x.missed ? 'bad' : ''}">${x.missed || '—'}</td><td class="r num">${x.talkMin}</td><td class="r num">${x.orders}</td><td class="r num">${x.callsPerOrder == null ? '—' : Math.round(x.callsPerOrder * 10) / 10}</td><td class="r num">${mins(x.respMedianMin)}</td><td class="r num ${x.leadsNoCall ? 'bad' : ''}">${x.leadsNoCall || '—'}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">Звонков за период нет</td></tr>'}</tbody></table></div></div>
     ${L.noCallList.length ? `<div class="card"><h3>${DM ? 'Новые сделки' : 'Лиды'} без звонка</h3><p class="hint">${DM ? 'Сделки' : 'Лиды'} периода, по которым нет ни одного звонка в Bitrix24.</p><div class="tw"><table><thead><tr><th>${DM ? 'Сделка' : 'Лид'}</th><th>Менеджер</th><th>Создан(а)</th></tr></thead><tbody>
       ${L.noCallList.map(l => `<tr><td>#${esc(l.id)} ${esc(l.title)}</td><td>${esc(l.manager)}</td><td class="num">${esc(String(l.created).slice(0, 16).replace('T', ' '))}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
 `;
-  bindFilters();
+  bindFilters(); loadRecs(); loadAiSum();
 };
 const REC = { q: '', all: false, play: '' };
 const scCls = v => v >= 80 ? 'g' : v >= 60 ? 'm' : 'b';
@@ -2029,7 +2027,7 @@ const SECTIONS = [
   { id: 'home', title: 'Лидерборд' },
   { id: 'sales', title: 'Продажи', tabs: [['list', 'Сделки'], ['funnel', 'Воронка и выкуп'], ['admin', 'С аккаунта «Админ»']] },
   { id: 'team', title: 'Команда', tabs: [['eff', 'Эффективность'], ['touch', 'Касания'], ['att', 'Посещаемость']] },
-  { id: 'calls', title: 'Оценка звонков', tabs: [['rec', 'Записи и оценка'], ['stats', 'Статистика звонков', 1]] },
+  { id: 'calls', title: 'Звонки и оценка' },
   { id: 'money', title: 'Зарплата', tabs: [['payouts', 'Выплаты'], ['penalties', 'Штрафы', 1]] },
   { id: 'activity', title: 'Активность менеджеров' },
   { id: 'ai', title: 'AI-ассистент' },
@@ -2064,7 +2062,7 @@ function route() {
     home: () => pages.home(),
     sales: () => (tab === 'funnel' ? pages.funnel() : tab === 'admin' ? pages.fromAdmin() : pages.sales()),
     team: () => { if (tab === 'att') { if (AT.view === 'setup') AT.view = 'day'; return pages.att(); } EFV.tab = tab === 'touch' ? 'touch' : 'index'; return pages.eff(); },
-    calls: () => { if (tab === 'wa') return pages.wa(); CALLV = tab; return pages.calls(); },
+    calls: () => (a === 'wa' ? pages.wa() : pages.calls()),
     money: () => (tab === 'penalties' ? pages.penalties() : pages.payouts()),
     ai: () => pages.ai(),
     activity: () => pages.activity(),
