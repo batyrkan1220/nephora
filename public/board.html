@@ -671,7 +671,7 @@ html.neo #neoWave{display:block;position:fixed;left:0;right:0;bottom:0;width:100
 #neoWave .w1{stroke:rgba(80,170,255,.55);filter:drop-shadow(0 0 6px #3D9BFF);stroke-dasharray:1400 600;animation:wv 14s linear infinite}
 #neoWave .w2{stroke:rgba(120,90,255,.45);filter:drop-shadow(0 0 6px #7A5CFF);stroke-dasharray:900 500;animation:wv 20s linear infinite reverse}
 @keyframes wv{to{stroke-dashoffset:-4000}}
-html.neo #app{position:relative;z-index:1}
+html.neo #app{z-index:1;background:transparent;border:0;box-shadow:none}
 /* шапка */
 html.neo .ttl h1,html.neo .ttl h1 b{font-weight:800;background:linear-gradient(90deg,#4FA8FF,#7CC4FF);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(61,155,255,.55))}
 html.neo .ttl .dtl{color:#9FB6E8}
@@ -707,7 +707,7 @@ html.neo .ring.ok{background:radial-gradient(closest-side,#0B1E55 74%,transparen
 html.neo .ring span{color:#fff}html.neo .ring small{color:#9FB6E8}
 html.neo .scd .tag{background:rgba(255,200,60,.2);color:#FFD66B}
 /* светящиеся сферы между карточками секторов */
-html.neo .slst.many .scd+.scd::before{content:"";position:absolute;left:34%;top:-1.25em;width:2.5em;height:2.5em;border-radius:50%;z-index:2;pointer-events:none;
+html.neo .slst.many .scd+.scd::before{content:"";position:absolute;left:58%;top:-1.05em;width:1.9em;height:1.9em;border-radius:50%;z-index:2;pointer-events:none;
   background:radial-gradient(circle at 35% 30%,#fff 0%,#9FD4FF 12%,#3D9BFF 38%,rgba(20,60,200,.4) 62%,transparent 72%);box-shadow:0 0 22px 6px rgba(61,155,255,.55);animation:orb 5s ease-in-out infinite}
 html.neo .slst.many .scd:nth-child(odd)::before{animation-delay:-2.5s}
 @keyframes orb{50%{transform:scale(1.12) rotate(180deg);box-shadow:0 0 30px 10px rgba(100,180,255,.7)}}
@@ -715,7 +715,7 @@ html.neo .slst.many .scd:nth-child(odd)::before{animation-delay:-2.5s}
 .podium{display:none}
 html.neo .podium{display:block;position:relative;flex:none;height:15.5em;margin-bottom:.4em}
 html.neo .pdt{position:absolute;left:0;right:0;top:-.3em;width:100%;height:3.4em}
-html.neo .pdt text{font:900 46px Inter,system-ui,sans-serif;fill:url(#none);fill:#5FB2FF;letter-spacing:2px;filter:drop-shadow(0 0 8px #3D9BFF)}
+html.neo .pdt text{font:900 38px Inter,system-ui,sans-serif;fill:#5FB2FF;letter-spacing:1px;filter:drop-shadow(0 0 8px #3D9BFF)}
 html.neo .pdbeam{position:absolute;left:20%;right:20%;top:2.5em;bottom:2em;background:conic-gradient(from 180deg at 50% 0%,transparent 160deg,rgba(90,170,255,.28) 175deg,rgba(150,210,255,.4) 180deg,rgba(90,170,255,.28) 185deg,transparent 200deg);filter:blur(4px);animation:beam 3.5s ease-in-out infinite}
 @keyframes beam{50%{opacity:.55}}
 html.neo .pdrow{position:absolute;left:0;right:0;bottom:1.2em;display:flex;justify-content:center;align-items:flex-end;gap:1.2em}
@@ -740,6 +740,28 @@ html.neo .emptyday{display:none}
 /* бегущая строка, попап */
 html.neo .tickr{background:rgba(14,32,90,.6);border:1px solid rgba(100,160,255,.35)}html.neo .ti b{color:#fff}html.neo .ti small{color:#9FB6E8}html.neo .ti em{color:#22E39A}
 html.neo .medal{filter:drop-shadow(0 0 6px rgba(255,210,90,.6))}
+
+/* ===== NEO 3D: глубина и перспектива ===== */
+html.neo .cols3{perspective:2200px;perspective-origin:50% 40%;transform-style:preserve-3d}
+html.neo .col{transform-style:preserve-3d;transition:transform 1s}
+html.neo .col.cs{transform:rotateY(9deg) translateZ(-10px);transform-origin:100% 50%}
+html.neo .col.cp{transform:rotateY(-9deg) translateZ(-10px);transform-origin:0% 50%}
+html.neo .col.cd{transform:translateZ(30px)}
+html.neo .col::after{content:"";position:absolute;left:6%;right:6%;bottom:-1.4em;height:1.4em;border-radius:50%;background:radial-gradient(ellipse,rgba(40,120,255,.45),transparent 70%);filter:blur(6px);pointer-events:none}
+html.neo .col{position:relative}
+html.neo .li,html.neo .scd{transform:translateZ(14px);box-shadow:0 10px 22px -10px rgba(0,0,0,.7),0 0 18px -8px rgba(61,155,255,.6),inset 0 1px 0 rgba(190,225,255,.28),inset 0 -2px 0 rgba(0,0,0,.25)}
+html.neo .li.first{transform:translateZ(28px) scale(1.015)}
+html.neo .hd{perspective:1400px}
+html.neo .stat{transform:rotateX(10deg);transform-origin:50% 100%;box-shadow:0 14px 28px -14px rgba(0,0,0,.8),0 0 26px -6px rgba(61,155,255,.55),inset 0 1px 0 rgba(190,225,255,.35)}
+/* 3D-пьедестал: цилиндры с верхней «крышкой» */
+html.neo .pdst{position:relative;border-radius:0 0 .5em .5em;background:linear-gradient(90deg,#1532A8,#3D7BFF 45%,#5FA0FF 55%,#1532A8)}
+html.neo .pdst::before{content:"";position:absolute;left:0;right:0;top:-.55em;height:1.1em;border-radius:50%;background:radial-gradient(ellipse at 50% 40%,#BFE0FF,#4D8BFF 55%,#1F48C8);box-shadow:0 0 18px rgba(120,190,255,.9)}
+html.neo .pdst i{position:relative;top:.2em}
+html.neo .pdrow{perspective:900px}
+html.neo .pdp{transform:rotateX(8deg)}
+html.neo .pdav{animation:pdf 4s ease-in-out infinite}html.neo .p2 .pdav{animation-delay:-1.3s}html.neo .p3 .pdav{animation-delay:-2.6s}
+@keyframes pdf{50%{transform:translateY(-.3em)}}
+html.neo .ring{transform:translateZ(20px);box-shadow:0 8px 16px -6px rgba(0,0,0,.7),0 0 18px -4px var(--c)}
 </style>
 </head>
 <body>
@@ -865,7 +887,7 @@ function render0() {
   // подиум дня: топ-3 на пьедестале (2 · 1 · 3), лучи света; пусто — ждём первую продажу
   const podium = L => {
     const P = [L[1], L[0], L[2]], H = ['p2', 'p1', 'p3'], R = [2, 1, 3];
-    return `<div class="podium ${L.length ? '' : 'empty'}"><svg class="pdt" viewBox="0 0 600 110"><defs><path id="pdArc" d="M40,100 Q300,10 560,100"/></defs><text><textPath href="#pdArc" startOffset="50%" text-anchor="middle">${L.length ? 'ДЕНЬ ПОБЕДИТЕЛЕЙ!' : 'ЖДЁМ ПЕРВУЮ ПРОДАЖУ'}</textPath></text></svg>
+    return `<div class="podium ${L.length ? '' : 'empty'}"><svg class="pdt" viewBox="0 0 640 110"><defs><path id="pdArc" d="M20,104 Q320,4 620,104"/></defs><text><textPath href="#pdArc" startOffset="50%" text-anchor="middle">${L.length ? 'ДЕНЬ ПОБЕДИТЕЛЕЙ!' : 'ЖДЁМ ПЕРВУЮ ПРОДАЖУ'}</textPath></text></svg>
       <div class="pdbeam"></div><div class="pdrow">${P.map((r, k) => `<div class="pdp ${H[k]} ${r ? '' : 'none'}">${r ? `<div class="pdav">${av(r)}${R[k] === 1 ? '<svg class="pdcr" viewBox="0 0 24 16"><path d="M2 14L1 3l6 5 5-7 5 7 6-5-1 11z" fill="#fcd94a" stroke="#d99a00" stroke-width="1.2" stroke-linejoin="round"/></svg>' : ''}</div>
         <b class="pdn">${esc(String(r.name).split(' ')[0])}</b><span class="pdv num dlk" data-uid="${r.uid}" data-scope="day" data-nm="${esc(r.name)}">${money(r.daySum)}</span>` : '<div class="pdav q">?</div><b class="pdn">—</b>'}
         <div class="pdst"><i>${R[k]}</i></div></div>`).join('')}</div><div class="pdbase"></div></div>`;
