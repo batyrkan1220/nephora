@@ -928,6 +928,14 @@ async function handle(req, res) {
     if (b.rop != null) { if (b.rop) cfg.managers[id].rop = true; else delete cfg.managers[id].rop; }
     await store.set('config', cfg); MEMO.clear(); livePush('config'); return send(res, 200, { ok: true });
   }
+  if (p === '/api/admin/diag/db') {
+    if (!isOwner) return send(res, 403, { error: 'owner' });
+    const pool = store.pool(); const out = { kind: store.kind() };
+    try { if (pool) { const r = await pool.query(`select pg_database_size(current_database()) db, (select coalesce(sum(size),0) from call_audio) audio, (select count(*) from call_audio) n, current_database() name, inet_server_addr()::text host`); out.db = r.rows[0]; } } catch (e) { out.err = e.message; }
+    try { out.ffmpeg = require('child_process').execSync('ffmpeg -version 2>&1 | head -1').toString().trim(); } catch { out.ffmpeg = null; }
+    out.supaHost = String(process.env.SUPABASE_DB_URL || process.env.DATABASE_URL || '').replace(/^.*@/, '').replace(/[:/].*$/, '');
+    return send(res, 200, out);
+  }
   if (p === '/api/admin/users' && req.method === 'POST') {
     try { return send(res, 200, { ok: true, user: await auth.saveUser(JSON.parse(await readBody(req, 1e5))) }); }
     catch (e) { return send(res, 400, { error: e.message }); }
