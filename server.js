@@ -929,6 +929,18 @@ async function handle(req, res) {
     if (b.rop != null) { if (b.rop) cfg.managers[id].rop = true; else delete cfg.managers[id].rop; }
     await store.set('config', cfg); MEMO.clear(); livePush('config'); return send(res, 200, { ok: true });
   }
+  if (p === '/api/admin/diag/dupes') {
+    if (!isOwner) return send(res, 403, { error: 'owner' });
+    const out = {};
+    const grp = (list, key) => { const m = new Map(); for (const x of list) { const k = key(x); if (!k) continue; const a = m.get(k); if (a) a.push(x.id); else m.set(k, [x.id]); } const d = [...m.values()].filter(a => a.length > 1); return { groups: d.length, extra: d.reduce((s, a) => s + a.length - 1, 0), sample: d.slice(0, 5) }; };
+    const calls = wh.all('call'); out.calls = { total: calls.length, byIdShape: { withDot: calls.filter(c => c.id.includes('.')).length, numeric: calls.filter(c => /^\d+$/.test(c.id)).length }, dup: grp(calls, c => c.uid + '|' + c.at + '|' + c.ph + '|' + c.dur) };
+    const deals = wh.all('deal'); out.deals = { total: deals.length, dup: grp(deals, d => d.id) };
+    const leads = wh.all('lead'); out.leads = { total: leads.length };
+    out.contacts = { total: wh.all('contact').length };
+    const pool = store.pool();
+    if (pool) { const r = await pool.query(`select entity, count(*) n from wh_rows group by entity`); out.db = r.rows; }
+    return send(res, 200, out);
+  }
   if (p === '/api/admin/diag/db') {
     if (!isOwner) return send(res, 403, { error: 'owner' });
     const pool = store.pool(); const out = { kind: store.kind() };
