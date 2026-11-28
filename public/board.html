@@ -742,27 +742,10 @@ html.neo .emptyday{display:none}
 html.neo .tickr{background:rgba(14,32,90,.6);border:1px solid rgba(100,160,255,.35)}html.neo .ti b{color:#fff}html.neo .ti small{color:#9FB6E8}html.neo .ti em{color:#22E39A}
 html.neo .medal{filter:drop-shadow(0 0 6px rgba(255,210,90,.6))}
 
-/* ===== NEO 3D: глубина и перспектива ===== */
-html.neo .cols3{perspective:2200px;perspective-origin:50% 40%;transform-style:preserve-3d}
-html.neo .col{transform-style:preserve-3d;transition:transform 1s}
-html.neo .col.cs{transform:rotateY(9deg) translateZ(-10px);transform-origin:100% 50%}
-html.neo .col.cp{transform:rotateY(-9deg) translateZ(-10px);transform-origin:0% 50%}
-html.neo .col.cd{transform:translateZ(30px)}
-html.neo .col::after{content:"";position:absolute;left:6%;right:6%;bottom:-1.4em;height:1.4em;border-radius:50%;background:radial-gradient(ellipse,rgba(40,120,255,.45),transparent 70%);filter:blur(6px);pointer-events:none}
-html.neo .col{position:relative}
-html.neo .li,html.neo .scd{transform:translateZ(14px);box-shadow:0 10px 22px -10px rgba(0,0,0,.7),0 0 18px -8px rgba(61,155,255,.6),inset 0 1px 0 rgba(190,225,255,.28),inset 0 -2px 0 rgba(0,0,0,.25)}
-html.neo .li.first{transform:translateZ(28px) scale(1.015)}
-html.neo .hd{perspective:1400px}
-html.neo .stat{transform:rotateX(10deg);transform-origin:50% 100%;box-shadow:0 14px 28px -14px rgba(0,0,0,.8),0 0 26px -6px rgba(61,155,255,.55),inset 0 1px 0 rgba(190,225,255,.35)}
-/* 3D-пьедестал: цилиндры с верхней «крышкой» */
+/* NEO: без наклонов — текст чёткий на ТВ */
 html.neo .pdst{position:relative;border-radius:0 0 .5em .5em;background:linear-gradient(90deg,#1532A8,#3D7BFF 45%,#5FA0FF 55%,#1532A8)}
 html.neo .pdst::before{content:"";position:absolute;left:0;right:0;top:-.55em;height:1.1em;border-radius:50%;background:radial-gradient(ellipse at 50% 40%,#BFE0FF,#4D8BFF 55%,#1F48C8);box-shadow:0 0 18px rgba(120,190,255,.9)}
 html.neo .pdst i{position:relative;top:.2em}
-html.neo .pdrow{perspective:900px}
-html.neo .pdp{transform:rotateX(8deg)}
-html.neo .pdav{animation:pdf 4s ease-in-out infinite}html.neo .p2 .pdav{animation-delay:-1.3s}html.neo .p3 .pdav{animation-delay:-2.6s}
-@keyframes pdf{50%{transform:translateY(-.3em)}}
-html.neo .ring{transform:translateZ(20px);box-shadow:0 8px 16px -6px rgba(0,0,0,.7),0 0 18px -4px var(--c)}
 </style>
 </head>
 <body>
@@ -1293,49 +1276,6 @@ load();
     x.lineWidth = .6; for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) { const a = P[i], b = P[j], d = Math.hypot(a.x - b.x, a.y - b.y); if (d < 120) { x.strokeStyle = `rgba(90,170,255,${(1 - d / 120) * .22})`; x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); x.stroke(); } }
     for (const p of P) { x.fillStyle = 'rgba(150,210,255,.8)'; x.beginPath(); x.arc(p.x, p.y, p.r, 0, 7); x.fill(); } };
   requestAnimationFrame(step); })();
-// 3D-объекты на фоне: перспективная сетка-пол, вращающиеся каркасные фигуры (икосаэдр, тор, куб, октаэдр) и парящие сферы
-(() => {
-  const c = document.createElement('canvas'); c.id = 'neo3d'; document.body.insertBefore(c, document.getElementById('app'));
-  const x = c.getContext('2d'); let W, H;
-  const fit = () => { W = c.width = innerWidth; H = c.height = innerHeight; }; fit(); addEventListener('resize', fit);
-  const phi = (1 + Math.sqrt(5)) / 2;
-  const ICO_V = [[-1, phi, 0], [1, phi, 0], [-1, -phi, 0], [1, -phi, 0], [0, -1, phi], [0, 1, phi], [0, -1, -phi], [0, 1, -phi], [phi, 0, -1], [phi, 0, 1], [-phi, 0, -1], [-phi, 0, 1]];
-  const edges = V => { const E = [], d = Math.min(...V.flatMap((a, i) => V.slice(i + 1).map(b => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])))); V.forEach((a, i) => V.forEach((b, j) => { if (j > i && Math.abs(Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) - d) < .01) E.push([i, j]); })); return E; };
-  const CUBE_V = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]];
-  const OCT_V = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
-  const TOR = (() => { const V = [], E = [], R = 1.2, r = .42, n = 22, m = 10; for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const u = i / n * 2 * Math.PI, v = j / m * 2 * Math.PI; V.push([(R + r * Math.cos(v)) * Math.cos(u), r * Math.sin(v), (R + r * Math.cos(v)) * Math.sin(u)]); const k = i * m + j; E.push([k, ((i + 1) % n) * m + j], [k, i * m + (j + 1) % m]); } return { V, E }; })();
-  const SH = [
-    { V: ICO_V, E: edges(ICO_V), px: .07, py: .78, s: .075, sp: [.31, .47, .0], col: '95,178,255' },
-    { V: TOR.V, E: TOR.E, px: .5, py: .9, s: .085, sp: [.5, .2, .27], col: '140,120,255' },
-    { V: CUBE_V, E: edges(CUBE_V), px: .94, py: .86, s: .05, sp: [.4, .3, .2], col: '86,216,255' },
-    { V: OCT_V, E: edges(OCT_V), px: .36, py: .12, s: .045, sp: [.2, .6, .1], col: '120,190,255' },
-    { V: ICO_V, E: edges(ICO_V), px: .66, py: .1, s: .04, sp: [.5, .25, .35], col: '170,140,255' },
-  ];
-  const rot = (p, a, b, g) => { let [X, Y, Z] = p; let t; t = Y * Math.cos(a) - Z * Math.sin(a); Z = Y * Math.sin(a) + Z * Math.cos(a); Y = t; t = X * Math.cos(b) + Z * Math.sin(b); Z = -X * Math.sin(b) + Z * Math.cos(b); X = t; t = X * Math.cos(g) - Y * Math.sin(g); Y = X * Math.sin(g) + Y * Math.cos(g); X = t; return [X, Y, Z]; };
-  const ORBS = Array.from({ length: 7 }, (_, i) => ({ x: Math.random(), y: Math.random(), z: Math.random(), r: 10 + Math.random() * 26, ph: Math.random() * 6 }));
-  let last = 0;
-  const frame = t => {
-    requestAnimationFrame(frame); if (!document.documentElement.classList.contains('neo') || t - last < 33) return; last = t;
-    const T = t / 1000; x.clearRect(0, 0, W, H);
-    // перспективная сетка-пол (как в киберпространстве), уезжает вдаль
-    const hy = H * .62, vx = W / 2; x.lineWidth = 1;
-    for (let i = -14; i <= 14; i++) { x.strokeStyle = `rgba(61,155,255,${.16 - Math.abs(i) * .007})`; x.beginPath(); x.moveTo(vx + i * W * .012, hy); x.lineTo(vx + i * W * .16, H); x.stroke(); }
-    for (let k = 0; k < 14; k++) { const f = ((k + (T * .35) % 1) / 14), y = hy + (H - hy) * f * f; x.strokeStyle = `rgba(61,155,255,${.05 + f * .22})`; x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); }
-    const g = x.createLinearGradient(0, hy - 40, 0, hy + 60); g.addColorStop(0, 'rgba(3,10,31,0)'); g.addColorStop(.5, 'rgba(61,155,255,.18)'); g.addColorStop(1, 'rgba(3,10,31,0)'); x.fillStyle = g; x.fillRect(0, hy - 40, W, 100);
-    // парящие 3D-сферы с бликом
-    for (const o of ORBS) { const yy = (o.y * H + Math.sin(T * .4 + o.ph) * 30), xx = o.x * W + Math.cos(T * .25 + o.ph) * 40, r = o.r * (.6 + o.z * .7);
-      const rg = x.createRadialGradient(xx - r * .35, yy - r * .4, r * .1, xx, yy, r); rg.addColorStop(0, 'rgba(230,245,255,.55)'); rg.addColorStop(.35, 'rgba(90,170,255,.35)'); rg.addColorStop(1, 'rgba(20,60,200,0)');
-      x.fillStyle = rg; x.beginPath(); x.arc(xx, yy, r, 0, 7); x.fill(); }
-    // каркасные фигуры
-    const U = Math.min(W, H);
-    for (const sh of SH) { const a = T * sh.sp[0], b = T * sh.sp[1], gg = T * sh.sp[2], cx = sh.px * W, cy = sh.py * H + Math.sin(T * .5 + sh.px * 9) * 12, sc = sh.s * U;
-      const P = sh.V.map(v => { const [X, Y, Z] = rot(v, a, b, gg); const k = 3.2 / (3.2 + Z); return [cx + X * sc * k, cy + Y * sc * k, Z]; });
-      x.lineWidth = 1.2; x.shadowColor = `rgba(${sh.col},.9)`; x.shadowBlur = 8;
-      for (const [i, j] of sh.E) { const z = (P[i][2] + P[j][2]) / 2; x.strokeStyle = `rgba(${sh.col},${.25 + (1 - (z + 1.8) / 3.6) * .5})`; x.beginPath(); x.moveTo(P[i][0], P[i][1]); x.lineTo(P[j][0], P[j][1]); x.stroke(); }
-      x.shadowBlur = 0; for (const p of P) { x.fillStyle = `rgba(${sh.col},.9)`; x.beginPath(); x.arc(p[0], p[1], 1.6, 0, 7); x.fill(); } }
-  };
-  requestAnimationFrame(frame);
-})();
 </script>
 </body>
 </html>
