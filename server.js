@@ -539,7 +539,7 @@ async function handle(req, res) {
   if (ownerOnly && !isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
   if (req.method !== 'GET' && p.startsWith('/api/admin/')) MEMO.clear(); // изменили настройки/данные — отчёты пересчитать
   // тяжёлые отчёты: повторное открытие страницы — мгновенно из памяти (45 с)
-  if (req.method === 'GET' && /^\/api\/admin\/(overview|calls|calls\/list|calls\/minutes|funnel|sources|activity|fromadmin|wz\/leads|wz\/speed|eff|touches|sales|tv\/today|callai\/summary)$/.test(p)) {
+  if (req.method === 'GET' && /^\/api\/admin\/(profile\/\w+|overview|calls|calls\/list|calls\/minutes|funnel|sources|activity|fromadmin|wz\/leads|wz\/speed|eff|touches|sales|tv\/today|callai\/summary)$/.test(p)) {
     const key = (user.id || user.login || '') + '|' + p + url.search, h = MEMO.get(key);
     if (h && Date.now() - h.t < 45e3) return send(res, 200, h.v);
     const end = res.end.bind(res), wh_ = res.writeHead.bind(res); let code = 200;
@@ -780,6 +780,10 @@ async function handle(req, res) {
     const q = url.searchParams, today = C.todayKey(cfg.settings.tz);
     const f = { from: q.get('from') || C.monthRange(today).from, to: q.get('to') || today, sector: q.get('sector') || '', uid: q.get('uid') || '', stageNames: stageNames() };
     return send(res, 200, p === '/api/admin/eff' ? EF.efficiency(ctx(), scope, f, cfg) : EF.touches(ctx(), scope, f, cfg));
+  }
+  if ((m = p.match(/^\/api\/admin\/profile\/(\w+)$/))) {
+    const c = ctx(); if (!AN.allowedUids(c, scope, {}).has(m[1])) return send(res, 403, { error: 'Нет доступа к этому менеджеру' });
+    try { return send(res, 200, require('./lib/profile').profile(c, scope, m[1], cfg, bx.portal())); } catch (e) { return send(res, 500, { error: e.message }); }
   }
   if ((m = p.match(/^\/api\/admin\/eff\/card\/(\w+)$/))) {
     const c = ctx();

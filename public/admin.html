@@ -325,6 +325,24 @@ body{background:#EEF0F7}
 .sbc{border:0;background:var(--card,#fff);box-shadow:inset 0 0 0 1px var(--line);border-radius:999px;padding:7px 14px;font:600 13px Inter,system-ui,sans-serif;color:inherit;cursor:pointer;display:inline-flex;gap:7px;align-items:center}
 .sbc i{width:9px;height:9px;border-radius:50%}.sbc:hover{box-shadow:inset 0 0 0 1px #4B4FE8}.sbc.on{background:#4B4FE8;color:#fff;box-shadow:none}
 .aipick{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.aipick .hint{flex:1;min-width:200px}.aipick select{width:260px}
+
+/* ===== Профиль ===== */
+.plink{cursor:pointer}.plink:hover b,.plink:hover>div{color:#4B4FE8;text-decoration:underline;text-underline-offset:3px}b.plink:hover{color:#4B4FE8;text-decoration:underline}
+.ovl .pane.wide{width:min(1060px,100%)}
+.pfh{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}.pfh .av{width:64px;height:64px;font-size:22px}.pfh h2{margin:0}.pfh p{margin:4px 0 8px;color:var(--muted)}
+.pfch{display:flex;gap:8px;flex-wrap:wrap}.pfch span{background:#F1F3FF;color:#3730A3;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600}
+.pfk{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 18px}.pfk>div{background:#F7F8FC;border-radius:14px;padding:12px 14px}.pfk small{display:block;font-size:11.5px;color:var(--muted);font-weight:600}
+.pfk b{display:block;font-size:22px;font-weight:800;margin:4px 0 2px}.pfk span{font-size:12px;color:var(--muted)}.pfk.sm b{font-size:19px}
+.pfbars{display:flex;gap:3px;align-items:flex-end;height:120px;margin:6px 0 18px}.pfbars>div{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
+.pfbars b{width:100%;background:linear-gradient(180deg,#6D70F5,#4B4FE8);border-radius:5px 5px 2px 2px;min-height:2px}.pfbars span{font-size:10px;color:var(--muted)}.pfbars.sm{height:80px;margin-bottom:4px}.pfbars.sm b{background:#22C55E}
+.pf2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:10px}.pf2 h4{margin:14px 0 6px;font-size:13.5px}
+.pft{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px}.pft td,.pft th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}.pft td:first-child,.pft th:first-child{text-align:left;color:var(--muted)}
+.pfl{margin:4px 0 12px;padding-left:20px;line-height:1.55;font-size:13.5px}
+.pfr{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px}.pfr small{color:var(--muted)}
+.pfact{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}.pfa{display:grid;grid-template-columns:90px minmax(200px,1fr) auto;gap:12px;align-items:center;font-size:12.5px}
+.pfa .dd{color:var(--muted);text-transform:capitalize}.pfa .mm{color:var(--muted)}.acnone2{color:var(--muted);grid-column:2/4}
+.pfs{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+@media (max-width:900px){.pf2,.pfk{grid-template-columns:1fr 1fr}.pf2{grid-template-columns:1fr}}
 /* ===== Активность ===== */
 .acgrp{margin:14px 0 4px;padding:6px 6px 4px;font-weight:800;font-size:14px;border-bottom:2px solid var(--line)}.acgrp span{font-weight:500;color:var(--muted);font-size:12.5px;margin-left:8px}
 .rop{font-style:normal;font-size:10.5px;font-weight:800;background:#4B4FE8;color:#fff;border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:1px}
@@ -731,6 +749,54 @@ pages.fromAdmin = async () => {
   document.querySelectorAll('[data-fa]').forEach(b => b.onclick = () => { [FA.from, FA.to] = b.dataset.fa.split('|'); pages.fromAdmin(); });
 };
 
+
+/* ===== Профиль менеджера (по клику на имя) ===== */
+document.addEventListener('click', e => { const t = e.target.closest('[data-prof]'); if (!t || !t.dataset.prof) return; e.stopPropagation(); e.preventDefault(); openProfile(t.dataset.prof); }, true);
+async function openProfile(uid) {
+  document.querySelectorAll('.ovl.prof').forEach(x => x.remove());
+  const o = document.createElement('div'); o.className = 'ovl prof'; o.innerHTML = '<div class="pane wide"><div class="empty">Собираем профиль…</div></div>';
+  o.onclick = e => { if (e.target === o) o.remove(); }; document.body.appendChild(o); window.addEventListener('hashchange', () => o.remove(), { once: true });
+  const P = o.querySelector('.pane');
+  let d; try { d = await api('/api/admin/profile/' + encodeURIComponent(uid)); } catch (e) { P.innerHTML = `<div class="warn">${esc(e.message)}</div>`; return; }
+  const S_ = d.sales, Cm = d.calls.month, Ct = d.calls.today, Rv = d.reviews, Dl = d.deals;
+  const mx = Math.max(1, ...S_.days.map(x => x.sum)), mxc = Math.max(1, ...d.calls.perDay.map(x => x.talkMin));
+  const fdd = k => new Date(k + 'T12:00:00Z').toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+  const wd = k => new Date(k + 'T12:00:00Z').toLocaleDateString('ru-RU', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+  const sc = v => v == null ? '—' : `<span class="sc ${scCls(v)}">${v}</span>`;
+  const sem = { S: '✅', F: '❌', P: '🟡' };
+  P.innerHTML = `
+    <div class="pfh">${av(d.name, uPhoto(d.uid))}<div style="flex:1"><h2>${esc(d.name)}${d.rop ? ' <em class="rop">РОП</em>' : ''}</h2><p>${esc(d.sector || 'без сектора')}${d.position ? ' · ' + esc(d.position) : ''}</p>
+      <div class="pfch">${S_.rank ? `<span>🏆 ${S_.rank} место из ${S_.of} в компании</span>` : ''}${S_.secRank ? `<span>📍 ${S_.secRank} из ${S_.secOf} в секторе</span>` : ''}${d.eff && d.eff.index != null ? `<span>⚡ индекс эффективности ${d.eff.index}/100</span>` : ''}</div></div>
+      <button class="x" id="pfX" style="font-size:22px">×</button></div>
+    <div class="pfk">
+      <div><small>Касса за месяц</small><b>${money(S_.sum)}</b><span>${S_.cnt} заказов · ср. чек ${money(S_.avg)}</span></div>
+      <div><small>Сегодня</small><b>${money(S_.daySum)}</b><span>${S_.dayCnt} заказов</span></div>
+      <div><small>Звонки за месяц</small><b>${Cm.all}</b><span>${Cm.talks} разговоров · ${Cm.talkMin} мин</span></div>
+      <div><small>Оценка разговоров</small><b>${Rv.avg == null ? '—' : Rv.avg + '/100'}</b><span>${Rv.n} оценено</span></div></div>
+    <h3>Касса по дням</h3><div class="pfbars">${S_.days.map(x => `<div title="${fdd(x.d)} · ${money(x.sum)} · ${x.cnt} зак."><b style="height:${Math.round(x.sum / mx * 100)}%"></b><span>${+x.d.slice(8)}</span></div>`).join('')}</div>
+    <div class="pf2">
+      <div><h3>📞 Звонки</h3>
+        <table class="pft"><tr><th></th><th>Сегодня</th><th>Месяц</th></tr>
+          <tr><td>Всего звонков</td><td>${Ct.all}</td><td>${Cm.all}</td></tr><tr><td>Исходящих</td><td>${Ct.out}</td><td>${Cm.out}</td></tr>
+          <tr><td>Разговоров</td><td>${Ct.talks}</td><td>${Cm.talks}</td></tr><tr><td>Минут разговора</td><td>${Ct.talkMin}</td><td>${Cm.talkMin}</td></tr>
+          <tr><td>Средний разговор</td><td>${dur(Ct.avgSec)}</td><td>${dur(Cm.avgSec)}</td></tr><tr><td>Длинных (3+ мин)</td><td>${Ct.long}</td><td>${Cm.long}</td></tr></table>
+        <div class="pfbars sm">${d.calls.perDay.map(x => `<div title="${fdd(x.d)} · ${x.calls} звонков · ${x.talkMin} мин"><b style="height:${Math.round(x.talkMin / mxc * 100)}%"></b><span>${+x.d.slice(8)}</span></div>`).join('')}</div><p class="hint">минуты разговора по дням</p></div>
+      <div><h3>🎧 Оценка разговоров</h3>${Rv.n ? `
+        ${Rv.criteria.map(c => `<div class="cr"><div style="font-size:13px">${esc(c.name)}</div><div class="bar"><i style="width:${c.avg * 10}%"></i></div><b class="num">${c.avg}</b></div>`).join('')}
+        ${Rv.mistakes.length ? `<h4>Частые ошибки</h4><ul class="pfl">${Rv.mistakes.map(m => `<li>${esc(m.t)} <span class="hint">×${m.n}</span></li>`).join('')}</ul>` : ''}
+        <h4>Последние оценки</h4>${Rv.last.map(x => `<div class="pfr" data-rv="${esc(x.id)}">${sc(x.score)}<div><small>${esc(String(x.at).slice(0, 16).replace('T', ' '))}</small><div>${esc(x.summary || '')}</div></div></div>`).join('')}`
+        : '<p class="hint">Оценённых разговоров пока нет — они появятся, когда включится автоматическая ИИ-оценка.</p>'}</div></div>
+    <h3>⏱ Активность за 7 дней</h3>
+    <div class="pfact">${d.activity.map(a => `<div class="pfa"><span class="dd">${wd(a.d)}</span>${a.none ? '<span class="acnone2">нет касаний</span>' : `<div class="acs">${(a.slots || []).map((v, i) => v ? `<i class="sl" style="left:${i / a.slots.length * 100}%;width:${100 / a.slots.length}%;opacity:${Math.min(1, .35 + v / 6).toFixed(2)}"></i>` : '').join('')}</div>
+      <span class="mm">${hm(a.start)}–${hm(a.end)} · активно ${hmd(a.active)} · перерывы ${a.breaks} (${hmd(a.brkMin)}) · <b class="${a.pct >= 75 ? 'gt' : a.pct >= 55 ? 'yt' : 'rt'}">${a.pct}%</b></span>`}</div>`).join('')}</div>
+    <div class="pf2">
+      <div><h3>📂 Сделки</h3><div class="pfk sm"><div><small>Открытых сейчас</small><b>${Dl.open}</b></div><div><small>Новых за месяц</small><b>${Dl.monthNew}</b></div><div><small>Успешных</small><b class="gt">${Dl.monthWon}</b></div><div><small>Провал</small><b class="rt">${Dl.monthLost}</b></div></div>
+        ${Dl.stages.map(([k, n]) => `<div class="pfs"><span>${esc(k)}</span><b>${n}</b></div>`).join('')}</div>
+      <div><h3>Последние сделки</h3>${Dl.last.map(x => `<div class="pfs"><span>${sem[x.sem] || ''} ${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">#${x.id}</a>` : '#' + x.id} ${esc(x.t)}</span><span class="hint">${esc(x.stage)}</span></div>`).join('') || '<p class="hint">—</p>'}</div></div>
+    ${d.eff && (d.eff.weak || []).length ? `<h3>⚠️ Слабые места</h3><ul class="pfl">${d.eff.weak.map(w => `<li>${esc(typeof w === 'string' ? w : (w.label || w.name || JSON.stringify(w)))}</li>`).join('')}</ul>` : ''}`;
+  $('#pfX').onclick = () => o.remove();
+  P.querySelectorAll('[data-rv]').forEach(x => x.onclick = () => openReview(x.dataset.rv));
+}
 /* ===== Активность менеджеров ===== */
 const AC = { day: '', gap: 20, sector: '', open: '' };
 const hm = m => Math.floor(m / 60) + ':' + String(Math.round(m % 60)).padStart(2, '0');
@@ -763,8 +829,8 @@ pages.activity = async () => {
     <div class="card"><div class="chd"><div><h3>Шкала дня по каждому менеджеру</h3><p class="hint">зелёный — работает (чем темнее, тем больше касаний) · красная штриховка — перерыв ≥ ${R.gap} мин · нажмите на строку — список перерывов</p></div></div>
       <div class="actl"><div class="acrow ach"><div class="acn">Менеджер</div><div class="acs acsc">${ticks.join('')}</div><div class="acm">Активно</div><div class="acm">Перерывы</div><div class="acm">%</div><div class="acm w">Звонки · разг. · WA</div></div>
       ${R.rows.map((r, i) => `${!F.sector && (i === 0 || R.rows[i - 1].sector !== r.sector) ? `<div class="acgrp">${esc(r.sector || 'Без сектора')} <span>${R.rows.filter(x => x.sector === r.sector && !x.none).length} из ${R.rows.filter(x => x.sector === r.sector).length} в работе</span></div>` : ''}
-      ${r.none ? `<div class="acrow none"><div class="acn">${av(r.name, uPhoto(r.uid))}<div><b>${esc(r.name)}${r.rop ? ' <em class="rop">РОП</em>' : ''}</b><small>${esc(r.sector)}</small></div></div><div class="acs"><span class="acnone">нет звонков и сообщений за день</span></div><div class="acm">—</div><div class="acm">—</div><div class="acm">—</div><div class="acm w">0 · 0 · 0</div></div>` : `<div class="acrow ${AC.open === r.uid ? 'op' : ''} ${r.rop ? 'isrop' : ''}" data-acu="${esc(r.uid)}">
-        <div class="acn">${av(r.name, uPhoto(r.uid))}<div><b>${esc(r.name)}${r.rop ? ' <em class="rop">РОП</em>' : ''}</b><small>${esc(r.sector)} · ${hm(r.start)}–${hm(r.end)}</small></div></div>
+      ${r.none ? `<div class="acrow none"><div class="acn plink" data-prof="${esc(r.uid)}">${av(r.name, uPhoto(r.uid))}<div><b>${esc(r.name)}${r.rop ? ' <em class="rop">РОП</em>' : ''}</b><small>${esc(r.sector)}</small></div></div><div class="acs"><span class="acnone">нет звонков и сообщений за день</span></div><div class="acm">—</div><div class="acm">—</div><div class="acm">—</div><div class="acm w">0 · 0 · 0</div></div>` : `<div class="acrow ${AC.open === r.uid ? 'op' : ''} ${r.rop ? 'isrop' : ''}" data-acu="${esc(r.uid)}">
+        <div class="acn plink" data-prof="${esc(r.uid)}">${av(r.name, uPhoto(r.uid))}<div><b>${esc(r.name)}${r.rop ? ' <em class="rop">РОП</em>' : ''}</b><small>${esc(r.sector)} · ${hm(r.start)}–${hm(r.end)}</small></div></div>
         <div class="acs">${r.slots.map((v, i) => v ? `<i class="sl" style="left:${i / r.slots.length * 100}%;width:${100 / r.slots.length}%;opacity:${(.3 + .7 * v / mxS).toFixed(2)}"></i>` : '').join('')}
           ${r.breaks.map(b => `<i class="br" style="left:${X(b.from)}%;width:${X(b.to) - X(b.from)}%" title="Перерыв ${hm(b.from)}–${hm(b.to)} · ${hmd(b.min)}"></i>`).join('')}
           <i class="se" style="left:${X(r.start)}%;width:${X(r.end) - X(r.start)}%"></i></div>
@@ -875,7 +941,7 @@ async function tvToday() {
   let R; try { R = await api('/api/admin/tv/today'); } catch (e) { box.querySelector('.empty').textContent = 'Ошибка: ' + e.message; return; }
   const tm = t => t ? new Date(t).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Almaty' }) : '';
   box.innerHTML = `<div class="chd"><div><h3>🛒 Заказы сегодня</h3><p>${R.rows.length} заказ(ов) · ${money(R.rows.reduce((a, r) => a + (r.sum || 0), 0))} · пропустили на ТВ — нажмите ▶</p></div></div><div class="tvlist">
-    ${R.rows.length ? R.rows.map(r => `<div class="lr">${av(r.name, uPhoto(r.uid))}<div class="n"><b>${esc(r.name)}</b><small>${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.id}</a>` : '#' + r.id} · ${esc(r.title || '')}${r.shownAt ? ' · на табло в ' + tm(r.shownAt) : ''}${r.replayed ? ' · повтор в ' + tm(r.replayed) : ''}</small></div>
+    ${R.rows.length ? R.rows.map(r => `<div class="lr">${av(r.name, uPhoto(r.uid))}<div class="n"><b class="plink" data-prof="${esc(r.uid)}">${esc(r.name)}</b><small>${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">#${r.id}</a>` : '#' + r.id} · ${esc(r.title || '')}${r.shownAt ? ' · на табло в ' + tm(r.shownAt) : ''}${r.replayed ? ' · повтор в ' + tm(r.replayed) : ''}</small></div>
       <div class="v">${money(r.sum)}</div><button class="btn s" data-replay="${r.id}" title="Показать этот заказ на ТВ ещё раз (с музыкой)" style="margin-left:10px;white-space:nowrap">▶ На экран</button></div>`).join('') : '<div class="empty">Сегодня заказов ещё нет</div>'}</div>`;
   box.querySelectorAll('[data-replay]').forEach(b => b.onclick = async () => {
     b.disabled = true; b.textContent = '✓ На ТВ…';
@@ -1445,7 +1511,7 @@ async function loadRecs() {
   box.className = '';
   box.innerHTML = `<p class="hint" style="margin:0 0 10px">${REC.all ? 'Звонков' : 'Звонков с записью'} за период: <b>${R.total}</b>${R.total > R.rows.length ? ` · показаны последние ${R.rows.length}` : ''}. Запись загружается из Bitrix24 при нажатии ▶.</p>
     <div class="tw"><table><thead><tr><th>Время</th><th>Менеджер</th><th>Номер</th><th>Тип</th><th class="r">Длит.</th><th>AI</th><th style="min-width:320px">Запись</th></tr></thead><tbody>
-    ${R.rows.map(c => `<tr><td class="num">${esc(String(c.at).slice(0, 16).replace('T', ' '))}</td><td><div class="who">${av(c.name, uPhoto(c.uid))}<div>${esc(c.name)}<small>${esc(c.sector)}</small></div></div></td>
+    ${R.rows.map(c => `<tr><td class="num">${esc(String(c.at).slice(0, 16).replace('T', ' '))}</td><td><div class="who plink" data-prof="${esc(c.uid)}">${av(c.name, uPhoto(c.uid))}<div>${esc(c.name)}<small>${esc(c.sector)}</small></div></div></td>
       <td class="num">${esc(c.phone)}</td><td>${c.dir === 'out' ? '↗ исходящий' : c.dir === 'in' ? '↙ входящий' : '—'}${c.ok ? '' : ' <span class="pill no">не состоялся</span>'}</td><td class="r num">${dur(c.dur)}</td>
       <td>${c.ai && c.ai.pending ? `<button class="sc n" data-air="${esc(c.id)}" title="Есть расшифровка, оценка ещё не готова">📝</button>` : c.ai ? (c.ai.skip ? '<span class="sc n" title="Слишком короткий разговор">—</span>' : `<button class="sc ${scCls(c.ai.score)}" data-air="${esc(c.id)}">${c.ai.score}</button>`) : '<span class="hint">—</span>'}</td>
       <td data-rc="${esc(c.id)}">${c.rec ? `<button class="btn l s" data-play="${esc(c.id)}">▶ Слушать</button> <a class="btn l s" href="/api/admin/call-rec/${encodeURIComponent(c.id)}?dl=1">⬇</a>` : '<span style="color:var(--muted)">нет записи</span>'}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">Нет звонков с записью за период</td></tr>'}
