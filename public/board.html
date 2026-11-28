@@ -925,7 +925,7 @@ function render0() {
         <div class="slst ${SEC.length > (PT ? 2 : 3) ? 'many' : ''}" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
 </div>
       <div class="col cd"><div class="ch"><span class="ci">${ICO.day}</span><b>Топ-${N} сегодня</b><span>касса за день</span></div>
-        <div class="lst" id="l2">${podium(TOPD)}${TOPD.slice(3).map((r, i) => mgrRow(r, i + 3, true, TOPD[0].daySum)).join('')}${TOPD.length ? '' : '<div class="lpcap"><b>Leader Podium</b><span>Первый, кто продаст, займёт 1-е место</span></div>'}</div></div>
+        <div class="lst" id="l2">${podium(TOPD)}${TOPD.slice(3).map((r, i) => mgrRow(r, i + 3, true, TOPD[0].daySum)).join('')}</div></div>
       <div class="col cp"><div class="ch"><span class="ci">${ICO.per}</span><b>Топ-${N} месяца</b><span>${MONTHS[+MON.from.slice(5, 7) - 1]}</span></div>
         <div class="lst" id="l3">${TOPP.length ? TOPP.map((r, i) => mgrRow(r, i, false, TOPP[0].sum)).join('') : '<div class="li none">Пока нет продаж за месяц</div>'}</div></div>
     </div>
