@@ -327,6 +327,22 @@ body{background:#EEF0F7}
 .aipick{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.aipick .hint{flex:1;min-width:200px}.aipick select{width:260px}
 
 
+
+/* ===== Главная: адаптив ===== */
+@media (max-width:1000px){
+  .secbar{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}.secbar .sbc{flex:none}
+  .lbhd{margin-bottom:10px}.hm{gap:14px;margin-bottom:14px}.hg3{gap:14px;margin-bottom:14px}.k4{gap:12px}
+  .card{padding:16px}.pp{grid-template-columns:1fr}
+  .kc2 .vl b{font-size:26px}
+}
+@media (max-width:640px){
+  .k4{grid-template-columns:1fr 1fr}.kc2{padding:14px}.kc2 .vl{flex-direction:column;align-items:flex-start;gap:4px}.kc2 .vl b{font-size:21px}.kc2 .vl span{font-size:11px}
+  .rad{flex-direction:column}.rad svg{max-width:200px;margin:0 auto}
+  .gb{height:180px}.pps{grid-template-columns:minmax(90px,1.2fr) 1fr 34px 48px;font-size:12px}
+  .tw table th:nth-child(5),.tw table td:nth-child(5){display:none}
+  .lr{gap:8px}.lr .n small{font-size:11px}
+}
+@media (max-width:420px){.k4{grid-template-columns:1fr}}
 /* ===== Воронки сейчас ===== */
 .pp{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
 .ppc{background:#F7F8FC;border-radius:14px;padding:12px 14px}.ppc.lg{background:#FFF7E6;box-shadow:inset 0 0 0 1.5px #F59E0B}
@@ -884,7 +900,7 @@ pages.home = async () => {
   const POS = [[70, 18], [8, 8], [12, 88], [96, 104]], BC = ['#4B4FE8', '#7C80F3', '#5D61EE', '#9A9DF7'];
   const bubbles = SRC.map((x, k) => { const d = Math.round(56 + 70 * Math.sqrt(x.orders / mxs)); const [l, t] = POS[k]; return `<div style="left:${l}px;top:${t}px;width:${d}px;height:${d}px;background:${BC[k]};z-index:${4 - k}" title="${esc(srcName(x.source))}">${x.orders}</div>`; }).join('');
   const AL = [];
-  const al = (cls, n, text, sub, href) => AL.push(`<a class="al ${cls}" href="${href}"><b class="num">${n}</b><div>${text}<small>${sub}</small></div></a>`);
+  const al = (cls, n, text, sub, href) => AL.push(`<div class="al ${cls}"><b class="num">${n}</b><div>${text}<small>${sub}</small></div></div>`);
   if (A.forgotten) al('r', A.forgotten, 'Забытые клиенты', `открытые сделки без касания ${A.forgetDays}+ дней`, '#/team/touch');
   if (A.zero) al('y', A.zero, 'Новые сделки без звонка', `из ${A.deals} за месяц`, '#/team/touch');
   if (A.lostLow) al('y', A.lostLow, 'Отказ после ≤1 разговора', `из ${A.lost} — клиентов отпускают рано`, '#/team/touch');
@@ -910,10 +926,10 @@ pages.home = async () => {
         ${kc('', I('<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>'), 'Прогноз на конец месяца', short2(T.forecast), T.plan ? `план ${short2(T.plan)}<br>осталось ${P.daysLeft} раб. дн.` : `осталось ${P.daysLeft} раб. дн.`, T.plan ? `<span class="bdg ${fPct >= 100 ? 'up' : 'dn'}">${Math.round(fPct)}% плана</span>` : '')}
         ${kc('', ICO.cart, 'Продажи за месяц', T.cnt, `ср. чек ${money(T.avg)}${own && T.salary != null ? '<br>к выплате ' + short2(T.salary) : ''}`, bd(ch(T.cnt, K.prevCnt)))}
       </div>
-      <div class="card" style="margin:0"><div class="chd"><div><h3>Заказы и выкуп</h3><p>по дате заказа, по месяцам · наведите на столбец</p></div><a href="#/sales/funnel">Воронка →</a></div>
+      <div class="card" style="margin:0"><div class="chd"><div><h3>Заказы и выкуп</h3><p>по дате заказа, по месяцам · наведите на столбец</p></div></div>
         <div class="lgd"><span><i style="background:#DADCE6"></i>Заказы</span><span><i style="background:var(--blue)"></i>Выкуп</span></div>${bars}</div>
     </div><div>
-      <div class="card" style="margin:0"><div class="chd"><div><h3>Секторы</h3><p>выполнение плана за ${monName}</p></div><a href="#/team/eff">Команда →</a></div>
+      <div class="card" style="margin:0"><div class="chd"><div><h3>Секторы</h3><p>выполнение плана за ${monName}</p></div></div>
         <div class="rad">${rings}<div class="rc"><b class="num">${mPct == null ? '—' : Math.round(mPct) + '%'}</b><span>плана компании<br>${short2(T.sum)} из ${short2(T.plan)}</span>${mPct == null ? '' : `<span class="bdg ${mPct >= pace ? 'up' : 'dn'}">${mPct >= pace ? 'в графике' : 'отстаём'} · норма ${Math.round(pace)}%</span>`}</div></div>
         ${secs.map((x, k) => { const p = pctOf(x.sum, x.plan); return `<div class="rl"><span class="sq"><i style="background:${COL[k]}"></i></span><b>${esc(x.name)}</b><span class="num">${short2(x.sum)}</span>${p == null ? '' : `<span class="bdg ${p >= pace ? 'up' : 'dn'}">${Math.round(p)}%</span>`}</div>`; }).join('') || '<div class="empty">Задайте план секторов в настройках</div>'}</div>
       <div class="card" style="margin:0"><div class="chd"><div><h3>Источники заказов</h3><p>${monName}, по количеству заказов</p></div></div>
@@ -921,9 +937,9 @@ pages.home = async () => {
     </div></div>
     ${pipesHtml}
     <div class="hg3">
-      <div class="card"><div class="chd"><div><h3>Требует внимания</h3><p>нажмите, чтобы открыть список</p></div></div>${AL.join('') || '<div class="empty">Всё в порядке 👍</div>'}</div>
-      <div class="card"><div class="chd"><div><h3>Лидеры месяца</h3><p>по кассе</p></div><a href="#/sales/list">Все продажи →</a></div>${R.leaders.map((r, k) => person(r, short2(r.sum), r.cnt + ' прод.', k + 1)).join('') || '<div class="empty">Нет продаж</div>'}</div>
-      <div class="card"><div class="chd"><div><h3>Эффективность команды</h3><p>средний индекс ${E && E.team != null ? E.team : '—'} из 100</p></div><a href="#/team/eff">Подробнее →</a></div>
+      <div class="card"><div class="chd"><div><h3>Требует внимания</h3><p>на что обратить внимание сегодня</p></div></div>${AL.join('') || '<div class="empty">Всё в порядке 👍</div>'}</div>
+      <div class="card"><div class="chd"><div><h3>Лидеры месяца</h3><p>по кассе</p></div></div>${R.leaders.map((r, k) => person(r, short2(r.sum), r.cnt + ' прод.', k + 1)).join('') || '<div class="empty">Нет продаж</div>'}</div>
+      <div class="card"><div class="chd"><div><h3>Эффективность команды</h3><p>средний индекс ${E && E.team != null ? E.team : '—'} из 100</p></div></div>
         ${E ? E.top.map(r => person(r, `<span class="sc ${scCls(r.index)}">${r.index}</span>`, 'лучший')).join('') + E.low.map(r => person(r, `<span class="sc ${scCls(r.index)}">${r.index}</span>`, GN[r.weak] || '')).join('') : '<div class="empty">Нет данных</div>'}</div>
     </div>
     ${mgHtml}
