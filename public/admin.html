@@ -326,6 +326,9 @@ body{background:#EEF0F7}
 .sbc i{width:9px;height:9px;border-radius:50%}.sbc:hover{box-shadow:inset 0 0 0 1px #4B4FE8}.sbc.on{background:#4B4FE8;color:#fff;box-shadow:none}
 .aipick{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.aipick .hint{flex:1;min-width:200px}.aipick select{width:260px}
 /* ===== Активность ===== */
+.acgrp{margin:14px 0 4px;padding:6px 6px 4px;font-weight:800;font-size:14px;border-bottom:2px solid var(--line)}.acgrp span{font-weight:500;color:var(--muted);font-size:12.5px;margin-left:8px}
+.rop{font-style:normal;font-size:10.5px;font-weight:800;background:#4B4FE8;color:#fff;border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:1px}
+.acrow.isrop{background:rgba(75,79,232,.05)}.acrow.none{opacity:.6;cursor:default}.acnone{position:absolute;inset:0;display:flex;align-items:center;padding-left:10px;font-size:12px;color:var(--muted)}
 .acbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .ackpi{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin:14px 0}
 .ackpi>div{background:var(--card,#fff);border-radius:16px;padding:14px 16px;box-shadow:0 1px 0 var(--line)}
@@ -748,7 +751,7 @@ pages.activity = async () => {
       <select class="in" id="acG" style="width:110px">${[10, 15, 20, 30, 45, 60].map(g => `<option value="${g}" ${g === R.gap ? 'selected' : ''}>${g} мин</option>`).join('')}</select>
 </div>
     <div class="ackpi">
-      <div><small>Менеджеров в работе</small><b>${T.people}</b></div>
+      <div><small>В работе сегодня</small><b>${T.people} <em style="font-size:13px;font-style:normal;color:var(--muted)">из ${T.total || T.people}</em></b></div>
       <div><small>Среднее активное время</small><b>${hmd(T.active)}</b></div>
       <div><small>Средние перерывы</small><b>${hmd(T.brk)}</b></div>
       <div><small>Средняя активность</small><b class="${pcCls(T.pct)}t">${T.pct}%</b></div>
@@ -759,15 +762,16 @@ pages.activity = async () => {
       <div class="achr">${R.hours.slice(8, 22).map((v, i) => `<div title="${8 + i}:00–${9 + i}:00 · ${v} касаний"><b style="height:${Math.round(v / mxH * 100)}%"><em>${v || ''}</em></b><span>${8 + i}</span></div>`).join('')}</div></div>
     <div class="card"><div class="chd"><div><h3>Шкала дня по каждому менеджеру</h3><p class="hint">зелёный — работает (чем темнее, тем больше касаний) · красная штриховка — перерыв ≥ ${R.gap} мин · нажмите на строку — список перерывов</p></div></div>
       <div class="actl"><div class="acrow ach"><div class="acn">Менеджер</div><div class="acs acsc">${ticks.join('')}</div><div class="acm">Активно</div><div class="acm">Перерывы</div><div class="acm">%</div><div class="acm w">Звонки · разг. · WA</div></div>
-      ${R.rows.map(r => `<div class="acrow ${AC.open === r.uid ? 'op' : ''}" data-acu="${esc(r.uid)}">
-        <div class="acn">${av(r.name, uPhoto(r.uid))}<div><b>${esc(r.name)}</b><small>${esc(r.sector)} · ${hm(r.start)}–${hm(r.end)}</small></div></div>
+      ${R.rows.map((r, i) => `${!F.sector && (i === 0 || R.rows[i - 1].sector !== r.sector) ? `<div class="acgrp">${esc(r.sector || 'Без сектора')} <span>${R.rows.filter(x => x.sector === r.sector && !x.none).length} из ${R.rows.filter(x => x.sector === r.sector).length} в работе</span></div>` : ''}
+      ${r.none ? `<div class="acrow none"><div class="acn">${av(r.name, uPhoto(r.uid))}<div><b>${esc(r.name)}${r.rop ? ' <em class="rop">РОП</em>' : ''}</b><small>${esc(r.sector)}</small></div></div><div class="acs"><span class="acnone">нет звонков и сообщений за день</span></div><div class="acm">—</div><div class="acm">—</div><div class="acm">—</div><div class="acm w">0 · 0 · 0</div></div>` : `<div class="acrow ${AC.open === r.uid ? 'op' : ''} ${r.rop ? 'isrop' : ''}" data-acu="${esc(r.uid)}">
+        <div class="acn">${av(r.name, uPhoto(r.uid))}<div><b>${esc(r.name)}${r.rop ? ' <em class="rop">РОП</em>' : ''}</b><small>${esc(r.sector)} · ${hm(r.start)}–${hm(r.end)}</small></div></div>
         <div class="acs">${r.slots.map((v, i) => v ? `<i class="sl" style="left:${i / r.slots.length * 100}%;width:${100 / r.slots.length}%;opacity:${(.3 + .7 * v / mxS).toFixed(2)}"></i>` : '').join('')}
           ${r.breaks.map(b => `<i class="br" style="left:${X(b.from)}%;width:${X(b.to) - X(b.from)}%" title="Перерыв ${hm(b.from)}–${hm(b.to)} · ${hmd(b.min)}"></i>`).join('')}
           <i class="se" style="left:${X(r.start)}%;width:${X(r.end) - X(r.start)}%"></i></div>
         <div class="acm"><b>${hmd(r.active)}</b></div><div class="acm">${r.breaks.length ? `<b>${r.breaks.length}</b> · ${hmd(r.brkMin)}` : '—'}</div>
         <div class="acm"><span class="acp ${pcCls(r.pct)}"><i style="width:${r.pct}%"></i></span><b>${r.pct}%</b></div>
         <div class="acm w">${r.calls} · ${r.talkMin} мин · ${r.wa}</div>
-        ${AC.open === r.uid ? `<div class="acx">${r.breaks.length ? r.breaks.map(b => `<span>☕ ${hm(b.from)}–${hm(b.to)} <b>${hmd(b.min)}</b></span>`).join('') : '<span>Перерывов нет</span>'}<span class="hint">самый длинный: ${hmd(r.longest)} · разговоров: ${r.talks}</span></div>` : ''}</div>`).join('') || '<div class="empty">За этот день касаний нет</div>'}</div></div>`;
+        ${AC.open === r.uid ? `<div class="acx">${r.breaks.length ? r.breaks.map(b => `<span>☕ ${hm(b.from)}–${hm(b.to)} <b>${hmd(b.min)}</b></span>`).join('') : '<span>Перерывов нет</span>'}<span class="hint">самый длинный: ${hmd(r.longest)} · разговоров: ${r.talks}</span></div>` : ''}</div>`}`).join('') || '<div class="empty">За этот день касаний нет</div>'}</div></div>`;
   const go = () => pages.activity();
   $('#acD').onchange = e => { AC.day = e.target.value; go(); };
   $('#acG').onchange = e => { AC.gap = +e.target.value; go(); };

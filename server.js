@@ -889,6 +889,7 @@ async function handle(req, res) {
     if (!isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
     const b = JSON.parse(await readBody(req, 1e3) || '{}'), id = String(b.uid || ''); if (!id) return send(res, 400, { error: 'uid' });
     cfg.managers[id] = { ...(cfg.managers[id] || {}), sector: b.sector ? String(b.sector) : undefined }; if (!b.sector) delete cfg.managers[id].sector;
+    if (b.rop != null) { if (b.rop) cfg.managers[id].rop = true; else delete cfg.managers[id].rop; }
     await store.set('config', cfg); MEMO.clear(); livePush('config'); return send(res, 200, { ok: true });
   }
   if (p === '/api/admin/users' && req.method === 'POST') {
