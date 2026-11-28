@@ -762,6 +762,7 @@ html.neo .pop .sm{color:#7CE0FF;font-weight:800;text-shadow:0 0 22px rgba(80,200
 html.neo .pop .tt{color:#CFE0FF}
 html.neo .pop .pl{background:rgba(124,196,255,.18);border:1px solid rgba(124,196,255,.45)}
 html.neo .pop .rays{opacity:.5;filter:hue-rotate(-20deg)}
+html.neo .tbtn.tsale{background:linear-gradient(160deg,#3D9BFF,#1A4FD0);color:#fff;box-shadow:0 0 18px rgba(61,155,255,.8);border:1px solid #7CC4FF}
 </style>
 </head>
 <body>
@@ -916,6 +917,7 @@ function render0() {
       ${T.plan ? `<div class="stat plan kb"><small>Касса за месяц · план ${short(T.plan)} ₸</small><b class="num">${CU('h-sum', T.sum)}</b>${bar(T.sum, T.plan)}</div>`
         : `<div class="stat kb"><small>${prOn ? 'Касса за месяц' : 'Касса за месяц · вся компания'}</small><b class="num">${CU('h-sum', T.sum)}</b></div>`}
       <span class="clock num" id="clock"></span>
+      ${D.board.screen.testBtn ? '<button class="tbtn tsale" id="tSale" title="Тестовый заказ: окно и звук только на этом экране">🔊<span>Тест<br>продажа</span></button>' : ''}
       
       
       
@@ -1155,6 +1157,13 @@ function fsEnter() { try { const f = fsEl.requestFullscreen || fsEl.webkitReques
 function fsToggle() { if (fsOn()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } else fsEnter(); }
 let fsAuto = true;
 document.addEventListener('click', e => { if (e.target.closest('#fsBtn')) { fsAuto = false; fsToggle(); } });
+// тест продажи (кнопка включается в настройках табло): берём случайного менеджера из топа, показываем окно и играем звук
+document.addEventListener('click', e => {
+  if (!e.target.closest('#tSale')) return;
+  try { unmuteKeep && unmuteKeep(); } catch {}
+  const L = (D && D.rows) || [], r = L[Math.floor(Math.random() * Math.min(10, L.length || 1))] || { name: 'Тестовый менеджер' };
+  popup({ test: true, uid: r.uid, name: r.name, photo: r.photo, dep: r.dep || r.sectorName || '', sum: [60000, 75000, 120000, 220000][Math.floor(Math.random() * 4)], title: 'Тестовый заказ', place: L.indexOf(r) + 1 || null, total: r.sum || 0 });
+});
 document.addEventListener('keydown', e => { if ((e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') && !e.ctrlKey && !e.metaKey) { fsAuto = false; fsToggle(); } });
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, e => { if (fsAuto && !(e.target.closest && e.target.closest('#fsBtn,.dlk,.dlm'))) { fsAuto = false; fsEnter(); } }, { passive: true }));
 document.addEventListener('fullscreenchange', () => { const b = document.getElementById('fsBtn'); if (b) b.style.display = fsOn() ? 'none' : ''; });

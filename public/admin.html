@@ -1035,6 +1035,7 @@ pages.board = (id, tab = 'main') => {
           .map(([k, n, d]) => `<label class="ck">${sw(`${K}.screen.cols.${k}`)} <span><b>${n}</b> <span style="color:var(--muted)">— ${d}</span></span></label>`).join('')}</div>
       <div class="card"><h3>Продажа на экране</h3>
         <label class="ck">${sw(K + '.screen.popup')} Показывать попап новой продажи (фото, сумма, конфетти)</label>
+        <label class="ck">${sw(K + '.screen.testBtn')} Кнопка «🔊 Тест продажа» на табло — проверить окно заказа и звук</label>
         <label class="ck">${sw(K + '.screen.overtake')} «ОБГОН!» — на весь экран, когда сектор обходит другой по кассе дня</label>
         <div class="promoed"><label class="ck">${sw(K + '.screen.promo.on')} 🎉 Праздничная шапка (акция) — шапка табло в цвете акции, с обратным отсчётом</label>
           <div class="row3"><label class="f"><span>Заголовок</span>${inp(K + '.screen.promo.title', 'KASPI ЖҰМА')}</label><label class="f"><span>Крупно</span>${inp(K + '.screen.promo.big', '0·0·24')}</label><label class="f"><span>Подпись</span>${inp(K + '.screen.promo.sub', '20–22 ҚАРАША')}</label></div>
