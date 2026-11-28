@@ -763,6 +763,22 @@ html.neo .pop .tt{color:#CFE0FF}
 html.neo .pop .pl{background:rgba(124,196,255,.18);border:1px solid rgba(124,196,255,.45)}
 html.neo .pop .rays{opacity:.5;filter:hue-rotate(-20deg)}
 html.neo .tbtn.tsale{background:linear-gradient(160deg,#3D9BFF,#1A4FD0);color:#fff;box-shadow:0 0 18px rgba(61,155,255,.8);border:1px solid #7CC4FF}
+
+/* ===== скорость NEO на ТВ ===== */
+/* размытие фона (backdrop-filter) поверх анимированного фона — самое тяжёлое для слабых ТВ: убираем, панели делаем плотнее */
+html.neo *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html.neo .col,html.neo .col.cd,html.neo .col.cp{background:linear-gradient(170deg,rgba(16,36,100,.86),rgba(6,18,55,.88))}
+html.neo .stat,html.neo .stat.kp,html.neo .stat.kb,html.neo .clock{background:linear-gradient(160deg,rgba(36,74,170,.9),rgba(12,30,85,.92))}
+html.neo #neoGlobe{animation:none}
+#neoWave .w1,#neoWave .w2{filter:none;animation-duration:24s}
+#neoWave .w2{animation-duration:32s}
+html.neo .pdbeam{filter:none;will-change:opacity}
+html.neo .slst.many .scd+.scd::before{will-change:transform}
+@keyframes orb{50%{transform:scale(1.12) rotate(180deg)}}
+/* облегчённый режим: включается сам, если ТВ не тянет анимацию (или ?lite=1) */
+html.lite #neoBg,html.lite #neoWave,html.lite #neoGlobe{display:none!important}
+html.lite .slst.many .scd+.scd::before,html.lite .pdbeam,html.lite .pdav,html.lite .li.first::after{animation:none!important}
+html.lite .li,html.lite .scd,html.lite .col{box-shadow:none!important}
 </style>
 </head>
 <body>
@@ -1294,13 +1310,20 @@ load();
 <script>
 // фон NEO: лёгкая «сеть» светящихся частиц (мало точек, 30 fps — не грузит ТВ)
 (() => { const c = document.getElementById('neoBg'); if (!c) return; const x = c.getContext('2d'); let W, H, P = [];
-  const fit = () => { W = c.width = innerWidth; H = c.height = innerHeight; P = Array.from({ length: Math.round(W * H / 38000) }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .25, vy: (Math.random() - .5) * .25, r: Math.random() * 1.6 + .4 })); };
+  const fit = () => { W = c.width = innerWidth; H = c.height = innerHeight; P = Array.from({ length: Math.min(40, Math.round(W * H / 52000)) }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .25, vy: (Math.random() - .5) * .25, r: Math.random() * 1.6 + .4 })); };
   fit(); addEventListener('resize', fit); let last = 0;
-  const step = t => { requestAnimationFrame(step); if (!document.documentElement.classList.contains('neo') || t - last < 33) return; last = t; x.clearRect(0, 0, W, H);
+  const step = t => { requestAnimationFrame(step); const h = document.documentElement; if (!h.classList.contains('neo') || h.classList.contains('lite') || document.hidden || t - last < 42) return; last = t; x.clearRect(0, 0, W, H);
     for (const p of P) { p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1; }
     x.lineWidth = .6; for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) { const a = P[i], b = P[j], d = Math.hypot(a.x - b.x, a.y - b.y); if (d < 120) { x.strokeStyle = `rgba(90,170,255,${(1 - d / 120) * .22})`; x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); x.stroke(); } }
     for (const p of P) { x.fillStyle = 'rgba(150,210,255,.8)'; x.beginPath(); x.arc(p.x, p.y, p.r, 0, 7); x.fill(); } };
   requestAnimationFrame(step); })();
+</script>
+
+<script>
+// авто-облегчение: первые 6 секунд меряем плавность; если меньше ~35 кадров/с — выключаем фоновые эффекты
+(() => { const h = document.documentElement; if (/[?&]lite=1/.test(location.search)) { h.classList.add('lite'); return; } if (/[?&]lite=0/.test(location.search)) return;
+  let n = 0, t0 = 0; const f = t => { if (!t0) t0 = t; n++; if (t - t0 < 6000) return requestAnimationFrame(f); const fps = n / ((t - t0) / 1000); if (fps < 35 && !document.hidden) { h.classList.add('lite'); console.log('lite mode, fps', fps.toFixed(1)); } };
+  setTimeout(() => requestAnimationFrame(f), 4000); })();
 </script>
 </body>
 </html>
