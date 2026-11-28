@@ -911,6 +911,7 @@ async function handle(req, res) {
     try {
       // запись из нашей копии в Supabase, иначе скачиваем из Bitrix24 (с повторами) и сохраняем
       const a = await recs.get(c.id), total = a.buf.length;
+      if (url.searchParams.has('prep')) return send(res, 200, { ok: true, size: total }); // только подготовить (скачать к себе)
       const h = { 'Content-Type': a.type, 'Cache-Control': 'private, max-age=86400', 'Accept-Ranges': 'bytes' };
       if (url.searchParams.has('dl')) h['Content-Disposition'] = `attachment; filename="call_${c.id.replace(/[^\w.-]/g, '')}.mp3"`;
       const rg = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
