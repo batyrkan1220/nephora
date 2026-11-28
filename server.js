@@ -884,6 +884,13 @@ async function handle(req, res) {
       res.writeHead(200, { ...h, 'Content-Length': total }); return res.end(a.buf);
     } catch (e) { return send(res, 502, { error: e.message }); }
   }
+  // владелец: вручную перенести человека в сектор (если в Bitrix24 он числится в другом отделе)
+  if (p === '/api/admin/managers/sector' && req.method === 'POST') {
+    if (!isOwner) return send(res, 403, { error: 'Доступно только владельцу' });
+    const b = JSON.parse(await readBody(req, 1e3) || '{}'), id = String(b.uid || ''); if (!id) return send(res, 400, { error: 'uid' });
+    cfg.managers[id] = { ...(cfg.managers[id] || {}), sector: b.sector ? String(b.sector) : undefined }; if (!b.sector) delete cfg.managers[id].sector;
+    await store.set('config', cfg); MEMO.clear(); livePush('config'); return send(res, 200, { ok: true });
+  }
   if (p === '/api/admin/users' && req.method === 'POST') {
     try { return send(res, 200, { ok: true, user: await auth.saveUser(JSON.parse(await readBody(req, 1e5))) }); }
     catch (e) { return send(res, 400, { error: e.message }); }
