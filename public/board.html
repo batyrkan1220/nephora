@@ -746,6 +746,22 @@ html.neo .medal{filter:drop-shadow(0 0 6px rgba(255,210,90,.6))}
 html.neo .pdst{position:relative;border-radius:0 0 .5em .5em;background:linear-gradient(90deg,#1532A8,#3D7BFF 45%,#5FA0FF 55%,#1532A8)}
 html.neo .pdst::before{content:"";position:absolute;left:0;right:0;top:-.55em;height:1.1em;border-radius:50%;background:radial-gradient(ellipse at 50% 40%,#BFE0FF,#4D8BFF 55%,#1F48C8);box-shadow:0 0 18px rgba(120,190,255,.9)}
 html.neo .pdst i{position:relative;top:.2em}
+
+/* NEO: окно нового заказа в неоновом стиле */
+html.neo .pop{background:radial-gradient(circle at 50% 45%,rgba(20,60,170,.55),rgba(2,8,28,.82));backdrop-filter:blur(8px)}
+html.neo .pop .card{background:linear-gradient(160deg,rgba(32,78,200,.92),rgba(10,28,92,.95));border:1.5px solid #7CC4FF;
+  box-shadow:0 0 0 1px rgba(120,190,255,.25) inset,0 0 60px rgba(61,155,255,.75),0 40px 90px -30px rgba(0,0,0,.9)}
+html.neo .pop .card::before{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent,rgba(124,196,255,.35),transparent 30%);animation:neospin 4s linear infinite;pointer-events:none}
+html.neo .pop .card>*{position:relative}
+@keyframes neospin{to{transform:rotate(360deg)}}
+html.neo .pop .psec,html.neo .pop .tag{background:linear-gradient(90deg,#3D9BFF,#7CD4FF);color:#04133D;box-shadow:0 0 20px rgba(61,155,255,.8)}
+html.neo .pop .av{box-shadow:0 0 0 5px rgba(124,196,255,.6),0 0 40px rgba(61,155,255,.9)}
+html.neo .pop .pav::before,html.neo .pop .pav::after{border-color:rgba(124,196,255,.85)}
+html.neo .pop .nm{color:#fff;font-weight:700}
+html.neo .pop .sm{color:#7CE0FF;font-weight:800;text-shadow:0 0 22px rgba(80,200,255,.9)}
+html.neo .pop .tt{color:#CFE0FF}
+html.neo .pop .pl{background:rgba(124,196,255,.18);border:1px solid rgba(124,196,255,.45)}
+html.neo .pop .rays{opacity:.5;filter:hue-rotate(-20deg)}
 </style>
 </head>
 <body>
