@@ -910,7 +910,7 @@ function render0() {
 </div>
       <div class="col cd"><div class="ch"><span class="ci">${ICO.day}</span><b>Топ-${N} сегодня</b></div>
         <div class="lst" id="l2">${podium(TOPD)}${TOPD.slice(3).map((r, i) => mgrRow(r, i + 3, true, TOPD[0].daySum)).join('')}</div></div>
-      <div class="col cp"><div class="ch"><span class="ci">${ICO.per}</span><b>Топ-${N} месяца</b><span>${MONTHS[+MON.from.slice(5, 7) - 1]}</span></div>
+      <div class="col cp"><div class="ch"><span class="ci">${ICO.per}</span><b>Топ-${N} месяца</b></div>
         <div class="lst" id="l3">${TOPP.length ? TOPP.map((r, i) => mgrRow(r, i, false, TOPP[0].sum)).join('') : '<div class="li none">Пока нет продаж за месяц</div>'}</div></div>
     </div>
     ${REC.length && !PH ? `<div class="tickr" data-k="${esc(REC.map(x => x.name + x.sum).join('|'))}"><div class="tw2"><div class="tm" style="--d:${Math.max(25, REC.length * 6)}s">${[...REC, ...REC].map(x => `<span class="ti"><b>${esc(x.name)}</b>${x.dep ? ` <small>${esc(x.dep)}</small>` : ''} <em class="num">+${money(x.sum)}</em></span>`).join('')}</div></div></div>` : ''}`;
