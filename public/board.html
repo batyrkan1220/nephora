@@ -656,10 +656,95 @@ html.promo .ttl .dtl{color:rgba(255,255,255,.85)}
 .emptyday .edi{font-size:3.2em;animation:edf 2.4s ease-in-out infinite}
 .emptyday b{font-size:1.35em;color:var(--ink);font-weight:700}.emptyday span{font-size:.9em}
 @keyframes edf{50%{transform:translateY(-.25em) rotate(-6deg)}}
+
+/* ===================== NEO: тёмная неоновая тема ===================== */
+html.neo{--ink:#EAF2FF;--muted:#8FA6D6;--muted2:#A9BCE6;--line:rgba(120,170,255,.18);--soft:rgba(40,70,150,.35);--panel:rgba(14,30,80,.45);--blue:#3D9BFF;--blue2:#5FB2FF;--green:#22E39A;--cyan:#56D8FF}
+html.neo body{background:radial-gradient(120% 90% at 20% 0%,#0B2A6B 0%,#061436 45%,#030A1F 100%);color:var(--ink)}
+#neoBg,#neoGlobe,#neoWave{display:none}
+html.neo #neoBg{display:block;position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+html.neo #neoGlobe{display:block;position:fixed;right:-8vmin;top:22vh;width:46vmin;height:46vmin;border-radius:50%;z-index:0;pointer-events:none;opacity:.55;
+  background:radial-gradient(circle at 35% 35%,rgba(140,200,255,.55),rgba(40,110,255,.25) 40%,rgba(10,30,90,.0) 70%),radial-gradient(rgba(170,220,255,.8) 1px,transparent 1.6px) 0 0/9px 9px;
+  -webkit-mask:radial-gradient(circle,#000 62%,transparent 71%);mask:radial-gradient(circle,#000 62%,transparent 71%);box-shadow:0 0 120px 30px rgba(40,120,255,.25);animation:globe 60s linear infinite}
+@keyframes globe{to{background-position:0 0,-540px 0}}
+html.neo #neoWave{display:block;position:fixed;left:0;right:0;bottom:0;width:100%;height:28vh;z-index:0;pointer-events:none;opacity:.7}
+#neoWave path{fill:none;stroke-width:2.2;stroke-linecap:round}
+#neoWave .w1{stroke:rgba(80,170,255,.55);filter:drop-shadow(0 0 6px #3D9BFF);stroke-dasharray:1400 600;animation:wv 14s linear infinite}
+#neoWave .w2{stroke:rgba(120,90,255,.45);filter:drop-shadow(0 0 6px #7A5CFF);stroke-dasharray:900 500;animation:wv 20s linear infinite reverse}
+@keyframes wv{to{stroke-dashoffset:-4000}}
+html.neo #app{position:relative;z-index:1}
+/* шапка */
+html.neo .ttl h1,html.neo .ttl h1 b{font-weight:800;background:linear-gradient(90deg,#4FA8FF,#7CC4FF);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(61,155,255,.55))}
+html.neo .ttl .dtl{color:#9FB6E8}
+html.neo .stat,html.neo .stat.kp,html.neo .stat.kb,html.neo .clock{background:linear-gradient(160deg,rgba(40,80,180,.55),rgba(12,30,85,.6));color:#fff;border:1px solid rgba(110,170,255,.45);box-shadow:0 0 0 1px rgba(61,155,255,.12) inset,0 0 26px -6px rgba(61,155,255,.55);backdrop-filter:blur(6px)}
+html.neo .stat small{color:#B8CCF2}html.neo .stat b{color:#fff;font-weight:700;text-shadow:0 0 14px rgba(110,190,255,.6)}
+html.neo .stat .pb .tr{background:rgba(255,255,255,.12)}html.neo .stat .pb .tr i{background:linear-gradient(90deg,#3D9BFF,#7CD4FF);box-shadow:0 0 10px #3D9BFF}
+html.neo .stat .pb .pc{color:#7CD4FF}
+html.neo .clock{color:#7CD4FF;font-weight:700;border-radius:2em}
+/* колонки */
+html.neo .col,html.neo .col.cd,html.neo .col.cp{background:linear-gradient(170deg,rgba(18,40,110,.55),rgba(6,18,55,.55));border:1px solid rgba(100,160,255,.38);box-shadow:0 0 0 1px rgba(61,155,255,.08) inset,0 0 40px -12px rgba(40,120,255,.55),inset 0 1px 0 rgba(160,210,255,.25);backdrop-filter:blur(4px)}
+html.neo .ch{justify-content:center;position:relative}html.neo .ch b,html.neo .cd .ch b,html.neo .cp .ch b,html.neo .cs .ch b{color:#fff;text-transform:none;font-weight:600;letter-spacing:0;font-size:1.3em}
+html.neo .ch .ci,html.neo .cs .ci,html.neo .cd .ci,html.neo .cp .ci{background:radial-gradient(circle,#3D9BFF,#1A4FD0);box-shadow:0 0 14px #3D9BFF;border-radius:50%;width:1.9em;height:1.9em}
+html.neo .ch>span:last-child{position:absolute;right:.3em;background:rgba(80,140,255,.18);border:1px solid rgba(110,170,255,.35);color:#B8CCF2;border-radius:99px;padding:.15em .7em;font-size:.72em}
+/* строки */
+html.neo .li{background:linear-gradient(90deg,rgba(30,60,150,.55),rgba(14,32,90,.5));border:1px solid rgba(100,160,255,.35);box-shadow:0 0 18px -8px rgba(61,155,255,.6),inset 0 1px 0 rgba(170,215,255,.18);color:#fff}
+html.neo .li .nm{color:#fff}html.neo .li .dp{color:#9FB6E8}
+html.neo .li .v{color:#5FD0FF;text-shadow:0 0 12px rgba(80,190,255,.65);font-weight:700}
+html.neo .li .pl{background:rgba(255,255,255,.08);color:#CFE0FF;border:1px solid rgba(140,190,255,.45)}
+html.neo .li .sp{background:rgba(61,155,255,.22);color:#BFDcFF}html.neo .li .el{background:rgba(255,200,60,.18)!important;color:#FFD66B!important}
+html.neo .li.m1,html.neo .li.m1:not(.first){background:linear-gradient(90deg,rgba(255,196,40,.28),rgba(30,60,150,.5) 55%);border-color:rgba(255,205,80,.65)}
+html.neo .li.m2{background:linear-gradient(90deg,rgba(200,215,240,.22),rgba(30,60,150,.5) 55%);border-color:rgba(200,215,240,.55)}
+html.neo .li.m3{background:linear-gradient(90deg,rgba(230,130,70,.26),rgba(30,60,150,.5) 55%);border-color:rgba(240,150,90,.6)}
+html.neo .li.first{background:linear-gradient(90deg,#2F7BFF,#1D4FD8);border-color:#7CC4FF;box-shadow:0 0 30px -4px rgba(61,155,255,.9)}
+html.neo .li.first .v{color:#fff}
+html.neo .li .lb{background:linear-gradient(90deg,#3D9BFF,#7CD4FF)!important;box-shadow:0 0 8px #3D9BFF;opacity:.9}
+html.neo .li.none{background:transparent;border:1.5px dashed rgba(110,170,255,.4);color:#9FB6E8}
+/* секторы */
+html.neo .scd,html.neo .slst.many .scd,html.neo .slst.many .scd.lead{background:linear-gradient(95deg,color-mix(in srgb,var(--c) 26%,rgba(12,28,80,.7)) 0%,rgba(12,28,80,.55) 60%);border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-left:.4em solid var(--c);box-shadow:0 0 22px -8px var(--c),inset 0 1px 0 rgba(255,255,255,.12);color:#fff;overflow:visible}
+html.neo .scd .sh1 b{color:#fff}html.neo .scd .sh1 small,html.neo .scd .sdat small{color:#9FB6E8}
+html.neo .scd .sdat>b{color:#fff}html.neo .scd .sline{color:#A9BCE6}html.neo .scd .sline b{color:#fff}
+html.neo .ring,html.neo .ring.ok{background:radial-gradient(closest-side,#0B1E55 74%,transparent 75% 100%),conic-gradient(var(--c) calc(var(--p)*1%),rgba(255,255,255,.12) 0);box-shadow:0 0 18px -4px var(--c)}
+html.neo .ring.ok{background:radial-gradient(closest-side,#0B1E55 74%,transparent 75% 100%),conic-gradient(var(--green) calc(var(--p)*1%),rgba(255,255,255,.12) 0)}
+html.neo .ring span{color:#fff}html.neo .ring small{color:#9FB6E8}
+html.neo .scd .tag{background:rgba(255,200,60,.2);color:#FFD66B}
+/* светящиеся сферы между карточками секторов */
+html.neo .slst.many .scd+.scd::before{content:"";position:absolute;left:34%;top:-1.25em;width:2.5em;height:2.5em;border-radius:50%;z-index:2;pointer-events:none;
+  background:radial-gradient(circle at 35% 30%,#fff 0%,#9FD4FF 12%,#3D9BFF 38%,rgba(20,60,200,.4) 62%,transparent 72%);box-shadow:0 0 22px 6px rgba(61,155,255,.55);animation:orb 5s ease-in-out infinite}
+html.neo .slst.many .scd:nth-child(odd)::before{animation-delay:-2.5s}
+@keyframes orb{50%{transform:scale(1.12) rotate(180deg);box-shadow:0 0 30px 10px rgba(100,180,255,.7)}}
+/* подиум */
+.podium{display:none}
+html.neo .podium{display:block;position:relative;flex:none;height:15.5em;margin-bottom:.4em}
+html.neo .pdt{position:absolute;left:0;right:0;top:-.3em;width:100%;height:3.4em}
+html.neo .pdt text{font:900 46px Inter,system-ui,sans-serif;fill:url(#none);fill:#5FB2FF;letter-spacing:2px;filter:drop-shadow(0 0 8px #3D9BFF)}
+html.neo .pdbeam{position:absolute;left:20%;right:20%;top:2.5em;bottom:2em;background:conic-gradient(from 180deg at 50% 0%,transparent 160deg,rgba(90,170,255,.28) 175deg,rgba(150,210,255,.4) 180deg,rgba(90,170,255,.28) 185deg,transparent 200deg);filter:blur(4px);animation:beam 3.5s ease-in-out infinite}
+@keyframes beam{50%{opacity:.55}}
+html.neo .pdrow{position:absolute;left:0;right:0;bottom:1.2em;display:flex;justify-content:center;align-items:flex-end;gap:1.2em}
+html.neo .pdp{display:flex;flex-direction:column;align-items:center;width:30%;animation:pdin .9s cubic-bezier(.2,.8,.2,1.2) both}
+html.neo .pdp.p2{animation-delay:.25s}.pdp.p3{animation-delay:.4s}
+@keyframes pdin{from{transform:translateY(1.5em);opacity:0}}
+html.neo .pdav{position:relative;border-radius:50%;padding:.18em;background:linear-gradient(135deg,#9FD4FF,#3D9BFF);box-shadow:0 0 22px rgba(61,155,255,.85)}
+html.neo .pdav .av{width:4.2em;height:4.2em;font-size:1em;border-radius:50%;border:2px solid #0B1E55}
+html.neo .p1 .pdav .av{width:5.4em;height:5.4em}
+html.neo .pdav.q{width:4.2em;height:4.2em;display:grid;place-items:center;font-size:1.6em;font-weight:800;color:#7CC4FF;background:rgba(61,155,255,.15);border:2px dashed rgba(110,170,255,.6);box-shadow:none}
+html.neo .pdcr{position:absolute;left:50%;top:-1.1em;width:2.2em;transform:translateX(-50%) rotate(-8deg);filter:drop-shadow(0 0 6px rgba(255,200,60,.8))}
+html.neo .pdn{margin-top:.35em;font-size:1.05em;color:#fff;font-weight:700;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+html.neo .pdv{font-size:.95em;color:#5FD0FF;font-weight:700;text-shadow:0 0 10px rgba(80,190,255,.7)}
+html.neo .pdst{margin-top:.35em;width:100%;border-radius:.6em .6em .2em .2em;background:linear-gradient(180deg,#3D7BFF,#1532A8);box-shadow:0 0 22px -2px rgba(61,155,255,.8),inset 0 2px 0 rgba(180,220,255,.6);display:grid;place-items:center}
+html.neo .pdst i{font-style:normal;font-weight:900;color:#fff;font-size:1.3em;text-shadow:0 0 10px #9FD4FF}
+html.neo .p1 .pdst{height:3.4em}html.neo .p2 .pdst{height:2.4em}html.neo .p3 .pdst{height:1.8em}
+html.neo .pdbase{position:absolute;left:6%;right:6%;bottom:.3em;height:1.2em;border-radius:50%;background:radial-gradient(ellipse,rgba(80,160,255,.6),transparent 70%);filter:blur(3px)}
+html.neo .podium.empty .pdst{opacity:.6}
+html.neo .lpcap{margin-top:auto;text-align:center;background:linear-gradient(180deg,#2A63E8,#163FB4);border:1px solid #7CC4FF;border-radius:.9em;padding:.7em 1em;box-shadow:0 0 24px -6px rgba(61,155,255,.9)}
+html.neo .lpcap b{display:block;font-size:1.35em;color:#fff}html.neo .lpcap span{color:#CFE0FF;font-size:.9em}
+html.neo .emptyday{display:none}
+/* бегущая строка, попап */
+html.neo .tickr{background:rgba(14,32,90,.6);border:1px solid rgba(100,160,255,.35)}html.neo .ti b{color:#fff}html.neo .ti small{color:#9FB6E8}html.neo .ti em{color:#22E39A}
+html.neo .medal{filter:drop-shadow(0 0 6px rgba(255,210,90,.6))}
 </style>
 </head>
 <body>
 <div class="aura"><i></i><i></i><i></i><i></i></div>
+<canvas id="neoBg"></canvas><div id="neoGlobe"></div><svg id="neoWave" viewBox="0 0 1920 300" preserveAspectRatio="none"><path class="w1" d="M0,200 C300,120 600,280 960,180 C1320,80 1620,240 1920,160"/><path class="w2" d="M0,230 C360,170 700,300 1000,210 C1300,120 1600,260 1920,200"/></svg>
 <div id="app"><div class="center">Загрузка…</div></div>
 
 <script>
@@ -777,6 +862,14 @@ function render0() {
       <span class="v num dlk" data-uid="${r.uid}" data-scope="${today ? 'day' : 'month'}" data-nm="${esc(r.name)}" title="Сделки в CRM">${CU((today ? 'd-' : 'p-') + r.uid, v)}</span>
       <i class="lb" style="width:${w.toFixed(1)}%"></i></div>`;
   };
+  // подиум дня: топ-3 на пьедестале (2 · 1 · 3), лучи света; пусто — ждём первую продажу
+  const podium = L => {
+    const P = [L[1], L[0], L[2]], H = ['p2', 'p1', 'p3'], R = [2, 1, 3];
+    return `<div class="podium ${L.length ? '' : 'empty'}"><svg class="pdt" viewBox="0 0 600 110"><defs><path id="pdArc" d="M40,100 Q300,10 560,100"/></defs><text><textPath href="#pdArc" startOffset="50%" text-anchor="middle">${L.length ? 'ДЕНЬ ПОБЕДИТЕЛЕЙ!' : 'ЖДЁМ ПЕРВУЮ ПРОДАЖУ'}</textPath></text></svg>
+      <div class="pdbeam"></div><div class="pdrow">${P.map((r, k) => `<div class="pdp ${H[k]} ${r ? '' : 'none'}">${r ? `<div class="pdav">${av(r)}${R[k] === 1 ? '<svg class="pdcr" viewBox="0 0 24 16"><path d="M2 14L1 3l6 5 5-7 5 7 6-5-1 11z" fill="#fcd94a" stroke="#d99a00" stroke-width="1.2" stroke-linejoin="round"/></svg>' : ''}</div>
+        <b class="pdn">${esc(String(r.name).split(' ')[0])}</b><span class="pdv num dlk" data-uid="${r.uid}" data-scope="day" data-nm="${esc(r.name)}">${money(r.daySum)}</span>` : '<div class="pdav q">?</div><b class="pdn">—</b>'}
+        <div class="pdst"><i>${R[k]}</i></div></div>`).join('')}</div><div class="pdbase"></div></div>`;
+  };
   const slot = i => `<div class="li slot" style="--i:${i}">${`<span class="pl num">${i + 1}</span>`}<div class="w"><div class="nm">Свободное место</div><div class="dp">ждём первую продажу</div></div></div>`;
   const ICO = {
     sec: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
@@ -788,6 +881,7 @@ function render0() {
   const oldTick = $('.tickr'); if (oldTick) oldTick.remove();
   const PR = D.board.screen.promo || {}, prOn = PR.on && (!PR.from || D.period.today >= PR.from) && (!PR.to || D.period.today <= PR.to);
   document.documentElement.classList.toggle('promo', !!prOn);
+  document.documentElement.classList.toggle('neo', !prOn);
   if (prOn) document.documentElement.style.setProperty('--pr', PR.color || '#E53935');
   $('#app').innerHTML = `
     <div class="hd">
@@ -809,7 +903,7 @@ function render0() {
         <div class="slst ${SEC.length > (PT ? 2 : 3) ? 'many' : ''}" id="l1">${SEC.length ? SEC.map(secCard).join('') : '<div class="li none">Секторы появятся после синхронизации с Bitrix24</div>'}</div>
 </div>
       <div class="col cd"><div class="ch"><span class="ci">${ICO.day}</span><b>Топ-${N} сегодня</b><span>касса за день</span></div>
-        <div class="lst" id="l2">${TOPD.length ? TOPD.map((r, i) => mgrRow(r, i, true, TOPD[0].daySum)).join('') + Array.from({ length: Math.max(0, N - TOPD.length) }, (_, k) => slot(TOPD.length + k)).join('') : `<div class="emptyday"><div class="edi">🚀</div><b>Ждём первую продажу дня</b><span>Первый, кто продаст, займёт 1-е место</span></div>`}</div></div>
+        <div class="lst" id="l2">${podium(TOPD)}${TOPD.slice(3).map((r, i) => mgrRow(r, i + 3, true, TOPD[0].daySum)).join('')}${TOPD.length ? '' : '<div class="lpcap"><b>Leader Podium</b><span>Первый, кто продаст, займёт 1-е место</span></div>'}</div></div>
       <div class="col cp"><div class="ch"><span class="ci">${ICO.per}</span><b>Топ-${N} месяца</b><span>${MONTHS[+MON.from.slice(5, 7) - 1]}</span></div>
         <div class="lst" id="l3">${TOPP.length ? TOPP.map((r, i) => mgrRow(r, i, false, TOPP[0].sum)).join('') : '<div class="li none">Пока нет продаж за месяц</div>'}</div></div>
     </div>
@@ -1164,6 +1258,18 @@ async function load() {
 }
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 200); });
 load();
+</script>
+
+<script>
+// фон NEO: лёгкая «сеть» светящихся частиц (мало точек, 30 fps — не грузит ТВ)
+(() => { const c = document.getElementById('neoBg'); if (!c) return; const x = c.getContext('2d'); let W, H, P = [];
+  const fit = () => { W = c.width = innerWidth; H = c.height = innerHeight; P = Array.from({ length: Math.round(W * H / 38000) }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .25, vy: (Math.random() - .5) * .25, r: Math.random() * 1.6 + .4 })); };
+  fit(); addEventListener('resize', fit); let last = 0;
+  const step = t => { requestAnimationFrame(step); if (!document.documentElement.classList.contains('neo') || t - last < 33) return; last = t; x.clearRect(0, 0, W, H);
+    for (const p of P) { p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1; }
+    x.lineWidth = .6; for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) { const a = P[i], b = P[j], d = Math.hypot(a.x - b.x, a.y - b.y); if (d < 120) { x.strokeStyle = `rgba(90,170,255,${(1 - d / 120) * .22})`; x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); x.stroke(); } }
+    for (const p of P) { x.fillStyle = 'rgba(150,210,255,.8)'; x.beginPath(); x.arc(p.x, p.y, p.r, 0, 7); x.fill(); } };
+  requestAnimationFrame(step); })();
 </script>
 </body>
 </html>
